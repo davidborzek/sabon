@@ -1,0 +1,15 @@
+# Snapshotter image for the "zfs" snapshot strategy. It owns the *transport*: the
+# entrypoint enters the host namespaces with nsenter and runs the HOST's own
+# `zfs` binary, so sabon only passes zfs subcommand args and stays mechanism-
+# agnostic (see internal/snapshot/providers/zfs). Kept tiny on purpose.
+#
+# To avoid nsenter/--pid=host entirely, swap SABON_SNAPSHOT_ZFS_IMAGE for an
+# image that bundles zfs and sets `ENTRYPOINT ["zfs"]`; no sabon change needed.
+#
+# renovate: datasource=docker depName=alpine
+FROM alpine:3.21
+RUN apk add --no-cache util-linux-misc
+
+# --mount is the one that matters (host /sbin/zfs, libraries, /dev/zfs); the
+# rest give a full host view. Args passed by sabon become the zfs subcommand.
+ENTRYPOINT ["nsenter", "--target", "1", "--mount", "--uts", "--ipc", "--net", "--pid", "--", "zfs"]

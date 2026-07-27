@@ -1,0 +1,13 @@
+# Used by goreleaser (dockers_v2): binaries are built per-platform and laid out
+# under $TARGETPLATFORM in the build context; buildx builds a multi-arch image.
+# The from-source build lives in ./Dockerfile.
+
+# renovate: datasource=docker depName=restic/restic
+FROM restic/restic:0.18.0 AS restic
+
+FROM gcr.io/distroless/static:nonroot
+ARG TARGETPLATFORM
+COPY --from=restic /usr/bin/restic /usr/bin/restic
+COPY $TARGETPLATFORM/sabon /sabon
+USER nonroot:nonroot
+ENTRYPOINT ["/sabon"]
