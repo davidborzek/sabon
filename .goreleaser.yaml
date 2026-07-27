@@ -52,8 +52,9 @@ dockers_v2:
       - ghcr.io/davidborzek/sabon
     tags:
       - "{{ .Version }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - latest
+      # Floating tags track the latest STABLE release only — never a prerelease.
+      - "{{ if not .Prerelease }}{{ .Major }}.{{ .Minor }}{{ end }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
     dockerfile: Dockerfile.goreleaser
     platforms:
       - linux/amd64
@@ -74,6 +75,9 @@ changelog:
 
 release:
   mode: append
+  # Tags with a prerelease segment (e.g. v0.1.0-alpha.1) are marked as GitHub
+  # pre-releases and never become "latest".
+  prerelease: auto
   github:
     owner: davidborzek
     name: sabon
