@@ -12,6 +12,7 @@ import (
 	"github.com/davidborzek/sabon/internal/metrics"
 	"github.com/davidborzek/sabon/internal/notify"
 	"github.com/davidborzek/sabon/internal/reconcile"
+	remoteapi "github.com/davidborzek/sabon/internal/remote/api/v1"
 	"github.com/davidborzek/sabon/internal/scheduler"
 	"github.com/urfave/cli/v2"
 )
@@ -67,6 +68,9 @@ func runDaemon(cCtx *cli.Context) error {
 	rec := reconcile.New(ctx, disc, orch, cfg, sched, m, notifier, logger)
 	if err := rec.Reconcile(); err != nil {
 		logger.Error("initial reconcile failed", "error", err)
+	}
+	if cfg.APIAddr != "" {
+		remoteapi.New(rec, cfg.APIToken, logger).Serve(ctx, cfg.APIAddr)
 	}
 	var startupWG sync.WaitGroup
 	if cfg.RunOnStartup {

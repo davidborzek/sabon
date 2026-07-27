@@ -101,7 +101,10 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		Mounts:         mounts,
 		Binds:          binds,
 		KeepOnShutdown: !job.Spec.Stop,
+		Labels:         moverLabels(job.App, target.Name, "backup"),
+		Retain:         true,
 	}
+	log.Debug("spawning mover", "name", req.Name, "image", req.Image, "user", req.User, "sources", len(srcMounts))
 	res, kept, runErr := o.runner.Run(ctx, req)
 	keptMover = kept
 
@@ -173,6 +176,8 @@ func (o *Orchestrator) RunCheck(ctx context.Context, app string, target api.Targ
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
+		Labels: moverLabels(app, target.Name, "check"),
+		Retain: true,
 	})
 	return err
 }
@@ -205,6 +210,8 @@ func (o *Orchestrator) RunPrune(ctx context.Context, app string, target api.Targ
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
+		Labels: moverLabels(app, target.Name, "prune"),
+		Retain: true,
 	})
 	return err
 }
@@ -277,6 +284,17 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
+		Labels: moverLabels(app, target.Name, "restore"),
+		Retain: true,
 	})
 	return err
+}
+
+// moverLabels tags a mover with the run-history labels the API reads back.
+func moverLabels(app, target, action string) map[string]string {
+	return map[string]string{
+		mover.LabelApp:    app,
+		mover.LabelTarget: target,
+		mover.LabelAction: action,
+	}
 }

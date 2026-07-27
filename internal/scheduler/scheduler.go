@@ -65,6 +65,7 @@ func (s *Scheduler) Sync(desired []Job) {
 	for key, e := range s.entries {
 		j, keep := want[key]
 		if !keep || j.Schedule != e.schedule || j.Fingerprint != e.fingerprint {
+			s.log.Debug("unscheduling job", "key", key)
 			s.cron.Remove(e.id)
 			delete(s.entries, key)
 		}
@@ -80,6 +81,7 @@ func (s *Scheduler) Sync(desired []Job) {
 			s.log.Warn("invalid schedule, skipping", "key", key, "schedule", j.Schedule, "error", err)
 			continue
 		}
+		s.log.Debug("scheduled job", "key", key, "schedule", j.Schedule)
 		s.entries[key] = entry{id: id, schedule: j.Schedule, fingerprint: j.Fingerprint}
 	}
 }

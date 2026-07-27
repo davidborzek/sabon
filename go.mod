@@ -3,6 +3,7 @@ module github.com/davidborzek/sabon
 go 1.26.5
 
 require (
+	github.com/containerd/errdefs v1.0.0
 	github.com/containrrr/shoutrrr v0.8.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/invopop/jsonschema v0.13.0
@@ -18,7 +19,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect

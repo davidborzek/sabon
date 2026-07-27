@@ -30,6 +30,7 @@ type Config struct {
 	MoverGroups         []string // SABON_MOVER_GROUPS: extra supplementary groups (GIDs) added to movers
 	MoverNetwork        string   // optional docker network to attach movers to
 	CacheVolume         string   // shared restic cache volume name
+	MoverHistory        int      // SABON_MOVER_HISTORY: exited movers kept per app/target/action for run history; 0 = keep none
 	RunOnStartup        bool
 	Instance            string        // SABON_INSTANCE: only manage containers whose sabon.instance matches; empty = all
 	MaxParallel         int           // SABON_MAX_PARALLEL: cap concurrent movers; 0 = unlimited
@@ -41,6 +42,8 @@ type Config struct {
 	NotifyOn            string        // "failure" (default) or "always"
 	NotifyTitleTemplate string        // SABON_NOTIFY_TITLE_TEMPLATE (inline or @file); empty = built-in default
 	NotifyTemplate      string        // SABON_NOTIFY_TEMPLATE (inline or @file); empty = built-in default
+	APIAddr             string        // SABON_API_ADDR: control HTTP API listen addr; empty disables
+	APIToken            string        // SABON_API_TOKEN: bearer token required when the API is enabled
 	Targets             []api.Target
 }
 
@@ -59,6 +62,7 @@ func Load() (*Config, error) {
 		MoverGroups:      envList("SABON_MOVER_GROUPS"),
 		MoverNetwork:     env("SABON_MOVER_NETWORK", ""),
 		CacheVolume:      env("SABON_CACHE_VOLUME", "sabon-cache"),
+		MoverHistory:     envInt("SABON_MOVER_HISTORY", 3),
 		RunOnStartup:     envBool("SABON_RUN_ON_STARTUP", false),
 		Instance:         env("SABON_INSTANCE", ""),
 		MaxParallel:      envInt("SABON_MAX_PARALLEL", 0),
@@ -68,6 +72,8 @@ func Load() (*Config, error) {
 		SnapshotZFSImage: env("SABON_SNAPSHOT_ZFS_IMAGE", ""),
 		NotifyURLs:       envList("SABON_NOTIFY_URLS"),
 		NotifyOn:         env("SABON_NOTIFY_ON", "failure"),
+		APIAddr:          env("SABON_API_ADDR", ""),
+		APIToken:         env("SABON_API_TOKEN", ""),
 	}
 	if c.ResyncInterval <= 0 {
 		c.ResyncInterval = 5 * time.Minute

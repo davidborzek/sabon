@@ -20,6 +20,7 @@ nav = [
   { "Reference" = [
     { "Observability" = "metrics.md" },
     { "Architecture" = "architecture.md" },
+    { "API" = "api.md" },
   ] },
 ]
 

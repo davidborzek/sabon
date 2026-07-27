@@ -7,6 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"math/rand/v2"
 	"time"
@@ -77,18 +79,19 @@ func (r *Reconciler) Reconcile() error {
 			desired = append(desired, scheduler.Job{
 				Key:      app + "|" + target.Name + "|check",
 				Schedule: target.Check,
-				Run:      func() { r.jitter(r.ctx); r.runCheck(r.ctx, app, target) },
+				Run:      func() { r.jitter(r.ctx); _ = r.runCheck(r.ctx, app, target) },
 			})
 		}
 		if target.Prune != "" {
 			desired = append(desired, scheduler.Job{
 				Key:      app + "|" + target.Name + "|prune",
 				Schedule: target.Prune,
-				Run:      func() { r.jitter(r.ctx); r.runPrune(r.ctx, app, target) },
+				Run:      func() { r.jitter(r.ctx); _ = r.runPrune(r.ctx, app, target) },
 			})
 		}
 	}
 	r.sched.Sync(desired)
+	r.log.Debug("reconciled", "jobs", len(jobs), "scheduled", r.sched.Len())
 	activeApps := make(map[string]bool, len(jobs))
 	for _, j := range jobs {
 		activeApps[j.App] = true
@@ -165,7 +168,7 @@ func (r *Reconciler) runOnce(ctx context.Context, job discovery.Job, target api.
 
 // runCheck runs `restic check` for an app/target, records metrics, and notifies
 // on failure.
-func (r *Reconciler) runCheck(ctx context.Context, app string, target api.Target) {
+func (r *Reconciler) runCheck(ctx context.Context, app string, target api.Target) error {
 	log := r.log.With("app", app, "target", target.Name)
 	log.Info("repository check starting")
 	start := time.Now()
@@ -175,14 +178,15 @@ func (r *Reconciler) runCheck(ctx context.Context, app string, target api.Target
 	if err != nil {
 		log.Error("repository check failed", "error", err, "duration", dur)
 		r.sendNotify(notify.Data{Event: "check", App: app, Target: target.Name, Duration: dur.Round(time.Second), Error: err.Error()})
-		return
+		return err
 	}
 	log.Info("repository check ok", "duration", dur)
+	return nil
 }
 
 // runPrune runs `restic prune` for an app/target, records metrics, and notifies
 // on failure.
-func (r *Reconciler) runPrune(ctx context.Context, app string, target api.Target) {
+func (r *Reconciler) runPrune(ctx context.Context, app string, target api.Target) error {
 	log := r.log.With("app", app, "target", target.Name)
 	log.Info("repository prune starting")
 	start := time.Now()
@@ -192,9 +196,10 @@ func (r *Reconciler) runPrune(ctx context.Context, app string, target api.Target
 	if err != nil {
 		log.Error("repository prune failed", "error", err, "duration", dur)
 		r.sendNotify(notify.Data{Event: "prune", App: app, Target: target.Name, Duration: dur.Round(time.Second), Error: err.Error()})
-		return
+		return err
 	}
 	log.Info("repository prune ok", "duration", dur)
+	return nil
 }
 
 // sendNotify delivers a notification per the configured policy: failures always
@@ -241,4 +246,139 @@ func jobFingerprint(job discovery.Job, target api.Target) string {
 		Target  api.Target
 	}{job.Sources, job.Spec, target})
 	return string(b)
+}
+
+// ── HTTP API surface ─────────────────────────────────────────────────────────
+// These expose the same operations as the CLI and scheduler for the optional
+// control API (internal/remote/api/v1), reusing target resolution, metrics and
+// notifications so an API-triggered run is indistinguishable from a scheduled
+// one. The Reconciler satisfies the remote API's Backend (internal/remote/api/v1).
+
+// ConfigTargets returns the configured backup targets.
+func (r *Reconciler) ConfigTargets() []api.Target { return r.cfg.Targets }
+
+// Jobs returns the currently discovered backup jobs.
+func (r *Reconciler) Jobs(ctx context.Context) ([]discovery.Job, error) {
+	return r.disc.List(ctx)
+}
+
+// resolve finds the discovered job for app plus the targets to act on: all of
+// the app's targets when targetName is empty, else just the named one (which
+// must be one the app backs up to).
+func (r *Reconciler) resolve(ctx context.Context, app, targetName string) (discovery.Job, []api.Target, error) {
+	jobs, err := r.disc.List(ctx)
+	if err != nil {
+		return discovery.Job{}, nil, err
+	}
+	var job discovery.Job
+	found := false
+	for _, j := range jobs {
+		if j.App == app {
+			job, found = j, true
+			break
+		}
+	}
+	if !found {
+		return discovery.Job{}, nil, fmt.Errorf("no backup job for app %q", app)
+	}
+	targets := r.targetsFor(job)
+	if targetName == "" {
+		return job, targets, nil
+	}
+	for _, t := range targets {
+		if t.Name == targetName {
+			return job, []api.Target{t}, nil
+		}
+	}
+	return discovery.Job{}, nil, fmt.Errorf("app %q does not back up to target %q", app, targetName)
+}
+
+// Backup runs a backup of app to targetName (empty = all its targets).
+func (r *Reconciler) Backup(ctx context.Context, app, targetName string) error {
+	job, targets, err := r.resolve(ctx, app, targetName)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, t := range targets {
+		if err := r.runOnce(ctx, job, t); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// Check runs a repository check for app on targetName (empty = all its targets).
+func (r *Reconciler) Check(ctx context.Context, app, targetName string) error {
+	_, targets, err := r.resolve(ctx, app, targetName)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, t := range targets {
+		if err := r.runCheck(ctx, app, t); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// Prune runs a repository prune for app on targetName (empty = all its targets).
+func (r *Reconciler) Prune(ctx context.Context, app, targetName string) error {
+	_, targets, err := r.resolve(ctx, app, targetName)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, t := range targets {
+		if err := r.runPrune(ctx, app, t); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// Snapshots lists the restic snapshots for app in targetName, writing restic's
+// output to out. targetName is required (a snapshot list is per repository).
+func (r *Reconciler) Snapshots(ctx context.Context, app, targetName string, out io.Writer) error {
+	if targetName == "" {
+		return fmt.Errorf("target is required")
+	}
+	_, targets, err := r.resolve(ctx, app, targetName)
+	if err != nil {
+		return err
+	}
+	return r.orch.RunSnapshots(ctx, app, targets[0], out)
+}
+
+// Restore restores app from targetName (required). With opts.Into set it stages
+// into a host dir; otherwise it restores in-place into the app's live volumes.
+func (r *Reconciler) Restore(ctx context.Context, app, targetName string, opts backup.RestoreOptions, out io.Writer) error {
+	if targetName == "" {
+		return fmt.Errorf("target is required")
+	}
+	job, targets, err := r.resolve(ctx, app, targetName)
+	if err != nil {
+		return err
+	}
+	var jp *discovery.Job
+	if opts.Into == "" {
+		jp = &job // in-place needs the live container
+	}
+	return r.orch.RunRestore(ctx, app, jp, targets[0], opts, out)
+}
+
+// ListRuns returns retained mover runs (run history), newest first.
+func (r *Reconciler) ListRuns(ctx context.Context, app, target string) ([]backup.RunInfo, error) {
+	return r.orch.ListRuns(ctx, app, target)
+}
+
+// GetRun returns one run by id (its mover container id).
+func (r *Reconciler) GetRun(ctx context.Context, id string) (backup.RunInfo, bool, error) {
+	return r.orch.GetRun(ctx, id)
+}
+
+// RunLogs writes a run's mover logs (restic output) to out.
+func (r *Reconciler) RunLogs(ctx context.Context, id string, out io.Writer) error {
+	return r.orch.RunLogs(ctx, id, out)
 }

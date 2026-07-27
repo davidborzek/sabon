@@ -91,6 +91,7 @@ func (d *Discoverer) List(ctx context.Context) ([]Job, error) {
 			continue
 		}
 		jobs = append(jobs, job)
+		d.log.Debug("discovered job", "app", job.App, "container", name(c), "sources", len(job.Sources))
 	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
@@ -195,7 +196,8 @@ func (d *Discoverer) Watch(ctx context.Context, onRestart func()) <-chan struct{
 				select {
 				case <-ctx.Done():
 					return
-				case <-msgs:
+				case msg := <-msgs:
+					d.log.Debug("container event", "action", string(msg.Action), "container", msg.Actor.Attributes["name"])
 					signal(out)
 				case err := <-errs:
 					if ctx.Err() != nil {
