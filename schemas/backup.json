@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/davidborzek/sabon/api/spec",
+  "$ref": "#/$defs/Spec",
+  "$defs": {
+    "Hook": {
+      "properties": {
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Command argv to execute"
+        },
+        "container": {
+          "type": "string",
+          "description": "exec mode: existing container to exec in (default: the labeled container)"
+        },
+        "image": {
+          "type": "string",
+          "description": "run mode: image for a fresh one-shot container (instead of exec-ing an existing one)"
+        },
+        "user": {
+          "type": "string",
+          "description": "User to run the command as"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Extra environment variables; values support ${ENV} expansion"
+        },
+        "network": {
+          "type": "string",
+          "description": "run mode: Docker network to attach the one-shot container to"
+        },
+        "volumes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "run mode: mounts as source:/target[:ro] (source = volume name or host path)"
+        },
+        "timeout": {
+          "type": "string",
+          "description": "Optional hook timeout as a Go duration (e.g. 5m); empty = no timeout"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "command"
+      ]
+    },
+    "Retention": {
+      "properties": {
+        "last": {
+          "type": "integer",
+          "description": "Keep the N most recent snapshots"
+        },
+        "hourly": {
+          "type": "integer",
+          "description": "Keep N hourly snapshots"
+        },
+        "daily": {
+          "type": "integer",
+          "description": "Keep N daily snapshots"
+        },
+        "weekly": {
+          "type": "integer",
+          "description": "Keep N weekly snapshots"
+        },
+        "monthly": {
+          "type": "integer",
+          "description": "Keep N monthly snapshots"
+        },
+        "yearly": {
+          "type": "integer",
+          "description": "Keep N yearly snapshots"
+        },
+        "within": {
+          "type": "string",
+          "description": "Keep all snapshots within a duration (restic --keep-within"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Spec": {
+      "properties": {
+        "repo": {
+          "type": "string",
+          "description": "Repository name (the {app} in a target template); default: compose service/container name"
+        },
+        "auto": {
+          "type": "boolean",
+          "description": "Include the labeled container's own mounts as sources (default: true)"
+        },
+        "extraVolumes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Extra named volumes to include on top of the auto-discovered set"
+        },
+        "excludeVolumes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Named volumes to drop from the auto-discovered set (auto: true); does not affect the explicit extraVolumes list or file-level exclude patterns"
+        },
+        "extraPaths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Extra host paths (bind mounts) to include"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "restic --exclude patterns"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Extra restic tags added to each snapshot"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetSpec"
+          },
+          "type": "array",
+          "description": "Targets to back up to; each entry is a target name or an object with a name plus per-target overrides. Default: all configured targets"
+        },
+        "stop": {
+          "type": "boolean",
+          "description": "Stop the labeled container during the backup and restart it afterwards"
+        },
+        "preHooks": {
+          "items": {
+            "$ref": "#/$defs/Hook"
+          },
+          "type": "array",
+          "description": "Commands to exec before the backup"
+        },
+        "postHooks": {
+          "items": {
+            "$ref": "#/$defs/Hook"
+          },
+          "type": "array",
+          "description": "Commands to exec after the backup"
+        },
+        "timeout": {
+          "type": "string",
+          "description": "Per-app backup timeout as a Go duration (e.g. 2h); empty uses the global default"
+        },
+        "user": {
+          "type": "string",
+          "description": "uid[:gid] the mover runs as for this app; overrides SABON_MOVER_USER"
+        },
+        "groups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Extra supplementary groups (GIDs) added to the mover; overrides SABON_MOVER_GROUPS"
+        },
+        "snapshot": {
+          "type": "string",
+          "description": "Source snapshot strategy: none | zfs | auto (auto snapshots ZFS sources and mounts the rest live); overrides SABON_SNAPSHOT"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TargetSpec": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Target name"
+        },
+        {
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Target name"
+            },
+            "schedule": {
+              "type": "string",
+              "description": "Per-target cron override (6-field; seconds first)"
+            },
+            "retention": {
+              "$ref": "#/$defs/Retention",
+              "description": "Per-target retention override"
+            },
+            "excludeVolumes": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Named volumes not backed up to this target"
+            },
+            "excludePaths": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Host bind paths not backed up to this target"
+            },
+            "exclude": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Extra restic --exclude patterns for this target"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name"
+          ]
+        }
+      ]
+    }
+  }
+}

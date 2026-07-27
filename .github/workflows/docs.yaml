@@ -1,0 +1,50 @@
+name: docs
+
+# Versioned docs via Zensical's mike fork (https://zensical.org/docs/setup/versioning/):
+#   - every push to main updates the `dev` version;
+#   - every published release publishes `X.Y.Z` and moves the `latest` alias.
+# mike commits the built site to the `gh-pages` branch, so set the repository's
+# Pages source to "Deploy from a branch" -> gh-pages (one-time setting).
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - zensical.toml
+      - .github/workflows/docs.yaml
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      # Zensical + its fork of mike (mike is not published on PyPI).
+      - run: pip install zensical git+https://github.com/squidfunk/mike.git
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Deploy dev docs (main)
+        if: github.event_name != 'release'
+        run: mike deploy --push dev
+      - name: Deploy release docs
+        if: github.event_name == 'release'
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mike deploy --push --update-aliases "$version" latest
+          mike set-default --push latest
