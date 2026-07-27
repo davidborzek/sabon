@@ -7,7 +7,6 @@
 _사본 — Korean for "a copy". Declare a backup next to the service; sabon does the rest._
 
 [![CI](https://github.com/davidborzek/sabon/actions/workflows/ci.yaml/badge.svg)](https://github.com/davidborzek/sabon/actions/workflows/ci.yaml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/davidborzek/sabon)](https://goreportcard.com/report/github.com/davidborzek/sabon)
 [![Release](https://img.shields.io/github/v/release/davidborzek/sabon?sort=semver)](https://github.com/davidborzek/sabon/releases/latest)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://davidborzek.github.io/sabon/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
