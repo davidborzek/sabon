@@ -95,7 +95,7 @@ func TestBackupSnapshotsRestore(t *testing.T) {
 	// A labelled demo workload.
 	container := "sabon-e2e-app"
 	_, _ = run(t, "docker", "rm", "-f", container)
-	spec := "repo: " + app + "\nauto: false\npaths: [" + src + "]\n"
+	spec := "repo: " + app + "\nauto: false\nextraPaths: [" + src + "]\n"
 	if out, err := run(t, "docker", "run", "-d", "--name", container,
 		"-v", src+":/data",
 		"--label", "sabon.enable=true",
