@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/configuration/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/labels/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/hooks/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/backups/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/restore/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/deployment/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/metrics/</loc>
+      </url>
+      <url>
+        <loc>https://davidborzek.github.io/sabon/dev/architecture/</loc>
+      </url>
+</urlset>
