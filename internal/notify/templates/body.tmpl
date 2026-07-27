@@ -1,0 +1,5 @@
+{{- if eq .Event "backup" -}}
+Backup of {{ .App }} to {{ .Target }} {{ if .OK }}succeeded in {{ .Duration }} (snapshot {{ .SnapshotID | short }}, {{ .FilesNew }} new files, {{ .DataAdded | bytes }}).{{ else }}failed after {{ .Duration }}: {{ .Error }}{{ end }}
+{{- else -}}
+restic {{ .Event }} of {{ .App }} ({{ .Target }}) {{ if .OK }}ok in {{ .Duration }}{{ else }}FAILED after {{ .Duration }}: {{ .Error }}{{ end }}
+{{- end -}}

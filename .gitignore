@@ -1,0 +1,10 @@
+# build output
+/sabon
+/dist/
+
+# zensical docs build output
+/site/
+
+# test / coverage
+*.out
+*.tmp

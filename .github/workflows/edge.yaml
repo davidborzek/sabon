@@ -1,0 +1,72 @@
+name: edge
+
+# Continuous "edge" images built from main so you can run the latest development
+# state without cutting a release. These are NOT "latest" (that floating tag
+# tracks stable releases cut by release-please). The version is stamped "main"
+# so sabon's self-image defaults resolve to these edge images: the mover reuses
+# its own running image, and the zfs-snapshotter default becomes :main (built
+# by the second job below). A local/unstamped build stays "dev" and fail-closed.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - docs/**
+      - "**.md"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: edge
+  cancel-in-progress: true
+
+jobs:
+  sabon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/davidborzek/sabon
+          tags: |
+            type=raw,value=main
+            type=sha,prefix=sha-
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: VERSION=main
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  zfs-snapshotter:
+    # The ":main" snapshotter image the edge build's zfsSnapshotterImage default
+    # points at. Never "latest" (that tracks stable releases).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.zfs-snapshotter
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/davidborzek/sabon/zfs-snapshotter:main

@@ -1,0 +1,135 @@
+# A complete, self-contained sabon demo:
+#
+#   docker-socket-proxy  -> least-privilege Docker API access for the orchestrator
+#   sabon                -> the long-running orchestrator: discovers labelled
+#                           apps, schedules backups, and spawns ephemeral "mover"
+#                           containers that actually run restic
+#   app + db             -> an example workload: a tiny app with its own data
+#                           volume plus a postgres:17 database, backed up as one
+#                           logical app via a single `sabon.backup` label
+#
+# Try it:  RESTIC_PASSWORD=change-me docker compose up -d --build
+# Then:    docker compose exec sabon sabon validate
+#          docker compose exec sabon sabon snapshots --app demo --target onsite
+#
+# HEADS UP — this needs a real host directory for the onsite repo. Create it
+# first (the mover bind-mounts it directly, see below):
+#
+#   sudo mkdir -p /mnt/backup && sudo chown "$(id -u)" /mnt/backup
+name: sabon-example
+
+services:
+  # ── docker-socket-proxy ────────────────────────────────────────────────
+  # sabon needs Docker API *write* access — it CREATES, STARTS and REMOVES
+  # mover containers, mounts volumes into them, and (for exec-mode hooks)
+  # runs `exec` in your app containers. That is more than a read-only
+  # integration needs, so the proxy enables POST plus the specific
+  # resource groups sabon touches. On a trusted single-node host you may
+  # instead mount /var/run/docker.sock directly into sabon — but then sabon
+  # effectively has root on the host, so the proxy is preferred.
+  docker-socket-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:0.3.0
+    environment:
+      POST: 1 # allow write requests (create/start/remove/exec) — REQUIRED
+      CONTAINERS: 1 # list apps, read labels, create/start/remove movers
+      IMAGES: 1 # inspect the mover image before creating movers
+      VOLUMES: 1 # create/mount the restic cache + source volumes
+      EXEC: 1 # run exec-mode hooks (e.g. pg_dump) in app containers
+      EVENTS: 1 # stream container lifecycle events for discovery
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  # ── sabon (the orchestrator) ───────────────────────────────────────────
+  # Runs as nonroot and never runs restic itself. On the cron schedule (and
+  # once at startup here) it spawns a mover from its OWN image. Movers run as
+  # ROOT (SABON_MOVER_USER, default 0:0) because they must read arbitrary app
+  # data and write repositories — that is why Docker write access matters.
+  sabon:
+    build: .. # or:  image: ghcr.io/davidborzek/sabon:latest
+    environment:
+      DOCKER_HOST: tcp://docker-socket-proxy:2375 # talk to the proxy, not the raw socket
+      SABON_CONFIG: /etc/sabon/targets.yaml # the targets file mounted below
+      SABON_RUN_ON_STARTUP: "true" # back up once on boot so the demo has snapshots
+      SABON_LOG_LEVEL: info
+      # restic repo password, passed through to every mover. Override via your
+      # shell/.env — never commit a real password.
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-change-me}
+      # When sabon runs inside Docker it auto-detects its own image to reuse
+      # for movers. Set this explicitly if auto-detection can't (e.g. running
+      # the binary outside Docker):
+      # SABON_MOVER_IMAGE: ghcr.io/davidborzek/sabon:latest
+    volumes:
+      - ./targets.yaml:/etc/sabon/targets.yaml:ro
+      # The onsite repo lives here. This MUST be the same host path that the
+      # onsite target's `path:` names, because the mover bind-mounts that host
+      # path directly (via the Docker API) — not this container's mount. It is
+      # mounted into the orchestrator too so you can inspect the repo.
+      - /mnt/backup:/mnt/backup
+    ports:
+      - "9333:9333" # /metrics, /healthz, /readyz
+    depends_on:
+      - docker-socket-proxy
+    restart: unless-stopped
+
+  # ── example workload: a tiny app + its database ────────────────────────
+  # The `sabon.backup` label lives on the app and describes ONE logical
+  # backup job named "demo". It pulls in the app's own data automatically
+  # (`auto`), and — because a live Postgres data dir is not a consistent
+  # backup source — a preHook dumps the database into a shared volume that is
+  # explicitly added to the backup set. The mover then captures a clean dump
+  # alongside the app data.
+  app:
+    image: busybox
+    # Write some app data plus a cache dir (which we exclude from backups).
+    command: ["sh", "-c", "mkdir -p /data/cache && echo 'hello from sabon demo' > /data/app.txt && echo junk > /data/cache/tmp && sleep infinity"]
+    volumes:
+      - appdata:/data # the app's own data — picked up automatically by `auto`
+    depends_on:
+      - db
+    labels:
+      sabon.enable: "true" # opt in to being backed up
+      sabon.backup: |
+        repo: demo                 # per-app repo name -> /mnt/backup/demo (onsite)
+        auto: true                 # include this container's own mounts (appdata)
+        extraVolumes:
+          - sabon-demo-dbdump      # extra volume: the DB dump the preHook writes
+        exclude:
+          - /data/cache/**         # skip the app's throwaway cache
+        tags:
+          - demo
+          - compose
+        targets:
+          - onsite                 # which targets to write to (default: all)
+        preHooks:
+          # exec mode (default): run pg_dump *inside* the running db container,
+          # writing into /dump — a volume shared with the backup set below.
+          - command: ["sh", "-c", "pg_dump -U demo -d demo -f /dump/demo.sql"]
+            container: sabon-demo-db   # the existing container to exec in
+            user: postgres             # DB superuser in the official image
+            timeout: 5m
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    container_name: sabon-demo-db # stable name so the preHook can target it
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    volumes:
+      - pgdata:/var/lib/postgresql/data # live data — deliberately NOT in the backup set
+      - sabon-demo-dbdump:/dump # the preHook writes the consistent dump here
+    restart: unless-stopped
+
+volumes:
+  appdata:
+  pgdata:
+  # Explicit name so the value referenced in the label's `extraVolumes:` matches
+  # the real volume name (Compose would otherwise prefix it with the project).
+  sabon-demo-dbdump:
+    name: sabon-demo-dbdump
+  # Shared restic cache reused across movers (SABON_CACHE_VOLUME, default
+  # sabon-cache). Named explicitly for the same reason. Only movers mount it.
+  sabon-cache:
+    name: sabon-cache
