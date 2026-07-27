@@ -1115,6 +1115,9 @@ manager, schedule movers onto other nodes, or coordinate a cluster-wide
 repository. Volume locality makes backups inherently node-bound, so that
 cross-node orchestration is a non-goal.</p>
 <h2 id="docker-compose">Docker Compose<a class="headerlink" href="#docker-compose" title="Permanent link">&para;</a></h2>
+<p>Images live at <code>ghcr.io/davidborzek/sabon</code>. <code>latest</code> and <code>X.Y.Z</code>/<code>X.Y</code> track
+stable releases; <code>main</code> (and <code>sha-&lt;commit&gt;</code>) are rolling <strong>edge</strong> builds of the
+latest <code>main</code> for trying unreleased changes.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sabon</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">services</span><span class="p">:</span>
