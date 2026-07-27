@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -19,6 +20,14 @@ import (
 
 // LabelKey marks a container as a sabon-managed mover so orphans can be reaped.
 const LabelKey = "sabon.mover"
+
+// Labels recording a mover run, used for run history (the API reads them back)
+// and for history-aware reaping.
+const (
+	LabelApp    = "sabon.app"
+	LabelTarget = "sabon.target"
+	LabelAction = "sabon.action"
+)
 
 // Request is everything the orchestrator needs to run one mover.
 type Request struct {
@@ -34,6 +43,7 @@ type Request struct {
 	Stdout         io.Writer         // when set, stream mover logs here live (snapshots/restore)
 	Labels         map[string]string // extra labels (LabelKey is always set)
 	KeepOnShutdown bool              // leave the mover running if sabon is shutting down (not for cold backups)
+	Retain         bool              // keep the container after it exits (run history); reap trims per group
 }
 
 // Runner spawns and supervises mover containers.
@@ -132,6 +142,11 @@ func (r *Runner) Run(ctx context.Context, req Request) (Result, bool, error) {
 			return Result{}, false, fmt.Errorf("mover wait error: %s", st.Error.Message)
 		}
 	}
+	// Keep a retained mover after it exits so its status and logs remain
+	// available as run history; the reap trims each group to SABON_MOVER_HISTORY.
+	if req.Retain {
+		keep = true
+	}
 
 	// Live-streamed modes: logs already went to req.Stdout.
 	if streamDone != nil {
@@ -178,10 +193,11 @@ func (r *Runner) ensureImage(ctx context.Context, ref string) error {
 	return nil
 }
 
-// Reap removes EXITED leftover mover containers (from a crash or an aborted
-// shutdown). Running movers are left alone so an in-flight backup started by a
-// previous sabon process can finish; they are reaped once they exit.
-func (r *Runner) Reap(ctx context.Context) (int, error) {
+// Reap trims exited mover containers, keeping the newest `keep` per
+// (app, target, action) group as run history and removing the rest. Ephemeral
+// movers with no action label (snapshot/read leftovers) are removed once
+// exited. Running movers are always spared. keep <= 0 removes all exited movers.
+func (r *Runner) Reap(ctx context.Context, keep int) (int, error) {
 	list, err := r.cli.ContainerList(ctx, container.ListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.Arg("label", LabelKey)),
@@ -189,13 +205,34 @@ func (r *Runner) Reap(ctx context.Context) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	n := 0
+	groups := map[string][]container.Summary{}
+	var stray []container.Summary
 	for _, c := range list {
 		if c.State == "running" || c.State == "restarting" {
 			continue
 		}
-		if err := r.cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true}); err == nil {
+		if c.Labels[LabelAction] == "" {
+			stray = append(stray, c)
+			continue
+		}
+		key := c.Labels[LabelApp] + "|" + c.Labels[LabelTarget] + "|" + c.Labels[LabelAction]
+		groups[key] = append(groups[key], c)
+	}
+	n := 0
+	remove := func(id string) {
+		if err := r.cli.ContainerRemove(ctx, id, container.RemoveOptions{Force: true}); err == nil {
 			n++
+		}
+	}
+	for _, c := range stray {
+		remove(c.ID)
+	}
+	for _, cs := range groups {
+		sort.Slice(cs, func(i, j int) bool { return cs[i].Created > cs[j].Created })
+		for i, c := range cs {
+			if i >= keep {
+				remove(c.ID)
+			}
 		}
 	}
 	return n, nil

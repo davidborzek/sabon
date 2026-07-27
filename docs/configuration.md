@@ -38,7 +38,7 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ### `SABON_LOG_LEVEL`
 
-*default `info`* — `debug`, `info`, `warn`, `error`.
+*default `info`* — `debug`, `info`, `warn`, `error`. `debug` traces what the daemon does: discovered jobs and the container events that trigger reconciles, scheduler (re/un)registration, and the per-run mechanics — resolved snapshot mode, each host `zfs` call, snapshot create/destroy, and every mover spawn.
 
 ### `SABON_MOVER_IMAGE`
 
@@ -59,6 +59,10 @@ Per-container backup policy lives in **labels**, documented separately in
 ### `SABON_CACHE_VOLUME`
 
 *default `sabon-cache`* — Named volume mounted at `/cache` in movers as the shared restic cache.
+
+### `SABON_MOVER_HISTORY`
+
+*default `3`* — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the [HTTP API](api.md#run-history) or directly with `docker ps -a` / `docker logs`, and surviving restarts. `0` removes every exited mover (no history).
 
 ### `SABON_RUN_ON_STARTUP`
 
@@ -103,6 +107,14 @@ Per-container backup policy lives in **labels**, documented separately in
 ### `SABON_NOTIFY_TEMPLATE`
 
 *default: built-in* — Go text/template for the notification **body** (same `@file` support and data model as the title template).
+
+### `SABON_API_ADDR`
+
+*default: none* — Listen address for the [HTTP control API](api.md) (e.g. `:8080`); empty disables it. It is privileged (a restore overwrites live data) — bind it to loopback and put TLS in front.
+
+### `SABON_API_TOKEN`
+
+*default: none* — Bearer token for the API. When set, every request must carry it (`Authorization: Bearer <token>`). **Empty disables authentication** — every request is allowed and sabon logs a warning at startup; only acceptable for a loopback bind behind a trusted proxy. Recommended to set.
 
 ### `SABON_HOOK_ENV_<NAME>`
 

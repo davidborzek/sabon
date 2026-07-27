@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -26,16 +27,18 @@ const snapshotterLabel = "sabon.zfs-snapshotter"
 type dockerRunner struct {
 	cli   client.APIClient
 	image string
+	log   *slog.Logger
 }
 
-func newDockerRunner(cli client.APIClient, image string) *dockerRunner {
-	return &dockerRunner{cli: cli, image: image}
+func newDockerRunner(cli client.APIClient, image string, log *slog.Logger) *dockerRunner {
+	return &dockerRunner{cli: cli, image: image, log: log}
 }
 
 func (r *dockerRunner) run(ctx context.Context, args ...string) (string, error) {
 	if r.image == "" {
 		return "", fmt.Errorf("no zfs snapshotter image configured; set SABON_SNAPSHOT_ZFS_IMAGE")
 	}
+	r.log.Debug("running zfs", "args", args)
 	if err := r.ensureImage(ctx); err != nil {
 		return "", err
 	}
@@ -83,6 +86,7 @@ func (r *dockerRunner) ensureImage(ctx context.Context) error {
 	if _, err := r.cli.ImageInspect(ctx, r.image); err == nil {
 		return nil
 	}
+	r.log.Debug("pulling zfs snapshotter image", "image", r.image)
 	rc, err := r.cli.ImagePull(ctx, r.image, image.PullOptions{})
 	if err != nil {
 		return fmt.Errorf("pull %s: %w", r.image, err)

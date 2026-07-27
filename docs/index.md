@@ -135,6 +135,8 @@ docker compose exec sabon sabon backup --app paperless
 - [Architecture](architecture.md) — how it works under the hood: the
   orchestrator + ephemeral mover model, discovery, per-repo serialization, and
   crash/shutdown behaviour.
+- [HTTP API](api.md) — the optional, token-authenticated control API for
+  triggering runs and browsing durable run history.
 
 ## Images
 

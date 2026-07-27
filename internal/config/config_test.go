@@ -29,3 +29,20 @@ func TestLoadSnapshotMode(t *testing.T) {
 		}
 	})
 }
+
+func TestLoadAPITokenOptional(t *testing.T) {
+	t.Setenv("SABON_CONFIG", "/nonexistent/sabon/targets.yaml")
+	t.Setenv("SABON_API_ADDR", ":8080")
+	t.Run("without token", func(t *testing.T) {
+		t.Setenv("SABON_API_TOKEN", "")
+		if _, err := Load(); err != nil {
+			t.Errorf("API token is optional; Load must not fail without it: %v", err)
+		}
+	})
+	t.Run("with token", func(t *testing.T) {
+		t.Setenv("SABON_API_TOKEN", "secret")
+		if _, err := Load(); err != nil {
+			t.Errorf("Load with addr+token: %v", err)
+		}
+	})
+}

@@ -41,7 +41,7 @@ type snapshotter struct {
 // from image. instance (SABON_INSTANCE) namespaces snapshot names so Reap only
 // ever touches this instance's own snapshots.
 func New(cli client.APIClient, image, instance string, log *slog.Logger) snapshot.Snapshotter {
-	return &snapshotter{runner: newDockerRunner(cli, image), instance: instance, log: log}
+	return &snapshotter{runner: newDockerRunner(cli, image, log), instance: instance, log: log}
 }
 
 // Reap removes leftover snapshot infrastructure from a previous crash: exited
@@ -163,8 +163,10 @@ func (z *snapshotter) Snapshot(ctx context.Context, app string, sources []snapsh
 	if _, err := z.runner.run(ctx, append([]string{"snapshot"}, snapNames...)...); err != nil {
 		return nil, nil, fmt.Errorf("zfs snapshot: %w", err)
 	}
+	z.log.Debug("created zfs snapshot", "app", app, "snapshots", snapNames)
 
 	cleanup := func(ctx context.Context) {
+		z.log.Debug("destroying zfs snapshot", "snapshots", snapNames)
 		for _, snap := range snapNames {
 			if _, err := z.runner.run(ctx, "destroy", snap); err != nil {
 				z.log.Warn("failed to destroy zfs snapshot", "snapshot", snap, "error", err)

@@ -121,6 +121,7 @@ func (o *Orchestrator) PreviewSnapshots(ctx context.Context, job discovery.Job) 
 // mounts the rest live. The returned cleanup releases any snapshots taken.
 func (o *Orchestrator) sourceMountsFor(ctx context.Context, job discovery.Job) ([]mount.Mount, func(context.Context), error) {
 	noop := func(context.Context) {}
+	o.log.Debug("resolving source mounts", "app", job.App, "mode", job.Spec.SnapshotMode(o.cfg.Snapshot), "sources", len(job.Sources))
 	switch mode := job.Spec.SnapshotMode(o.cfg.Snapshot); mode {
 	case "", "none":
 		return o.sourceMounts(job, true), noop, nil

@@ -85,7 +85,7 @@ func (o *Orchestrator) release() {
 // Reap removes exited leftover mover containers from a previous crash. Safe to
 // call periodically: running movers are spared.
 func (o *Orchestrator) Reap(ctx context.Context) (int, error) {
-	n, err := o.runner.Reap(ctx)
+	n, err := o.runner.Reap(ctx, o.cfg.MoverHistory)
 	hn, herr := o.hooks.Reap(ctx)
 	if err == nil {
 		err = herr
