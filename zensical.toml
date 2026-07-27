@@ -4,6 +4,8 @@ site_description = "Label-driven restic backup orchestrator for Docker"
 site_author = "David Borzek"
 site_url = "https://davidborzek.github.io/sabon/"
 copyright = "Copyright &copy; 2026 David Borzek"
+repo_url = "https://github.com/davidborzek/sabon"
+repo_name = "davidborzek/sabon"
 
 nav = [
   { "Home" = "index.md" },
