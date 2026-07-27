@@ -1,0 +1,56 @@
+# Prometheus alerting rules for sabon. Load via rule_files in prometheus.yml.
+groups:
+  - name: sabon
+    rules:
+      - alert: SabonNotReady
+        expr: sabon_ready == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "sabon's last reconcile did not succeed"
+          description: "sabon_ready has been 0 for 5m on {{ $labels.instance }} — backup jobs may not reflect current containers."
+
+      - alert: SabonReconcileStale
+        expr: time() - sabon_last_reconcile_timestamp_seconds > 600
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "sabon reconciliation is stale"
+          description: "No reconcile for >10m on {{ $labels.instance }}; discovered backup jobs may be out of date."
+
+      - alert: SabonReconcileErrors
+        expr: rate(sabon_reconciles_total{result="error"}[15m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "sabon reconciles are failing"
+          description: "sabon has failing reconciles on {{ $labels.instance }} (check the daemon logs and the Docker API)."
+
+      - alert: SabonBackupErrors
+        expr: increase(sabon_backups_total{result="error"}[1h]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "sabon backups are failing"
+          description: "One or more backups failed in the last hour on {{ $labels.instance }} (app {{ $labels.app }}, target {{ $labels.target }}) — check the mover container logs and the restic repo."
+
+      - alert: SabonBackupStale
+        expr: time() - max by (app, target) (sabon_last_backup_success_timestamp_seconds) > 172800
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "sabon has no recent successful backup"
+          description: "No successful backup for >48h for app {{ $labels.app }}, target {{ $labels.target }} on {{ $labels.instance }} — the restic repo may be missing recent data."
+
+      - alert: SabonWatchFlapping
+        expr: rate(sabon_watch_restarts_total[15m]) > 0
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "sabon's Docker event watcher is flapping"
+          description: "The Docker event stream keeps being re-established on {{ $labels.instance }} — usually Docker API instability, not sabon."
