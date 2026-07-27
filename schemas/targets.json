@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/davidborzek/sabon/api/file",
+  "$ref": "#/$defs/File",
+  "$defs": {
+    "File": {
+      "properties": {
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/Target"
+          },
+          "type": "array",
+          "description": "Backup targets"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "targets"
+      ]
+    },
+    "Retention": {
+      "properties": {
+        "last": {
+          "type": "integer",
+          "description": "Keep the N most recent snapshots"
+        },
+        "hourly": {
+          "type": "integer",
+          "description": "Keep N hourly snapshots"
+        },
+        "daily": {
+          "type": "integer",
+          "description": "Keep N daily snapshots"
+        },
+        "weekly": {
+          "type": "integer",
+          "description": "Keep N weekly snapshots"
+        },
+        "monthly": {
+          "type": "integer",
+          "description": "Keep N monthly snapshots"
+        },
+        "yearly": {
+          "type": "integer",
+          "description": "Keep N yearly snapshots"
+        },
+        "within": {
+          "type": "string",
+          "description": "Keep all snapshots within a duration (restic --keep-within"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Target": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Target name"
+        },
+        "path": {
+          "type": "string",
+          "description": "Host base directory for a local repo backend (repo = \u003cPath\u003e/\u003capp\u003e)"
+        },
+        "repo": {
+          "type": "string",
+          "description": "restic repository string for a remote backend; supports {app} and ${ENV} placeholders"
+        },
+        "passwordEnv": {
+          "type": "string",
+          "description": "Env var holding the repo password (default: RESTIC_PASSWORD)"
+        },
+        "passwordFile": {
+          "type": "string",
+          "description": "Host path to a file holding the repo password; mounted into the mover and read via RESTIC_PASSWORD_FILE (keeps it out of env). Overrides passwordEnv"
+        },
+        "credentialsFile": {
+          "type": "string",
+          "description": "Host path to an AWS shared-credentials file; mounted into the mover and used via AWS_SHARED_CREDENTIALS_FILE (keeps S3 creds out of env)"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Extra environment for the mover (e.g. AWS_ACCESS_KEY_ID); values support ${ENV} expansion"
+        },
+        "resticArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Extra global restic flags for this target (e.g. --limit-upload"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Default cron schedule (6-field"
+        },
+        "retention": {
+          "$ref": "#/$defs/Retention",
+          "description": "Default retention policy"
+        },
+        "check": {
+          "type": "string",
+          "description": "Optional cron for periodic restic check (repo integrity); empty disables"
+        },
+        "prune": {
+          "type": "string",
+          "description": "Optional cron for periodic restic prune (reclaim space); empty disables"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

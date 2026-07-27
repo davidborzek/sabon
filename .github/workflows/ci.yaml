@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Verify formatting
+        run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: go build ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # Built from source with the module's Go toolchain — prebuilt golangci-lint
+      # binaries lag new Go releases and refuse to run against a newer target.
+      - run: go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run ./...
+
+  vuln:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # govulncheck (built with the CI toolchain, so it understands the module's
+      # Go version). It reports every reachable advisory, but we only *fail* on
+      # ones with an available fix — unfixed upstream advisories (e.g. moby
+      # daemon-side CVEs that sabon's Docker client never reaches) can't
+      # be acted on and shouldn't block CI. When a fix lands, this turns red.
+      - name: govulncheck (fail on fixable advisories)
+        run: |
+          rc=0
+          out=$(go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || rc=$?
+          echo "$out"
+          # govulncheck exits nonzero both when it finds vulnerabilities AND on a
+          # genuine tooling error, so a bare `|| true` would let a broken run pass
+          # green. Require a completion marker before trusting the parse below.
+          if ! echo "$out" | grep -qE 'No vulnerabilities found|Your code is affected by'; then
+            echo "::error::govulncheck did not complete (exit $rc)"
+            exit 1
+          fi
+          # Fail only on advisories that have an available fix.
+          if echo "$out" | grep -E '^\s*Fixed in:' | grep -qv 'N/A'; then
+            echo "::error::govulncheck found advisories with an available fix — please update"
+            exit 1
+          fi
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # Full stack: builds the sabon binary and drives a labelled demo
+      # container through a backup to a real restic repository (both in Docker).
+      - run: go test -tags e2e ./test/e2e/

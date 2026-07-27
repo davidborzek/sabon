@@ -1,0 +1,3 @@
+sabon: {{ .App }} → {{ .Target }}
+{{- if ne .Event "backup" }} {{ .Event }}{{ end }}
+{{- if .OK }} ok{{ else }} FAILED{{ end -}}

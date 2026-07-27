@@ -1,0 +1,41 @@
+# sabon targets — where backups go.
+#
+# Each target is a restic repository backend that every discovered app is
+# backed up TO. A target is EITHER local (`path:`) OR remote (`repo:`) —
+# exactly one of the two per target. sabon derives a *per-app* repository
+# under each target, so one target holds many apps side by side.
+
+targets:
+  # ── onsite: a local repo on this host ──────────────────────────────────
+  # `path` is a HOST directory. The ephemeral mover container bind-mounts
+  # <path>/<app> at /repo and runs restic there, so the repo for the app
+  # "demo" ends up at /mnt/backup/demo on the host.
+  - name: onsite
+    path: /mnt/backup
+    schedule: "0 0 */6 * * *" # 6-field cron (seconds first): every 6 hours
+    check: "0 0 5 * * 0" #      restic check — weekly, Sun 05:00
+    prune: "0 30 5 * * 0" #     restic prune (reclaim space) — weekly, Sun 05:30
+    retention:
+      hourly: 24 # keep the last 24 hourly snapshots
+      daily: 7 #   … 7 daily
+      weekly: 5 #  … 5 weekly
+
+  # ── offsite: a remote repo (Cloudflare R2 / any S3) ────────────────────
+  # Uncomment to fan out to a second, off-host copy. `repo` is a restic
+  # repository string with two kinds of placeholder:
+  #   {app}    → the per-app name (so every app gets its own prefix)
+  #   ${ENV}   → expanded from the mover's environment at run time
+  # The creds under `env:` are passed through to the mover (which runs
+  # restic); reference them from your shell / .env so no secret is committed.
+  #
+  # - name: offsite
+  #   repo: "s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}"
+  #   passwordEnv: RESTIC_PASSWORD # env var holding the repo password (default)
+  #   passwordFile: /run/secrets/restic_password # preferred: keeps the pw out of env
+  #   env:
+  #     AWS_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+  #     AWS_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+  #   schedule: "0 30 3 * * *" # daily at 03:30
+  #   resticArgs: ["--limit-upload=20480"] # global restic flag: throttle uplink ~20 MiB/s
+  #   retention:
+  #     daily: 7

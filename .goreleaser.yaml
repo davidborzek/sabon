@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+#
+# release-please owns versioning, the CHANGELOG and the GitHub release (created
+# from Conventional Commits). goreleaser runs afterwards on the same tag and only
+# builds the binaries + multi-arch image and *appends* them to that existing
+# release — hence `changelog.disable` and `release.mode: append`.
+#
+# The zfs-snapshotter image is published by a separate job in release.yaml, not here.
+version: 2
+
+project_name: sabon
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: sabon
+    main: ./cmd/sabon
+    binary: sabon
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    # sabon talks to the local Docker socket and runs inside a Linux container;
+    # ship the platforms the image and homelab hardware actually use.
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: sabon
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+dockers_v2:
+  - id: sabon
+    ids:
+      - sabon
+    images:
+      - ghcr.io/davidborzek/sabon
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - latest
+    dockerfile: Dockerfile.goreleaser
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    sbom: false
+    labels:
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.description: Label-driven restic backup orchestrator for Docker
+      org.opencontainers.image.url: https://github.com/davidborzek/sabon
+      org.opencontainers.image.source: https://github.com/davidborzek/sabon
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.licenses: MIT
+
+changelog:
+  disable: true
+
+release:
+  mode: append
+  github:
+    owner: davidborzek
+    name: sabon
