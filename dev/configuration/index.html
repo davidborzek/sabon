@@ -1943,7 +1943,7 @@
 <h3 id="sabon_metrics_addr"><code>SABON_METRICS_ADDR</code><a class="headerlink" href="#sabon_metrics_addr" title="Permanent link">&para;</a></h3>
 <p><em>default <code>:9333</code></em> — Listen address for <code>/metrics</code>, <code>/healthz</code>, <code>/readyz</code>. Blank disables the server.</p>
 <h3 id="sabon_log_level"><code>SABON_LOG_LEVEL</code><a class="headerlink" href="#sabon_log_level" title="Permanent link">&para;</a></h3>
-<p><em>default <code>info</code></em> — <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>.</p>
+<p><em>default <code>info</code></em> — <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>. <code>debug</code> traces what the daemon does: discovered jobs and the container events that trigger reconciles, scheduler (re/un)registration, and the per-run mechanics — resolved snapshot mode, each host <code>zfs</code> call, snapshot create/destroy, and every mover spawn.</p>
 <h3 id="sabon_mover_image"><code>SABON_MOVER_IMAGE</code><a class="headerlink" href="#sabon_mover_image" title="Permanent link">&para;</a></h3>
 <p><em>default: auto-detect</em> — Image used for mover containers. Empty reuses sabon's own running image — auto-detected inside Docker (the exact ref you deployed: registry, digest, fork and all), else the version-matched <code>ghcr.io/davidborzek/sabon:&lt;version&gt;</code>. Set it explicitly for a custom mover image, or on a dev build with no version stamped in.</p>
 <h3 id="sabon_mover_user"><code>SABON_MOVER_USER</code><a class="headerlink" href="#sabon_mover_user" title="Permanent link">&para;</a></h3>
