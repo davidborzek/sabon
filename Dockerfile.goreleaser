@@ -3,7 +3,7 @@
 # The from-source build lives in ./Dockerfile.
 
 # renovate: datasource=docker depName=restic/restic
-FROM restic/restic:0.18.0 AS restic
+FROM restic/restic:0.19.1 AS restic
 
 FROM gcr.io/distroless/static:nonroot
 ARG TARGETPLATFORM

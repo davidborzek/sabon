@@ -2,7 +2,7 @@
 # The goreleaser build lives in ./Dockerfile.goreleaser.
 
 # renovate: datasource=docker depName=restic/restic
-FROM restic/restic:0.18.0 AS restic
+FROM restic/restic:0.19.1 AS restic
 
 FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 WORKDIR /src
