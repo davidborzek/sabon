@@ -273,6 +273,8 @@
       
         
       
+        
+      
     
     
     
@@ -645,6 +647,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sabon_mover_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_HISTORY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sabon_run_on_startup" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -759,6 +772,28 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>SABON_NOTIFY_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_TOKEN</code>
       </span>
     </span>
   </a>
@@ -1177,6 +1212,8 @@
       
         
       
+        
+      
     
     
     
@@ -1262,6 +1299,33 @@
     
   
   Architecture
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API
 
     
   </span>
@@ -1466,6 +1530,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sabon_mover_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_HISTORY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sabon_run_on_startup" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1580,6 +1655,28 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>SABON_NOTIFY_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_TOKEN</code>
       </span>
     </span>
   </a>
@@ -1954,6 +2051,8 @@
 <p><em>default: none</em> — Optional Docker network to attach movers to (e.g. to reach a remote backend by service name).</p>
 <h3 id="sabon_cache_volume"><code>SABON_CACHE_VOLUME</code><a class="headerlink" href="#sabon_cache_volume" title="Permanent link">&para;</a></h3>
 <p><em>default <code>sabon-cache</code></em> — Named volume mounted at <code>/cache</code> in movers as the shared restic cache.</p>
+<h3 id="sabon_mover_history"><code>SABON_MOVER_HISTORY</code><a class="headerlink" href="#sabon_mover_history" title="Permanent link">&para;</a></h3>
+<p><em>default <code>3</code></em> — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the <a href="../api/#run-history">HTTP API</a> or directly with <code>docker ps -a</code> / <code>docker logs</code>, and surviving restarts. <code>0</code> removes every exited mover (no history).</p>
 <h3 id="sabon_run_on_startup"><code>SABON_RUN_ON_STARTUP</code><a class="headerlink" href="#sabon_run_on_startup" title="Permanent link">&para;</a></h3>
 <p><em>default <code>false</code></em> — When <code>true</code>, run all backups once immediately on startup, then follow the schedules.</p>
 <h3 id="sabon_instance"><code>SABON_INSTANCE</code><a class="headerlink" href="#sabon_instance" title="Permanent link">&para;</a></h3>
@@ -1976,6 +2075,10 @@
 <p><em>default: built-in</em> — Go <a href="https://pkg.go.dev/text/template">text/template</a> for the notification <strong>title</strong>, overriding the built-in. A value beginning with <code>@</code> is read from that file. See <a href="../metrics/#notifications">Notifications</a> for the template data and functions.</p>
 <h3 id="sabon_notify_template"><code>SABON_NOTIFY_TEMPLATE</code><a class="headerlink" href="#sabon_notify_template" title="Permanent link">&para;</a></h3>
 <p><em>default: built-in</em> — Go text/template for the notification <strong>body</strong> (same <code>@file</code> support and data model as the title template).</p>
+<h3 id="sabon_api_addr"><code>SABON_API_ADDR</code><a class="headerlink" href="#sabon_api_addr" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Listen address for the <a href="../api/">HTTP control API</a> (e.g. <code>:8080</code>); empty disables it. It is privileged (a restore overwrites live data) — bind it to loopback and put TLS in front.</p>
+<h3 id="sabon_api_token"><code>SABON_API_TOKEN</code><a class="headerlink" href="#sabon_api_token" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Bearer token for the API. When set, every request must carry it (<code>Authorization: Bearer &lt;token&gt;</code>). <strong>Empty disables authentication</strong> — every request is allowed and sabon logs a warning at startup; only acceptable for a loopback bind behind a trusted proxy. Recommended to set.</p>
 <h3 id="sabon_hook_env_name"><code>SABON_HOOK_ENV_&lt;NAME&gt;</code><a class="headerlink" href="#sabon_hook_env_name" title="Permanent link">&para;</a></h3>
 <p><em>default: none</em> — Fallback allowlist for hook environment interpolation. A <code>${NAME}</code> reference in a hook's <code>env:</code> value (in a container label) resolves <strong>first</strong> from the labelled container's own environment, and falls back to <strong><code>SABON_HOOK_ENV_&lt;NAME&gt;</code></strong> from sabon's environment for a value that lives nowhere on the app's container (e.g. only in a sibling database). A label can never read sabon's <code>RESTIC_PASSWORD</code>, cloud credentials or another target's password. Prefer exec-mode hooks, which need no injection at all.</p>
 <p>Expose such a value on the sabon service, and reference it in the label escaped for Compose (<code>$$</code>):</p>

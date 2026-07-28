@@ -12,13 +12,11 @@
         <meta name="author" content="David Borzek">
       
       
-        <link rel="canonical" href="https://davidborzek.github.io/sabon/dev/architecture/">
+        <link rel="canonical" href="https://davidborzek.github.io/sabon/dev/api/">
       
       
-        <link rel="prev" href="../metrics/">
+        <link rel="prev" href="../architecture/">
       
-      
-        <link rel="next" href="../api/">
       
       
         
@@ -29,7 +27,7 @@
     
     
       
-        <title>Architecture - sabon</title>
+        <title>HTTP API - sabon</title>
       
     
     
@@ -85,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture" class="md-skip">
+        <a href="#http-api" class="md-skip">
           Skip to content
         </a>
       
@@ -125,7 +123,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Architecture
+              HTTP API
             
           </span>
         </div>
@@ -695,6 +693,33 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Architecture
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -714,7 +739,7 @@
   <span class="md-ellipsis">
     
   
-  Architecture
+  API
 
     
   </span>
@@ -731,7 +756,7 @@
   <span class="md-ellipsis">
     
   
-  Architecture
+  API
 
     
   </span>
@@ -757,10 +782,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#orchestrator-and-movers" class="md-nav__link">
+  <a href="#authentication" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Orchestrator and movers
+        Authentication
       </span>
     </span>
   </a>
@@ -768,10 +793,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#repositories-per-app-per-target" class="md-nav__link">
+  <a href="#endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Repositories: per-app, per-target
+        Endpoints
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reads
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Triggers
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Run history
       </span>
     </span>
   </a>
@@ -779,32 +843,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#discovery" class="md-nav__link">
+  <a href="#example" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Discovery
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#per-repo-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Per-repo serialization
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lifecycle-and-robustness" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Lifecycle and robustness
+        Example
       </span>
     </span>
   </a>
@@ -815,33 +857,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-  API
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -895,10 +910,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#orchestrator-and-movers" class="md-nav__link">
+  <a href="#authentication" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Orchestrator and movers
+        Authentication
       </span>
     </span>
   </a>
@@ -906,10 +921,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#repositories-per-app-per-target" class="md-nav__link">
+  <a href="#endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Repositories: per-app, per-target
+        Endpoints
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reads
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Triggers
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Run history
       </span>
     </span>
   </a>
@@ -917,32 +971,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#discovery" class="md-nav__link">
+  <a href="#example" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Discovery
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#per-repo-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Per-repo serialization
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lifecycle-and-robustness" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Lifecycle and robustness
+        Example
       </span>
     </span>
   </a>
@@ -1028,129 +1060,163 @@
   
 
 
-<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<p>sabon is a label-driven restic backup orchestrator for a single Docker host. It
-recreates the ergonomics of a Kubernetes backup operator (the pattern is
-Volsync-style) for plain Docker / Compose: container labels declare what to back
-up and to which targets, and sabon schedules and runs those backups by spawning
-short-lived <strong>mover</strong> containers.</p>
-<p>The key split is that <strong>sabon never runs restic itself.</strong> The orchestrator
-discovers work and schedules it; each actual backup runs in an ephemeral mover
-container. This keeps the long-running daemon simple, lets in-flight backups
-survive an orchestrator restart, and means each job mounts exactly the named
-volumes (and paths) it needs <strong>on demand</strong> — the daemon never has to mount
-everything up front.</p>
-<h2 id="orchestrator-and-movers">Orchestrator and movers<a class="headerlink" href="#orchestrator-and-movers" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
-    apps["app containers&lt;br/&gt;sabon.* labels"]
-
-    subgraph orch["sabon orchestrator (long-running, nonroot)"]
-        direction TB
-        dock["Docker API (read + write)"]
-        ev["events + inspect"]
-        wd["watch + debounce + resync"]
-        rc["reconcile → job set"]
-        sch["scheduler (backup / check / prune crons)"]
-        spawn["spawn mover per job"]
-        dock --&gt; ev --&gt; wd --&gt; rc --&gt; sch --&gt; spawn
-    end
-
-    subgraph mover["mover container (ephemeral, root)"]
-        direction TB
-        unlock["restic unlock"]
-        pre["preHooks"]
-        backup["restic backup"]
-        forget["restic forget (retention → mark)"]
-        post["postHooks"]
-        unlock --&gt; pre --&gt; backup --&gt; forget --&gt; post
-    end
-
-    subgraph mounts["mover mounts"]
-        src[("/data/&amp;lt;name&amp;gt; sources (ro)")]
-        repo[("/repo local repo (bind)")]
-        cache[("/cache shared restic cache")]
-    end
-
-    apps --&gt;|"labels + lifecycle events"| dock
-    spawn --&gt;|"create + start"| mover
-    src --- backup
-    repo --- backup
-    cache --- backup
-    mover -.-&gt;|"exit status + stats"| dock</code></pre>
-<p>The diagram shows a <strong>backup</strong> job. <code>check</code> and <code>prune</code> reuse the same
-ephemeral-mover machinery with a different action and no hooks: <code>restic check</code>
-(repository integrity) and <code>restic prune</code> (repack to reclaim the space that
-<code>forget</code> only <em>marked</em>), each on its own per-target cron. All three actions take
-the same per-repo lock, so they never run against one repository concurrently.</p>
-<p>For each backup job the mover mounts:</p>
-<ul>
-<li>every source (bind path or named volume) <strong>read-only</strong> at <code>/data/&lt;name&gt;</code>,</li>
-<li>the local repository as a bind at <code>/repo</code> (remote repositories are reached over
-  the network using credentials from the target's <code>env</code>),</li>
-<li>a shared restic <strong>cache</strong> volume (<code>SABON_CACHE_VOLUME</code>, default <code>sabon-cache</code>)
-  at <code>/cache</code>, so repeated backups don't re-read pack metadata.</li>
-</ul>
-<p>Movers use <strong>sabon's own image</strong> — it bundles the restic binary — so there is no
-second image to manage. Movers run <strong>as root</strong> (<code>SABON_MOVER_USER</code>, default
-<code>0:0</code>) because they must read arbitrary application data and write repositories;
-the orchestrator itself can stay nonroot. See
-<a href="../deployment/#privileges">Deployment</a> for the privilege model.</p>
-<h2 id="repositories-per-app-per-target">Repositories: per-app, per-target<a class="headerlink" href="#repositories-per-app-per-target" title="Permanent link">&para;</a></h2>
-<p>A <strong>target</strong> (defined in the targets file, see
-<a href="../configuration/">Configuration</a>) is a backend, and every app gets its own
-repository inside it:</p>
-<ul>
-<li><strong>Local target</strong> — <code>path: /mnt/backup</code> → the repo for app <code>paperless</code> is
-  <code>/mnt/backup/paperless</code>.</li>
-<li><strong>Remote target</strong> — <code>repo: "s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}"</code>; the
-  <code>{app}</code> placeholder expands to the app name and <code>${ENV}</code> placeholders expand
-  from the environment.</li>
-</ul>
-<p>So a single app backed up to two targets lives in two independent restic
-repositories. Snapshots, retention and restores are always scoped to one
-<code>(app, target)</code> pair.</p>
-<h2 id="discovery">Discovery<a class="headerlink" href="#discovery" title="Permanent link">&para;</a></h2>
-<p>Discovery is event-driven with a periodic safety net:</p>
-<ul>
-<li><strong>Watch</strong> — sabon subscribes to <code>docker events</code> and reacts to container
-  lifecycle changes.</li>
-<li><strong>Resync</strong> — a full re-list every <code>SABON_RESYNC_INTERVAL</code> (default <code>5m</code>) catches
-  missed events and restarts.</li>
-<li><strong>Debounce</strong> — bursts of events are coalesced with <code>SABON_DEBOUNCE_DELAY</code>
-  (default <code>2s</code>) so a <code>docker compose up</code> triggers one reconcile, not dozens.</li>
-</ul>
-<p>Each reconcile rebuilds the desired <strong>job set</strong> from the current containers plus
-the targets file. A container is included when it carries <code>sabon.enable=true</code>
-(or, with <code>SABON_WATCH_BY_DEFAULT=true</code>, when it does <em>not</em> carry
-<code>sabon.enable=false</code>). Discovery does not run backups; the scheduler does, on
-each target's cron schedule.</p>
-<p><strong>Stopped</strong> containers are included too: their volumes persist and a cold
-container is the most consistent state, so stopping a service never silently
-stops its backups.</p>
-<h2 id="per-repo-serialization">Per-repo serialization<a class="headerlink" href="#per-repo-serialization" title="Permanent link">&para;</a></h2>
-<p>restic repositories do not tolerate concurrent writers well, so sabon
-<strong>serializes runs against the same repository</strong> with a per-repo lock. Two
-different apps (different repos) back up in parallel; two schedules that would hit
-the <em>same</em> repo at once are run one after another. Before every backup the mover
-also runs <code>restic unlock</code> to clear any stale lock left behind by a mover that was
-killed mid-run.</p>
-<h2 id="lifecycle-and-robustness">Lifecycle and robustness<a class="headerlink" href="#lifecycle-and-robustness" title="Permanent link">&para;</a></h2>
-<p>Because movers are independent containers, sabon's own lifecycle never
-interrupts a backup in progress:</p>
-<ul>
-<li><strong>Orchestrator crash</strong> — running movers keep going and finish their backup on
-  their own. Nothing is lost just because the daemon died.</li>
-<li><strong>Startup and each resync</strong> — sabon reaps only <strong>exited</strong> mover containers
-  (cleaning up finished work). Movers still <strong>running</strong> from a previous
-  orchestrator instance are left alone to complete.</li>
-<li><strong>Graceful shutdown</strong> (SIGINT / SIGTERM) — in-flight movers are <strong>left
-  running</strong>, not killed; they finish and are reaped by the next instance.</li>
-<li><strong>Stale locks</strong> — a mover that was force-killed can leave a restic lock in the
-  repo. The next backup's <code>restic unlock</code> clears it, so a crash never wedges the
-  repository.</li>
-</ul>
-<p>The net effect: the worst case for an orchestrator restart is a slightly delayed
-reap of a finished mover, never a corrupted repo or a half-run backup.</p>
+<h1 id="http-api">HTTP API<a class="headerlink" href="#http-api" title="Permanent link">&para;</a></h1>
+<p>An optional, token-authenticated HTTP control API exposes sabon's operations —
+show config, list jobs and snapshots, trigger backup/check/prune/restore, and
+browse run history.</p>
+<p>It is <strong>off by default</strong>. Set <a href="../configuration/#sabon_api_addr"><code>SABON_API_ADDR</code></a>
+to enable it and <a href="../configuration/#sabon_api_token"><code>SABON_API_TOKEN</code></a> to a
+bearer token every request must carry. The token is optional but strongly
+recommended — leaving it empty disables authentication (sabon warns at
+startup). It is privileged — a <code>restore</code> overwrites live data — so bind it
+to loopback and put TLS in front of it (a reverse proxy), the same way you would
+expose anything else.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">SABON_API_ADDR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;:8080&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">SABON_API_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${SABON_API_TOKEN}</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8080:8080&quot;</span><span class="w"> </span><span class="c1"># loopback; front with a TLS reverse proxy</span>
+</span></code></pre></div>
+<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
+<p>Every request must send the token as a bearer:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SABON_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://127.0.0.1:8080/api/v1/config
+</span></code></pre></div>
+<p>A missing or wrong token returns <code>401</code> (when a token is configured).</p>
+<h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
+<p>All routes are under <code>/api/v1</code>. Responses are JSON unless noted.</p>
+<h3 id="reads">Reads<a class="headerlink" href="#reads" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/config</code></td>
+<td>Configured targets (secrets/credentials omitted).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/jobs</code></td>
+<td>Discovered backup jobs (app, sources, targets, snapshot mode).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/apps/{app}/snapshots?target=&lt;name&gt;</code></td>
+<td>restic snapshots for the app in a target (<code>target</code> required).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="triggers">Triggers<a class="headerlink" href="#triggers" title="Permanent link">&para;</a></h3>
+<p>Mutating operations are <strong>fire-and-forget</strong>: the <code>POST</code> returns <code>202 Accepted</code>
+immediately and the work runs in the background. Watch it under
+<a href="#run-history">run history</a>. <code>target</code> is optional for backup/check/prune (empty
+= all of the app's targets).</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/apps/{app}/backup?target=&lt;name&gt;</code></td>
+<td>Back up the app.</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/apps/{app}/check?target=&lt;name&gt;</code></td>
+<td><code>restic check</code> (repo integrity).</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/apps/{app}/prune?target=&lt;name&gt;</code></td>
+<td><code>restic prune</code> (reclaim space).</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/apps/{app}/restore</code></td>
+<td>Restore (JSON body below).</td>
+</tr>
+</tbody>
+</table>
+<p><code>restore</code> body:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>{
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  &quot;target&quot;: &quot;onsite&quot;,       // required — which repo to restore from
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &quot;snapshot&quot;: &quot;latest&quot;,     // snapshot id; default &quot;latest&quot;
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  &quot;into&quot;: &quot;/mnt/staging&quot;,   // host dir for a staging restore; omit for in-place
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  &quot;stop&quot;: true,             // stop the app during an in-place restore
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  &quot;include&quot;: [&quot;/etc&quot;]       // limit the restore to matching paths
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>}
+</span></code></pre></div>
+<p>An API-triggered run is identical to a scheduled one — it takes the same locks
+and records the same metrics and notifications.</p>
+<h2 id="run-history">Run history<a class="headerlink" href="#run-history" title="Permanent link">&para;</a></h2>
+<p>History is <strong>durable</strong>: sabon keeps the last
+<a href="../configuration/#sabon_mover_history"><code>SABON_MOVER_HISTORY</code></a> (default <code>3</code>)
+exited <strong>mover containers</strong> per app/target/action, so each run's status and full
+restic <strong>logs</strong> live in Docker itself and survive a sabon restart. There is no
+in-memory store — they are ordinary containers, so <code>docker ps -a</code> and
+<code>docker logs &lt;id&gt;</code> see them too.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/runs?app=&lt;name&gt;&amp;target=&lt;name&gt;</code></td>
+<td>Recent runs, newest first (filters optional).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/runs/{id}</code></td>
+<td>One run (<code>id</code> is the mover container id).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/runs/{id}/logs</code></td>
+<td>The run's restic output (<code>text/plain</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>A run:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;9f3c…&quot;</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;app&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;immich&quot;</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;onsite&quot;</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backup&quot;</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;succeeded&quot;</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;exit_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-27T21:00:00Z&quot;</span><span class="p">,</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">&quot;finished_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-27T21:00:08Z&quot;</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>status</code> is <code>running</code>, <code>succeeded</code> or <code>failed</code>. A failure that happens <strong>before</strong>
+a mover starts (e.g. a snapshot or pre-hook error) produces no run record — it is
+reported via logs, <a href="../metrics/#notifications">notifications</a> and metrics instead.</p>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">T</span><span class="o">=</span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SABON_API_TOKEN</span><span class="s2">&quot;</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">base</span><span class="o">=</span>http://127.0.0.1:8080/api/v1
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/jobs&quot;</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/apps/immich/backup&quot;</span><span class="w">     </span><span class="c1"># -&gt; 202</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/runs?app=immich&quot;</span><span class="w">                </span><span class="c1"># find the run + its id</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/runs/&lt;id&gt;/logs&quot;</span><span class="w">                 </span><span class="c1"># restic output</span>
+</span></code></pre></div>
 
 
 
@@ -1188,7 +1254,7 @@ reap of a finished mover, never a corrupted repo or a half-run backup.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../metrics/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Observability">
+          <a href="../architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -1198,27 +1264,11 @@ reap of a finished mover, never a corrupted repo or a half-run backup.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Observability
+                Architecture
               </div>
             </div>
           </a>
         
-        
-          
-          <a href="../api/" class="md-footer__link md-footer__link--next" aria-label="Next: API">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                API
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-          </a>
         
       </nav>
     
