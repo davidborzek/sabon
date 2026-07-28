@@ -7,7 +7,7 @@
 # image that bundles zfs and sets `ENTRYPOINT ["zfs"]`; no sabon change needed.
 #
 # renovate: datasource=docker depName=alpine
-FROM alpine:3.21
+FROM alpine:3.24
 RUN apk add --no-cache util-linux-misc
 
 # --mount is the one that matters (host /sbin/zfs, libraries, /dev/zfs); the
