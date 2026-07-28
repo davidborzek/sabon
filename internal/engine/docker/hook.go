@@ -1,8 +1,8 @@
-// Package hook runs pre/post backup actions against the Docker engine. A hook
-// runs in one of two modes: exec (into an existing container) or run (a fresh
-// one-shot container from a given image). It also handles stop/start for cold
-// backups.
-package hook
+package docker
+
+// Standalone hooks: pre/post backup actions run against the local Docker
+// daemon — exec into the app container (exec mode) or a fresh one-shot
+// container (run mode).
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/davidborzek/sabon/internal/engine"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -19,20 +20,20 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
-// Runner executes hooks against the Docker engine.
-type Runner struct {
+var _ engine.Hooks = (*Hooks)(nil)
+var _ engine.Execer = (*Hooks)(nil)
+
+// Hooks executes hooks against the Docker engine.
+type Hooks struct {
 	cli client.APIClient
 }
 
-// New returns a hook Runner.
-func New(cli client.APIClient) *Runner { return &Runner{cli: cli} }
-
-// LabelKey marks one-shot hook containers so crashed/aborted ones can be reaped.
-const LabelKey = "sabon.hook"
+// NewHooks returns a Docker hook runner.
+func NewHooks(cli client.APIClient) *Hooks { return &Hooks{cli: cli} }
 
 // Exec runs a command inside an existing container (exec mode) and returns an
 // error, with captured output, if it cannot start or exits non-zero.
-func (r *Runner) Exec(ctx context.Context, containerID string, cmd, env []string, user string) error {
+func (r *Hooks) Exec(ctx context.Context, containerID string, cmd, env []string, user string) error {
 	if len(cmd) == 0 {
 		return fmt.Errorf("hook: empty command")
 	}
@@ -85,20 +86,9 @@ func (r *Runner) Exec(ctx context.Context, containerID string, cmd, env []string
 	return nil
 }
 
-// RunSpec configures a one-shot container hook (run mode).
-type RunSpec struct {
-	Name    string
-	Image   string
-	Command []string
-	User    string
-	Env     []string
-	Network string
-	Volumes []string // "source:/target[:ro]"; source = volume name or host path
-}
-
 // RunOneShot spawns a fresh container from spec.Image, runs the command, waits
 // for it, and removes it. Non-zero exit (with logs) is an error.
-func (r *Runner) RunOneShot(ctx context.Context, spec RunSpec) error {
+func (r *Hooks) RunOneShot(ctx context.Context, spec engine.RunSpec) error {
 	if spec.Image == "" {
 		return fmt.Errorf("hook: run mode needs an image")
 	}
@@ -115,7 +105,7 @@ func (r *Runner) RunOneShot(ctx context.Context, spec RunSpec) error {
 		Cmd:    spec.Command,
 		User:   spec.User,
 		Env:    spec.Env,
-		Labels: map[string]string{LabelKey: spec.Name},
+		Labels: map[string]string{engine.HookLabelKey: spec.Name},
 	}
 	host := &container.HostConfig{Mounts: mounts}
 	if spec.Network != "" {
@@ -148,28 +138,12 @@ func (r *Runner) RunOneShot(ctx context.Context, spec RunSpec) error {
 	return nil
 }
 
-// Stop stops a container (used for cold backups).
-func (r *Runner) Stop(ctx context.Context, containerID string) error {
-	if err := r.cli.ContainerStop(ctx, containerID, container.StopOptions{}); err != nil {
-		return fmt.Errorf("stop %s: %w", containerID, err)
-	}
-	return nil
-}
-
-// Start (re)starts a container.
-func (r *Runner) Start(ctx context.Context, containerID string) error {
-	if err := r.cli.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
-		return fmt.Errorf("start %s: %w", containerID, err)
-	}
-	return nil
-}
-
 // Reap removes EXITED leftover one-shot hook containers (from a crash or an
 // aborted run). Running ones are left alone. Returns how many were removed.
-func (r *Runner) Reap(ctx context.Context) (int, error) {
+func (r *Hooks) Reap(ctx context.Context) (int, error) {
 	list, err := r.cli.ContainerList(ctx, container.ListOptions{
 		All:     true,
-		Filters: filters.NewArgs(filters.Arg("label", LabelKey), filters.Arg("status", "exited")),
+		Filters: filters.NewArgs(filters.Arg("label", engine.HookLabelKey), filters.Arg("status", "exited")),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("list hook containers: %w", err)
@@ -183,8 +157,8 @@ func (r *Runner) Reap(ctx context.Context) (int, error) {
 	return n, nil
 }
 
-// ContainerProject returns a container's Docker Compose project label, or "".
-func (r *Runner) ContainerProject(ctx context.Context, id string) (string, error) {
+// AppProject returns the container's Docker Compose project label, or "".
+func (r *Hooks) AppProject(ctx context.Context, id string) (string, error) {
 	insp, err := r.cli.ContainerInspect(ctx, id)
 	if err != nil {
 		return "", err
@@ -192,7 +166,7 @@ func (r *Runner) ContainerProject(ctx context.Context, id string) (string, error
 	return insp.Config.Labels["com.docker.compose.project"], nil
 }
 
-func (r *Runner) logs(ctx context.Context, id string) string {
+func (r *Hooks) logs(ctx context.Context, id string) string {
 	rc, err := r.cli.ContainerLogs(ctx, id, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		return ""
@@ -203,7 +177,7 @@ func (r *Runner) logs(ctx context.Context, id string) string {
 	return buf.String()
 }
 
-func (r *Runner) ensureImage(ctx context.Context, ref string) error {
+func (r *Hooks) ensureImage(ctx context.Context, ref string) error {
 	if _, err := r.cli.ImageInspect(ctx, ref); err == nil {
 		return nil
 	}
@@ -242,8 +216,8 @@ func parseMounts(vols []string) ([]mount.Mount, error) {
 	return ms, nil
 }
 
-// ContainerEnv returns a container's environment as a KEY->VALUE map.
-func (r *Runner) ContainerEnv(ctx context.Context, id string) (map[string]string, error) {
+// AppEnv returns the container's environment as a KEY->VALUE map.
+func (r *Hooks) AppEnv(ctx context.Context, id string) (map[string]string, error) {
 	insp, err := r.cli.ContainerInspect(ctx, id)
 	if err != nil {
 		return nil, err

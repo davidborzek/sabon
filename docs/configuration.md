@@ -12,6 +12,10 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ## Environment variables
 
+### `SABON_RUNTIME`
+
+*default `auto`* — Which container runtime to drive: `auto` detects it (a Docker **Swarm manager** → swarm, anything else → standalone), or force `standalone` / `swarm`. See [Docker Swarm](#docker-swarm).
+
 ### `SABON_LABEL_PREFIX`
 
 *default `sabon`* — Label namespace (`<prefix>.enable`, `<prefix>.backup`, …).
@@ -50,7 +54,7 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ### `SABON_MOVER_GROUPS`
 
-*default: none* — Comma-separated supplementary groups (GIDs) added to every mover (`--group-add`), so a non-root mover can read group-owned data without a chown. Labels may override per app (`groups`).
+*default: none* — Comma-separated supplementary groups (GIDs) added to every mover (`--group-add`), so a nonroot mover can read group-owned data without a chown. Labels may override per app (`groups`).
 
 ### `SABON_MOVER_NETWORK`
 
@@ -62,7 +66,7 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ### `SABON_MOVER_HISTORY`
 
-*default `3`* — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the [HTTP API](api.md#run-history) or directly with `docker ps -a` / `docker logs`, and surviving restarts. `0` removes every exited mover (no history).
+*default `3`* — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the [HTTP API](api.md#run-history) or directly with `docker ps -a` / `docker logs` (in swarm mode these are retained mover *services*, seen with `docker service ls` / `docker service logs`), and surviving restarts. `0` removes every exited mover (no history).
 
 ### `SABON_RUN_ON_STARTUP`
 
@@ -153,6 +157,19 @@ are passed through from the orchestrator's environment:
 
 Keep these in a `.env` file, a Docker secret, or your secret manager — never in
 the labels.
+
+## Docker Swarm
+
+With `SABON_RUNTIME=swarm` (or auto-detected on a manager node) sabon drives the Swarm **service** API instead of local containers. sabon must run **on a manager node**. What changes:
+
+- **Discovery** reads **services**, not containers. Put the backup labels in the service's `deploy.labels` (not the container labels): `sabon.enable`, `sabon.backup`, … Sources come from the service's mounts plus the spec's `extraVolumes`/`extraPaths`.
+- **Placement** — each job is pinned to the node its task currently runs on, and the mover runs there as a one-shot service (a `node.hostname` constraint) so it reaches the node-local volumes. A **scaled-to-zero** service has no running task, so its node is taken from its `node.hostname`/`node.id`/`node.labels` placement constraint instead; only a service with neither a running task nor a pinning constraint is left unconstrained (may land anywhere).
+- **Cold backups** scale the service to **zero replicas** and back. The original count is recorded on the service (`sabon.quiesce.replicas` label), not in memory, so a crash between stop and start cannot strand it at zero — sabon restores any stranded service on startup.
+- **Hooks** — run-mode hooks run as one-shot services; **exec-mode hooks are not supported** (a manager cannot exec into a task on another node) and return an error. Env and compose project are read from the service spec.
+
+Not supported in swarm mode: **ZFS snapshots** (`SABON_SNAPSHOT=zfs`/`auto` — the snapshotter is node-local) and cross-node exec hooks. Named volumes are node-local unless backed by a cluster volume driver.
+
+> Swarm mode is exercised by a single-node `docker swarm init` end-to-end test in CI; it has not been validated against a multi-node production cluster.
 
 ## The targets file
 

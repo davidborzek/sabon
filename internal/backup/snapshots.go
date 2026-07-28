@@ -6,12 +6,8 @@ import (
 	"strings"
 
 	"github.com/davidborzek/sabon/internal/discovery"
-	"github.com/davidborzek/sabon/internal/mover"
 	"github.com/davidborzek/sabon/internal/snapshot"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/volume"
 )
 
 // ReapSnapshotter removes leftover snapshot infrastructure (snapshotter containers
@@ -25,7 +21,7 @@ func (o *Orchestrator) ReapSnapshotter(ctx context.Context) (int, error) {
 	if o.cfg.Snapshot == "" || o.cfg.Snapshot == "none" {
 		return 0, nil
 	}
-	inUse, err := o.snapshotsInUse(ctx)
+	inUse, err := o.host.RunningMoverBinds(ctx)
 	if err != nil {
 		// Can't tell which snapshots a surviving mover still reads — skip the
 		// reap rather than risk destroying an in-use one; retried next start.
@@ -42,30 +38,6 @@ func (o *Orchestrator) ReapSnapshotter(ctx context.Context) (int, error) {
 	return total, nil
 }
 
-// snapshotsInUse returns the host bind sources mounted into RUNNING movers, so
-// a snapshot reap spares a snapshot a live backup (e.g. one that survived a
-// shutdown) is still reading. It fails closed: any error listing or inspecting
-// movers is returned so the caller skips reaping.
-func (o *Orchestrator) snapshotsInUse(ctx context.Context) ([]string, error) {
-	list, err := o.cli.ContainerList(ctx, container.ListOptions{
-		Filters: filters.NewArgs(filters.Arg("label", mover.LabelKey)),
-	})
-	if err != nil {
-		return nil, err
-	}
-	var paths []string
-	for _, c := range list {
-		insp, err := o.cli.ContainerInspect(ctx, c.ID)
-		if err != nil {
-			return nil, err
-		}
-		for _, m := range insp.Mounts {
-			paths = append(paths, m.Source)
-		}
-	}
-	return paths, nil
-}
-
 // PreviewSnapshots resolves a job's sources to their backing filesystem for
 // `sabon validate` (no snapshot is taken). A non-nil error means the snapshot
 // strategy is unusable on this host.
@@ -76,9 +48,19 @@ func (o *Orchestrator) PreviewSnapshots(ctx context.Context, job discovery.Job) 
 	}
 	mode := job.Spec.SnapshotMode(o.cfg.Snapshot)
 	var candidates []snapshot.Snapshotter
-	if mode == "auto" {
+	switch mode {
+	case "", "none":
+		// no snapshotting: every source is reported live
+	case "auto":
 		candidates = o.snaps
-	} else if snap := o.snapshotterFor(mode); snap != nil {
+	default:
+		snap := o.snapshotterFor(mode)
+		if snap == nil {
+			if len(o.snaps) == 0 {
+				return nil, fmt.Errorf("snapshot mode %q is unavailable: this runtime registers no snapshot providers (snapshots require the standalone Docker engine)", mode)
+			}
+			return nil, fmt.Errorf("unknown snapshot mode %q (want none, auto, or a provider: %s)", mode, o.providerModes())
+		}
 		candidates = []snapshot.Snapshotter{snap}
 	}
 	res := make([]snapshot.Resolution, len(sources))
@@ -130,6 +112,9 @@ func (o *Orchestrator) sourceMountsFor(ctx context.Context, job discovery.Job) (
 	default:
 		snap := o.snapshotterFor(mode)
 		if snap == nil {
+			if len(o.snaps) == 0 {
+				return nil, noop, fmt.Errorf("snapshot mode %q is unavailable: this runtime registers no snapshot providers (snapshots require the standalone Docker engine)", mode)
+			}
 			return nil, noop, fmt.Errorf("unknown snapshot mode %q (want none, auto, or a provider: %s)", mode, o.providerModes())
 		}
 		return o.strictMounts(ctx, job, snap)
@@ -262,12 +247,12 @@ func (o *Orchestrator) resolveHostPaths(ctx context.Context, job discovery.Job) 
 	for _, s := range job.Sources {
 		hp := s.Ref
 		if s.Type == mount.TypeVolume {
-			v, err := o.cli.VolumeInspect(ctx, s.Ref)
+			p, reason, err := o.host.VolumeHostPath(ctx, s.Ref)
 			if err != nil {
-				return nil, nil, fmt.Errorf("inspect volume %q: %w", s.Ref, err)
+				return nil, nil, err
 			}
-			hp = v.Mountpoint
-			if reason, ok := nonLocalBacking(v); ok {
+			hp = p
+			if reason != "" {
 				if foreign == nil {
 					foreign = map[string]string{}
 				}
@@ -277,22 +262,4 @@ func (o *Orchestrator) resolveHostPaths(ctx context.Context, job discovery.Job) 
 		srcs = append(srcs, snapshot.Source{Name: s.Name, HostPath: hp})
 	}
 	return srcs, foreign, nil
-}
-
-// nonLocalBacking reports whether a named volume's data lives somewhere other
-// than the host's local filesystem, with a reason for diagnostics. A non-local
-// driver is plugin-backed; a local driver carrying mount options mounts a
-// foreign filesystem (nfs/cifs/…) over its mountpoint. ok is false for a plain
-// local volume — a real directory on the host filesystem.
-func nonLocalBacking(v volume.Volume) (reason string, ok bool) {
-	if v.Driver != "local" {
-		return fmt.Sprintf("plugin-backed volume (driver %q), not local storage", v.Driver), true
-	}
-	if len(v.Options) > 0 {
-		if t := v.Options["type"]; t != "" {
-			return fmt.Sprintf("%s mount, not local storage", t), true
-		}
-		return "foreign mount (driver options set), not local storage", true
-	}
-	return "", false
 }

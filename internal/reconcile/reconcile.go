@@ -17,6 +17,7 @@ import (
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/config"
 	"github.com/davidborzek/sabon/internal/discovery"
+	"github.com/davidborzek/sabon/internal/engine"
 	"github.com/davidborzek/sabon/internal/metrics"
 	"github.com/davidborzek/sabon/internal/notify"
 	"github.com/davidborzek/sabon/internal/scheduler"
@@ -25,7 +26,7 @@ import (
 // Reconciler wires discovery, the orchestrator, the scheduler and metrics.
 type Reconciler struct {
 	ctx      context.Context // long-lived context for scheduled runs
-	disc     *discovery.Discoverer
+	disc     engine.Discoverer
 	orch     *backup.Orchestrator
 	cfg      *config.Config
 	sched    *scheduler.Scheduler
@@ -35,7 +36,7 @@ type Reconciler struct {
 }
 
 // New returns a Reconciler. ctx is the daemon context used by scheduled runs.
-func New(ctx context.Context, disc *discovery.Discoverer, orch *backup.Orchestrator, cfg *config.Config, sched *scheduler.Scheduler, m *metrics.Metrics, notifier *notify.Notifier, log *slog.Logger) *Reconciler {
+func New(ctx context.Context, disc engine.Discoverer, orch *backup.Orchestrator, cfg *config.Config, sched *scheduler.Scheduler, m *metrics.Metrics, notifier *notify.Notifier, log *slog.Logger) *Reconciler {
 	return &Reconciler{ctx: ctx, disc: disc, orch: orch, cfg: cfg, sched: sched, metrics: m, notifier: notifier, log: log}
 }
 
@@ -369,12 +370,12 @@ func (r *Reconciler) Restore(ctx context.Context, app, targetName string, opts b
 }
 
 // ListRuns returns retained mover runs (run history), newest first.
-func (r *Reconciler) ListRuns(ctx context.Context, app, target string) ([]backup.RunInfo, error) {
+func (r *Reconciler) ListRuns(ctx context.Context, app, target string) ([]engine.RunInfo, error) {
 	return r.orch.ListRuns(ctx, app, target)
 }
 
 // GetRun returns one run by id (its mover container id).
-func (r *Reconciler) GetRun(ctx context.Context, id string) (backup.RunInfo, bool, error) {
+func (r *Reconciler) GetRun(ctx context.Context, id string) (engine.RunInfo, bool, error) {
 	return r.orch.GetRun(ctx, id)
 }
 

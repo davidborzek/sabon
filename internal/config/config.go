@@ -19,6 +19,7 @@ import (
 // Config is sabon's fully-resolved runtime configuration.
 type Config struct {
 	LabelPrefix         string
+	Runtime             string // SABON_RUNTIME: "auto"(default)|"standalone"|"swarm" — which container runtime to drive
 	WatchByDefault      bool
 	ConfigFile          string
 	ResyncInterval      time.Duration
@@ -50,6 +51,7 @@ type Config struct {
 // Load reads SABON_* environment and, if present, the targets file.
 func Load() (*Config, error) {
 	c := &Config{
+		Runtime:          env("SABON_RUNTIME", "auto"),
 		LabelPrefix:      env("SABON_LABEL_PREFIX", "sabon"),
 		WatchByDefault:   envBool("SABON_WATCH_BY_DEFAULT", false),
 		ConfigFile:       env("SABON_CONFIG", "/etc/sabon/targets.yaml"),
@@ -83,6 +85,9 @@ func Load() (*Config, error) {
 	}
 	if c.Snapshot != "none" && c.Snapshot != "zfs" && c.Snapshot != "auto" {
 		return nil, fmt.Errorf("SABON_SNAPSHOT must be \"none\", \"zfs\" or \"auto\", got %q", c.Snapshot)
+	}
+	if c.Runtime != "auto" && c.Runtime != "standalone" && c.Runtime != "swarm" {
+		return nil, fmt.Errorf("SABON_RUNTIME must be \"auto\", \"standalone\" or \"swarm\", got %q", c.Runtime)
 	}
 	if c.NotifyOn != "failure" && c.NotifyOn != "always" {
 		return nil, fmt.Errorf("SABON_NOTIFY_ON must be \"failure\" or \"always\", got %q", c.NotifyOn)

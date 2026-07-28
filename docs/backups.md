@@ -138,6 +138,11 @@ to relax this: it snapshots the sources that are on ZFS and mounts the rest
 (non-ZFS or foreign-backed volumes) **live** in the same run — atomic where it
 can, live where it can't.
 
+!!! warning "ZFS snapshots need standalone Docker"
+    The privileged ZFS snapshotter is a node-local container that can't run as a
+    node-pinned Swarm service, so `snapshot: zfs`/`auto` are unsupported on Swarm
+    — sources mount **live** there. See [Deployment](deployment.md#swarm).
+
 If a run crashes mid-snapshot, the orphan is cleaned up at the next startup
 (when a snapshotting mode is configured — `zfs` or `auto`); a snapshot still read
 by a mover that survived a restart is spared until that backup finishes.

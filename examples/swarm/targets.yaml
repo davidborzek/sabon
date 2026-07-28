@@ -1,0 +1,30 @@
+# sabon targets — where backups go (swarm demo).
+#
+# Each target is a restic repository backend; sabon derives a per-app repo under
+# it. A target is EITHER local (`path:`) OR remote (`repo:`).
+#
+# SWARM NOTE: a local `path:` target is a HOST directory the mover bind-mounts,
+# so it only makes sense on a SINGLE node. On a multi-node cluster a node-local
+# path is meaningless — use a REMOTE target (S3/R2/…) reachable from every node.
+
+targets:
+  # ── onsite: a local repo (single-node only) ────────────────────────────
+  - name: onsite
+    path: /mnt/backup
+    schedule: "0 0 */6 * * *" # 6-field cron (seconds first): every 6 hours
+    retention:
+      hourly: 24
+      daily: 7
+      weekly: 5
+
+  # ── offsite: a remote repo — the right choice for a real cluster ────────
+  # Reachable from every node, so the node-pinned mover can always write it.
+  #
+  # - name: offsite
+  #   repo: "s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}"
+  #   env:
+  #     AWS_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+  #     AWS_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+  #   schedule: "0 30 3 * * *" # daily at 03:30
+  #   retention:
+  #     daily: 7

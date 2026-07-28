@@ -12,7 +12,6 @@ import (
 	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/davidborzek/sabon/internal/mover"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/volume"
 )
 
 // moverSpec builds the JSON contract for the mover.
@@ -153,7 +152,7 @@ func (o *Orchestrator) ensureCache(ctx context.Context) error {
 	if o.cacheOK {
 		return nil
 	}
-	if _, err := o.cli.VolumeCreate(ctx, volume.CreateOptions{Name: o.cfg.CacheVolume}); err != nil {
+	if err := o.host.EnsureCache(ctx, o.cfg.CacheVolume); err != nil {
 		return err
 	}
 	o.cacheOK = true

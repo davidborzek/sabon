@@ -1,6 +1,6 @@
 # Architecture
 
-sabon is a label-driven restic backup orchestrator for a single Docker host. It
+sabon is a label-driven restic backup orchestrator for Docker. It
 recreates the ergonomics of a Kubernetes backup operator (the pattern is
 Volsync-style) for plain Docker / Compose: container labels declare what to back
 up and to which targets, and sabon schedules and runs those backups by spawning
@@ -12,6 +12,32 @@ container. This keeps the long-running daemon simple, lets in-flight backups
 survive an orchestrator restart, and means each job mounts exactly the named
 volumes (and paths) it needs **on demand** — the daemon never has to mount
 everything up front.
+
+## Runtimes: standalone and Swarm
+
+By default sabon drives a **single Docker daemon** (standalone or Compose), and
+the rest of this document describes that model. On a Swarm **manager** it instead
+drives the cluster through the service API: discovery reads **services**, and each
+mover runs as a one-shot **service** pinned to the node that holds the data.
+Everything else is identical (restic env, cache, per-app repos, snapshots, hooks,
+metrics, the control API); the difference is isolated behind a runtime seam —
+`internal/engine` (`Engine`, `Discoverer`, `Quiescer`, `Hooks`), implemented per
+runtime in `engine/docker` (containers) and `engine/swarm` (services), selected at
+startup by `docker info` or `SABON_RUNTIME`. Swarm mode is **experimental** — see
+[Docker Swarm](configuration.md#docker-swarm) and [Deployment](deployment.md#swarm).
+
+```mermaid
+flowchart TD
+  apps["labelled services<br/>(deploy.labels)"]
+  subgraph mgr["sabon orchestrator · manager node"]
+    S["discover services → reconcile → schedule"]
+  end
+  apps -->|"service + task API"| S
+  S -->|"mover service · constraint node==A"| MA["mover @ node A"]
+  S -->|"mover service · constraint node==B"| MB["mover @ node B"]
+  MA --> VA[("vol @ A")] --> R[("remote restic repo")]
+  MB --> VB[("vol @ B")] --> R
+```
 
 ## Orchestrator and movers
 

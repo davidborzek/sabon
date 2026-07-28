@@ -13,14 +13,14 @@ depending on its mode.
 ### exec mode (default)
 
 Runs the command **inside an existing container** with `docker exec` — by default
-the labeled container. Use it to reach a tool that already lives in the app's
+the labelled container. Use it to reach a tool that already lives in the app's
 container (its database client, `sqlite3`, etc.).
 
 `command`
 :   argv to execute (required).
 
 `container`
-:   Container to exec in. Default: the labeled container.
+:   Container to exec in. Default: the labelled container.
 
 `user`
 :   User to exec as (e.g. `postgres`).

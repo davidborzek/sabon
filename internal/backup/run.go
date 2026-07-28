@@ -59,14 +59,14 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		cs := o.colds.get(job.Container)
 		if err := cs.hold(func() error {
 			log.Info("stopping container for cold backup", "container", job.Container)
-			return o.hooks.Stop(ctx, job.Container)
+			return o.quiesce.Stop(ctx, job.Container)
 		}); err != nil {
 			return mover.Result{}, err
 		}
 		// Always attempt to restart (even on mover failure or shutdown); the last
 		// concurrent holder does it.
 		defer cs.release(func() {
-			if err := o.hooks.Start(context.WithoutCancel(ctx), job.Container); err != nil {
+			if err := o.quiesce.Start(context.WithoutCancel(ctx), job.Container); err != nil {
 				log.Error("failed to restart container after cold backup", "container", job.Container, "error", err)
 			}
 		})
@@ -103,9 +103,10 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		KeepOnShutdown: !job.Spec.Stop,
 		Labels:         moverLabels(job.App, target.Name, "backup"),
 		Retain:         true,
+		Node:           job.Node,
 	}
 	log.Debug("spawning mover", "name", req.Name, "image", req.Image, "user", req.User, "sources", len(srcMounts))
-	res, kept, runErr := o.runner.Run(ctx, req)
+	res, kept, runErr := o.eng.RunMover(ctx, req)
 	keptMover = kept
 
 	// Post-hooks run regardless of the mover outcome, and must survive a
@@ -133,7 +134,7 @@ func (o *Orchestrator) RunSnapshots(ctx context.Context, app string, target api.
 		return err
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
-	_, _, err = o.runner.Run(ctx, mover.Request{
+	_, _, err = o.eng.RunMover(ctx, mover.Request{
 		Name:   moverName(app, target.Name),
 		Image:  o.image,
 		User:   o.cfg.MoverUser,
@@ -166,7 +167,7 @@ func (o *Orchestrator) RunCheck(ctx context.Context, app string, target api.Targ
 		return err
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
-	_, _, err = o.runner.Run(ctx, mover.Request{
+	_, _, err = o.eng.RunMover(ctx, mover.Request{
 		Name:   moverName(app, target.Name),
 		Image:  o.image,
 		User:   o.cfg.MoverUser,
@@ -200,7 +201,7 @@ func (o *Orchestrator) RunPrune(ctx context.Context, app string, target api.Targ
 		return err
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
-	_, _, err = o.runner.Run(ctx, mover.Request{
+	_, _, err = o.eng.RunMover(ctx, mover.Request{
 		Name:   moverName(app, target.Name),
 		Image:  o.image,
 		User:   o.cfg.MoverUser,
@@ -254,11 +255,11 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		if opts.Stop {
 			log := o.log.With("app", app, "target", target.Name)
 			log.Info("stopping container for in-place restore", "container", job.Container)
-			if err := o.hooks.Stop(ctx, job.Container); err != nil {
+			if err := o.quiesce.Stop(ctx, job.Container); err != nil {
 				return err
 			}
 			defer func() {
-				if err := o.hooks.Start(context.WithoutCancel(ctx), job.Container); err != nil {
+				if err := o.quiesce.Start(context.WithoutCancel(ctx), job.Container); err != nil {
 					log.Error("failed to restart container after restore", "container", job.Container, "error", err)
 				}
 			}()
@@ -269,12 +270,14 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 	// are written into the app's live volumes; staging restore uses the default.
 	user := o.cfg.MoverUser
 	groups := o.cfg.MoverGroups
+	var node string
 	if job != nil {
 		user = job.Spec.MoverUser(o.cfg.MoverUser)
 		groups = job.Spec.MoverGroups(o.cfg.MoverGroups)
+		node = job.Node
 	}
 
-	_, _, err = o.runner.Run(ctx, mover.Request{
+	_, _, err = o.eng.RunMover(ctx, mover.Request{
 		Name:   moverName(app, target.Name),
 		Image:  o.image,
 		User:   user,
@@ -286,6 +289,7 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		Stdout: out,
 		Labels: moverLabels(app, target.Name, "restore"),
 		Retain: true,
+		Node:   node,
 	})
 	return err
 }

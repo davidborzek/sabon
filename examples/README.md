@@ -4,6 +4,9 @@ A complete, runnable sabon stack: the orchestrator, a least-privilege Docker
 socket proxy, and a small labelled workload (an app + a Postgres database)
 backed up to a local restic repository.
 
+> Running on **Docker Swarm**? See [`swarm/`](swarm/) for a swarm-mode stack
+> (services + `deploy.labels`, node-pinned movers, manager placement).
+
 sabon itself never runs restic. On a schedule it spawns ephemeral **mover**
 containers (from its own image) that mount the sources read-only and run
 restic. Movers run as **root** and sabon needs Docker API **write** access to

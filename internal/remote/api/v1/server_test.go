@@ -13,11 +13,12 @@ import (
 	"github.com/davidborzek/sabon/api"
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/discovery"
+	"github.com/davidborzek/sabon/internal/engine"
 )
 
 type fakeBackend struct {
 	backups atomic.Int32
-	runs    []backup.RunInfo
+	runs    []engine.RunInfo
 }
 
 func (f *fakeBackend) ConfigTargets() []api.Target {
@@ -36,16 +37,16 @@ func (f *fakeBackend) Prune(context.Context, string, string) error  { return nil
 func (f *fakeBackend) Restore(context.Context, string, string, backup.RestoreOptions, io.Writer) error {
 	return nil
 }
-func (f *fakeBackend) ListRuns(context.Context, string, string) ([]backup.RunInfo, error) {
+func (f *fakeBackend) ListRuns(context.Context, string, string) ([]engine.RunInfo, error) {
 	return f.runs, nil
 }
-func (f *fakeBackend) GetRun(_ context.Context, id string) (backup.RunInfo, bool, error) {
+func (f *fakeBackend) GetRun(_ context.Context, id string) (engine.RunInfo, bool, error) {
 	for _, r := range f.runs {
 		if r.ID == id {
 			return r, true, nil
 		}
 	}
-	return backup.RunInfo{}, false, nil
+	return engine.RunInfo{}, false, nil
 }
 func (f *fakeBackend) RunLogs(_ context.Context, id string, out io.Writer) error {
 	_, _ = io.WriteString(out, "log-"+id)
@@ -53,7 +54,7 @@ func (f *fakeBackend) RunLogs(_ context.Context, id string, out io.Writer) error
 }
 
 func testServer() (*Server, *fakeBackend) {
-	f := &fakeBackend{runs: []backup.RunInfo{{ID: "abc", App: "demo", Target: "onsite", Action: "backup", Status: "succeeded"}}}
+	f := &fakeBackend{runs: []engine.RunInfo{{ID: "abc", App: "demo", Target: "onsite", Action: "backup", Status: "succeeded"}}}
 	return New(f, "secret", slog.New(slog.NewTextHandler(io.Discard, nil))), f
 }
 

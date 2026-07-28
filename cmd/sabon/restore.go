@@ -29,7 +29,11 @@ func runSnapshots(cCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	orch := newOrchestrator(cli, cfg, image, logger)
+	rt, err := newRuntime(ctx, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+	orch := newOrchestrator(cfg, image, rt, logger)
 	app := cCtx.String("app")
 	targets := cfg.Targets
 	if name := cCtx.String("target"); name != "" {
@@ -71,7 +75,11 @@ func runCheckCmd(cCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	orch := newOrchestrator(cli, cfg, image, logger)
+	rt, err := newRuntime(ctx, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+	orch := newOrchestrator(cfg, image, rt, logger)
 	app := cCtx.String("app")
 	targets := cfg.Targets
 	if name := cCtx.String("target"); name != "" {
@@ -113,7 +121,11 @@ func runPruneCmd(cCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	orch := newOrchestrator(cli, cfg, image, logger)
+	rt, err := newRuntime(ctx, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+	orch := newOrchestrator(cfg, image, rt, logger)
 	app := cCtx.String("app")
 	targets := cfg.Targets
 	if name := cCtx.String("target"); name != "" {
@@ -167,7 +179,11 @@ func runRestore(cCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	orch := newOrchestrator(cli, cfg, image, logger)
+	rt, err := newRuntime(ctx, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+	orch := newOrchestrator(cfg, image, rt, logger)
 	opts := backup.RestoreOptions{
 		Snapshot: cCtx.String("snapshot"),
 		Into:     into,
@@ -177,7 +193,7 @@ func runRestore(cCtx *cli.Context) error {
 
 	var job *discovery.Job
 	if inPlace {
-		disc := discovery.New(cli, cfg.LabelPrefix, cfg.WatchByDefault, cfg.CacheVolume, cfg.Instance, logger)
+		disc := rt.disc
 		jobs, err := disc.List(ctx)
 		if err != nil {
 			return err

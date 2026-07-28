@@ -29,7 +29,10 @@ const (
 	LabelAction = "sabon.action"
 )
 
-// Request is everything the orchestrator needs to run one mover.
+// Request is everything a runtime needs to run one mover. It is the shared
+// Docker/Swarm mover contract, expressed in Docker's vocabulary: Mounts/Binds
+// are Docker mounts (the swarm engine translates them into service mounts), and
+// Node is honoured only by the swarm engine (as a placement constraint).
 type Request struct {
 	Name           string            // container name (unique per run)
 	Image          string            // mover image (sabon's own image by default)
@@ -44,6 +47,7 @@ type Request struct {
 	Labels         map[string]string // extra labels (LabelKey is always set)
 	KeepOnShutdown bool              // leave the mover running if sabon is shutting down (not for cold backups)
 	Retain         bool              // keep the container after it exits (run history); reap trims per group
+	Node           string            // swarm: node hostname to pin the mover to (empty = no placement constraint)
 }
 
 // Runner spawns and supervises mover containers.
@@ -57,7 +61,7 @@ func NewRunner(cli client.APIClient) *Runner { return &Runner{cli: cli} }
 // Run creates, starts and waits for one mover, returns its parsed Result, and
 // always removes the container. The mover's logs are attached to any error.
 func (r *Runner) Run(ctx context.Context, req Request) (Result, bool, error) {
-	specJSON, err := marshalSpec(req.Spec)
+	specJSON, err := MarshalSpec(req.Spec)
 	if err != nil {
 		return Result{}, false, err
 	}
@@ -256,7 +260,8 @@ func DetectSelfImage(ctx context.Context, cli client.APIClient) (string, error) 
 	return insp.Image, nil
 }
 
-func marshalSpec(s Spec) (string, error) {
+// MarshalSpec encodes a Spec as the JSON carried in SABON_MOVER_SPEC.
+func MarshalSpec(s Spec) (string, error) {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return "", fmt.Errorf("marshal mover spec: %w", err)

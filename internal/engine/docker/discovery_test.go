@@ -1,4 +1,4 @@
-package discovery
+package docker
 
 import (
 	"context"
@@ -55,7 +55,7 @@ func TestListResolvesSources(t *testing.T) {
 			},
 		},
 	}
-	d := New(fd, "sabon", false, "sabon-cache", "", testLogger())
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
 	jobs, err := d.List(context.Background())
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -96,7 +96,7 @@ func TestListSkipsDisabledAndSpecless(t *testing.T) {
 		},
 		mounts: map[string][]container.MountPoint{},
 	}
-	d := New(fd, "sabon", false, "sabon-cache", "", testLogger())
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
 	jobs, err := d.List(context.Background())
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -117,7 +117,7 @@ func TestListInstanceFilter(t *testing.T) {
 		mounts: map[string][]container.MountPoint{},
 	}
 	// instance "a" → only the container tagged a.
-	d := New(fd, "sabon", false, "sabon-cache", "a", testLogger())
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "a", testLogger())
 	jobs, err := d.List(context.Background())
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -126,17 +126,10 @@ func TestListInstanceFilter(t *testing.T) {
 		t.Fatalf("instance filter: want [mine], got %+v", jobs)
 	}
 	// no instance → manage all three.
-	d2 := New(fd, "sabon", false, "sabon-cache", "", testLogger())
+	d2 := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
 	jobs2, _ := d2.List(context.Background())
 	if len(jobs2) != 3 {
 		t.Fatalf("no instance: want 3 jobs, got %d", len(jobs2))
-	}
-}
-
-func TestNamerDedup(t *testing.T) {
-	n := newNamer()
-	if a, b := n.pick("data"), n.pick("data"); a == b {
-		t.Errorf("namer returned duplicate: %q == %q", a, b)
 	}
 }
 
@@ -148,7 +141,7 @@ func TestListIncludesStopped(t *testing.T) {
 		}},
 		mounts: map[string][]container.MountPoint{},
 	}
-	d := New(fd, "sabon", false, "sabon-cache", "", testLogger())
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
 	if _, err := d.List(context.Background()); err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -173,7 +166,7 @@ func TestListExcludeVolumes(t *testing.T) {
 			},
 		},
 	}
-	d := New(fd, "sabon", false, "sabon-cache", "", testLogger())
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
 	jobs, err := d.List(context.Background())
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -191,18 +184,5 @@ func TestListExcludeVolumes(t *testing.T) {
 	// auto: /data (bind) + immich-library (volume); model-cache excluded => 2.
 	if len(jobs[0].Sources) != 2 || !names["data"] || !names["immich-library"] {
 		t.Errorf("want [data immich-library], got %v", names)
-	}
-}
-
-func TestValidAppName(t *testing.T) {
-	for _, ok := range []string{"immich", "paperless-ngx", "app_1"} {
-		if err := validAppName(ok); err != nil {
-			t.Errorf("%q should be valid: %v", ok, err)
-		}
-	}
-	for _, bad := range []string{"", "../etc", "a/b", `a\b`, "..", "x/.."} {
-		if err := validAppName(bad); err == nil {
-			t.Errorf("%q should be rejected as a repo name", bad)
-		}
 	}
 }

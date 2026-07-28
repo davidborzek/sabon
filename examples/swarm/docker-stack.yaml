@@ -1,0 +1,81 @@
+# A single-node Docker Swarm demo of sabon in SWARM mode.
+#
+#   docker swarm init                     # if this host isn't a swarm yet
+#   sudo mkdir -p /mnt/backup && sudo chown "$(id -u)" /mnt/backup
+#   RESTIC_PASSWORD=change-me docker stack deploy -c docker-stack.yaml sabon-demo
+#
+# In swarm mode sabon runs on a MANAGER, drives the Docker *service* API, and
+# discovers labelled SERVICES (labels on `deploy.labels`, not container labels).
+# Each backup runs as a one-shot mover SERVICE pinned to the node holding the
+# data; cold backups scale a service to zero and back. Exec-mode hooks and ZFS
+# snapshots are unsupported in swarm.
+#
+# NOTE: a local `path:` target only works on a single node (the mover bind-mounts
+# a host path). On a real MULTI-NODE cluster use a REMOTE target (S3/R2/…) — a
+# node-local repo path is meaningless cluster-wide. See examples/README.md.
+version: "3.9"
+
+services:
+  # ── sabon (the orchestrator) ───────────────────────────────────────────
+  # One replica on a MANAGER node — the service API is manager-only. It needs a
+  # manager's Docker socket (write access: it creates/updates/removes mover
+  # services). A socket proxy here would need POST + SERVICES + TASKS + NODES +
+  # IMAGES (not the standalone CONTAINERS/EXEC set).
+  sabon:
+    image: ghcr.io/davidborzek/sabon:latest
+    environment:
+      SABON_RUNTIME: swarm # or omit — auto-detected on a manager
+      SABON_CONFIG: /etc/sabon/targets.yaml
+      SABON_RUN_ON_STARTUP: "true" # back up once on deploy so there are snapshots
+      SABON_LOG_LEVEL: info
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-change-me}
+      # Movers run as services on the cluster, so the mover image must be
+      # pullable on every node. Pin it explicitly (self-detection is unreliable
+      # for a Swarm task):
+      SABON_MOVER_IMAGE: ghcr.io/davidborzek/sabon:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # MUST be a manager node's socket
+      - /mnt/backup:/mnt/backup # single-node onsite repo (bind); use a remote target for multi-node
+    ports:
+      - "9333:9333" # /metrics, /healthz, /readyz (routing mesh)
+    configs:
+      - source: sabon-targets
+        target: /etc/sabon/targets.yaml
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+
+  # ── example workload: a labelled SERVICE ───────────────────────────────
+  # The sabon labels live on the SERVICE (deploy.labels). `auto: true` resolves
+  # sources from the service's own mounts (the `appdata` volume). No exec hook /
+  # database here — exec-mode hooks are unsupported in swarm; use a remote target
+  # + run-mode hooks (one-shot services) for a consistent DB dump.
+  app:
+    image: busybox
+    command: ["sh", "-c", "echo 'hello from sabon swarm demo' > /data/app.txt && sleep infinity"]
+    volumes:
+      - appdata:/data
+    deploy:
+      replicas: 1
+      labels:
+        sabon.enable: "true"
+        sabon.backup: |
+          repo: demo
+          auto: true
+          tags: [demo, swarm]
+          targets: [onsite]
+
+volumes:
+  appdata:
+  # The shared restic cache (SABON_CACHE_VOLUME, default sabon-cache) is created
+  # per node by the mover services on demand; it is not part of this stack.
+
+configs:
+  # docker stack deploy reads this file locally at deploy time and stores it as a
+  # swarm config. A relative bind mount (./targets.yaml) would NOT resolve in
+  # swarm — only swarm configs or an absolute host path work.
+  sabon-targets:
+    file: ./targets.yaml
