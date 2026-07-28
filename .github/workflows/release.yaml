@@ -75,3 +75,34 @@ jobs:
           tags: |
             ghcr.io/davidborzek/sabon/zfs-snapshotter:latest
             ghcr.io/davidborzek/sabon/zfs-snapshotter:${{ needs.release-please.outputs.tag_name }}
+
+  docs:
+    # Versioned docs (mike) are deployed here, in the release run, because a
+    # release published by GITHUB_TOKEN does not trigger the docs workflow's
+    # `release` event.
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install zensical git+https://github.com/squidfunk/mike.git
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Deploy versioned docs
+        run: |
+          version="${TAG#v}"
+          mike deploy --push --update-aliases "$version" latest
+          mike set-default --push latest
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}

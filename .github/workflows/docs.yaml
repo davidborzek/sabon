@@ -2,9 +2,12 @@ name: docs
 
 # Versioned docs via Zensical's mike fork (https://zensical.org/docs/setup/versioning/):
 #   - every push to main updates the `dev` version;
-#   - every published release publishes `X.Y.Z` and moves the `latest` alias.
-# mike commits the built site to the `gh-pages` branch, so set the repository's
-# Pages source to "Deploy from a branch" -> gh-pages (one-time setting).
+#   - releases publish `X.Y.Z` and move the `latest` alias from the *release*
+#     workflow (release-please creates the GitHub release with GITHUB_TOKEN,
+#     which does not trigger a `release` event here);
+#   - workflow_dispatch with a `version` input republishes a version manually.
+# mike commits the built site to `gh-pages`, so set the repository's Pages source
+# to "Deploy from a branch" -> gh-pages (one-time setting).
 on:
   push:
     branches: [main]
@@ -12,9 +15,12 @@ on:
       - docs/**
       - zensical.toml
       - .github/workflows/docs.yaml
-  release:
-    types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, e.g. 0.1.0 (empty = deploy dev)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -39,12 +45,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Deploy dev docs (main)
-        if: github.event_name != 'release'
+      - name: Deploy dev docs
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.version == '')
         run: mike deploy --push dev
-      - name: Deploy release docs
-        if: github.event_name == 'release'
+      - name: Deploy versioned docs
+        if: github.event_name == 'workflow_dispatch' && inputs.version != ''
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          mike deploy --push --update-aliases "$version" latest
+          mike deploy --push --update-aliases "${{ inputs.version }}" latest
           mike set-default --push latest
