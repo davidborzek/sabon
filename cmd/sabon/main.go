@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	_ "time/tzdata" // embed the IANA tz database so TZ works on the distroless image (cron schedules + log timestamps honour TZ; default UTC)
 
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/config"

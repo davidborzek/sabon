@@ -136,6 +136,10 @@ This applies only to **hook** `env`; the `env:` block in the targets file is ope
 
 *default: docker default* — Standard Docker client variable; point it at a socket proxy.
 
+### `TZ`
+
+*default `UTC`* — Standard timezone variable (e.g. `Europe/Berlin`). Cron schedules and log timestamps are interpreted in it; unset means UTC. The tz database is embedded in the image, so no `/etc/localtime` mount is needed. An invalid value falls back to UTC. restic records snapshot times in **UTC** (the mover has no zoneinfo) — deliberately: UTC is unambiguous and DST-safe.
+
 
 ### restic credentials
 
@@ -271,6 +275,8 @@ Schedules are **6-field** cron expressions with **seconds first**
 | `0 0 */6 * * *` | Every 6 hours, on the hour. |
 | `0 30 3 * * *` | Daily at 03:30. |
 | `0 0 2 * * 0` | Weekly, Sunday 02:00. |
+
+Schedules run in the [`TZ`](#tz) timezone (UTC if unset).
 
 Validate a config without running anything with `sabon validate` (see
 [Labels](labels.md)).
