@@ -1,3 +1,9 @@
+---
+tags:
+  - Hooks
+  - Consistency
+---
+
 # Hooks
 
 Hooks let you run a command around a backup — most often to produce a consistent

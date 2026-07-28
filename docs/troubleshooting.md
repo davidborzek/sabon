@@ -1,3 +1,9 @@
+---
+tags:
+  - Troubleshooting
+  - Operations
+---
+
 # Troubleshooting
 
 Almost every diagnosis starts the same way — validate the config and read the

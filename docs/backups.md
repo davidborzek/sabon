@@ -1,3 +1,10 @@
+---
+tags:
+  - Backups
+  - Snapshots
+  - Retention
+---
+
 # Backups
 
 This is the domain guide: what actually happens when sabon backs an app up, how

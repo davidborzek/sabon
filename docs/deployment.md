@@ -1,3 +1,10 @@
+---
+tags:
+  - Deployment
+  - Security
+  - Swarm
+---
+
 # Deployment
 
 sabon runs as a single long-running container (the orchestrator) that needs

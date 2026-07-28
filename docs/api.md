@@ -1,3 +1,9 @@
+---
+tags:
+  - API
+  - Automation
+---
+
 # HTTP API
 
 An optional, token-authenticated HTTP control API exposes sabon's operations —

@@ -1,3 +1,9 @@
+---
+tags:
+  - Configuration
+  - Reference
+---
+
 # Configuration
 
 sabon has two configuration surfaces:

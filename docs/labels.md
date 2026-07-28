@@ -1,3 +1,9 @@
+---
+tags:
+  - Labels
+  - Configuration
+---
+
 # Labels
 
 A container opts into backups with labels. The controlling label is

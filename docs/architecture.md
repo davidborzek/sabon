@@ -1,3 +1,9 @@
+---
+tags:
+  - Architecture
+  - Swarm
+---
+
 # Architecture
 
 sabon is a label-driven restic backup orchestrator for Docker. It

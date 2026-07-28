@@ -1,3 +1,9 @@
+---
+tags:
+  - Restore
+  - Disaster recovery
+---
+
 # Restore
 
 Restore is the point of all this, so the docs lead here. Every `(app, target)`

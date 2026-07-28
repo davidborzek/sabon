@@ -1,3 +1,9 @@
+---
+tags:
+  - Observability
+  - Operations
+---
+
 # Observability
 
 sabon's observability comes in two forms: a built-in HTTP server exposing

@@ -1,3 +1,8 @@
+---
+tags:
+  - FAQ
+---
+
 # FAQ
 
 ## Why do the movers run as root?

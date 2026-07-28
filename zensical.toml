@@ -54,6 +54,15 @@ features = [
 [project.theme.icon]
 logo = "lucide/archive-restore"
 
+[project.theme.icon.tag]
+default = "lucide/tag"
+swarm = "lucide/boxes"
+security = "lucide/shield"
+backup = "lucide/archive"
+restore = "lucide/archive-restore"
+snapshot = "lucide/camera"
+config = "lucide/settings"
+
 [project.theme.font]
 text = "Inter"
 code = "JetBrains Mono"
@@ -82,6 +91,14 @@ toggle.name = "Switch to system preference"
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
 link = "https://github.com/davidborzek/sabon"
+
+[project.extra.tags]
+Swarm = "swarm"
+Security = "security"
+Backups = "backup"
+Restore = "restore"
+Snapshots = "snapshot"
+Configuration = "config"
 
 # Multi-version docs via Zensical's mike fork (see docs workflow). The version
 # selector appears in the header; `latest` is the default users land on.
