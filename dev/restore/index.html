@@ -245,6 +245,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -378,6 +382,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -665,6 +673,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#verify-your-backups-are-restorable" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Verify your backups are restorable
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restore-without-sabon-bare-restic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Restore without sabon (bare restic)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -689,6 +719,60 @@
     
   
   Deployment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
 
     
   </span>
@@ -949,6 +1033,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#verify-your-backups-are-restorable" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Verify your backups are restorable
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restore-without-sabon-bare-restic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Restore without sabon (bare restic)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1005,6 +1111,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1035,9 +1145,12 @@
 
 
 <h1 id="restore">Restore<a class="headerlink" href="#restore" title="Permanent link">&para;</a></h1>
-<p>Restore is scoped to one <code>(app, target)</code> pair and a snapshot. First find the
-snapshot, then restore it either into a <strong>staging directory</strong> (safe) or
-<strong>in place</strong> (destructive).</p>
+<p>Restore is the point of all this, so the docs lead here. Every <code>(app, target)</code>
+repository is <strong>self-contained and encrypted</strong>, so you can restore from any
+machine that can reach the target — even after the original host and app are
+gone. A restore is scoped to one <code>(app, target)</code> pair and a snapshot: find the
+snapshot, then restore it into a <strong>staging directory</strong> (safe) or <strong>in place</strong>
+(destructive).</p>
 <div class="admonition note">
 <p class="admonition-title">sabon runs as a container</p>
 <p>sabon is a long-running container, so its CLI subcommands are executed
@@ -1097,6 +1210,32 @@ it:</p>
 </span></code></pre></div>
 <p>The live <code>pgdata</code> was never in the repository, so there is nothing else to
 restore for the database.</p>
+<h2 id="verify-your-backups-are-restorable">Verify your backups are restorable<a class="headerlink" href="#verify-your-backups-are-restorable" title="Permanent link">&para;</a></h2>
+<p>A backup you have never restored is a hope, not a backup. On a schedule — not
+only during an incident:</p>
+<ul>
+<li><strong>Staging-restore</strong> the latest snapshot into a scratch directory and confirm the
+  files are complete and actually loadable (e.g. import the DB dump into a
+  throwaway database).</li>
+<li>Run <strong><code>restic check</code></strong> on the repository. sabon can schedule this per target
+  (see <a href="../backups/#checks">check &amp; prune</a>); run it out-of-band too before relying
+  on a repo you have not touched in a while.</li>
+</ul>
+<h2 id="restore-without-sabon-bare-restic">Restore without sabon (bare restic)<a class="headerlink" href="#restore-without-sabon-bare-restic" title="Permanent link">&para;</a></h2>
+<p>The repositories are ordinary <strong>restic</strong> repositories — sabon is not required to
+read them. This is the ultimate disaster-recovery escape hatch: with the repo
+location and its password, plain <code>restic</code> restores everything.</p>
+<p>A repository lives at <code>&lt;target&gt;/&lt;app&gt;</code>: a local target <code>path: /mnt/backup</code> puts
+the <code>immich</code> repo at <code>/mnt/backup/immich</code>; a remote target uses the same
+<code>&lt;repo&gt;/&lt;app&gt;</code> layout. Point <code>restic</code> straight at it:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RESTIC_PASSWORD</span><span class="o">=</span>…<span class="w">                  </span><span class="c1"># the (app, target) repo password</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>restic<span class="w"> </span>-r<span class="w"> </span>/mnt/backup/immich<span class="w"> </span>snapshots
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>restic<span class="w"> </span>-r<span class="w"> </span>/mnt/backup/immich<span class="w"> </span>restore<span class="w"> </span>latest<span class="w"> </span>--target<span class="w"> </span>/srv/restore/immich
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># remote, e.g.: restic -r s3:https://…/immich restore latest --target …</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1">#   (with the backend&#39;s AWS_*/credentials in the environment)</span>
+</span></code></pre></div>
+<p>Sources appear under <code>/data/&lt;name&gt;</code> inside the snapshot, exactly as with
+<code>sabon restore</code>.</p>
 
 
 

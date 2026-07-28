@@ -12,11 +12,13 @@
         <meta name="author" content="David Borzek">
       
       
-        <link rel="canonical" href="https://davidborzek.github.io/sabon/dev/api/">
+        <link rel="canonical" href="https://davidborzek.github.io/sabon/dev/troubleshooting/">
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="../deployment/">
       
+      
+        <link rel="next" href="../faq/">
       
       
         
@@ -27,7 +29,7 @@
     
     
       
-        <title>HTTP API - sabon</title>
+        <title>Troubleshooting - sabon</title>
       
     
     
@@ -83,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#http-api" class="md-skip">
+        <a href="#troubleshooting" class="md-skip">
           Skip to content
         </a>
       
@@ -123,7 +125,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              HTTP API
+              Troubleshooting
             
           </span>
         </div>
@@ -225,6 +227,8 @@
   
   
   
+    
+  
   
     
       
@@ -249,7 +253,7 @@
     
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../configuration/" class="md-tabs__link">
           
   
@@ -265,8 +269,6 @@
   
   
   
-    
-  
   
     
       
@@ -281,7 +283,7 @@
     
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../metrics/" class="md-tabs__link">
           
   
@@ -374,8 +376,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -399,19 +403,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -428,7 +435,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -604,10 +611,36 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -622,6 +655,115 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#no-movers-spawn-nothing-gets-backed-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        No movers spawn / nothing gets backed up
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#403-permission-denied-against-the-docker-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>403</code> / permission denied against the Docker API
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-is-already-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>repository is already locked</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrong-password-repository-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>wrong password</code> / repository not found
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snapshot-zfs-failed-the-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>snapshot: zfs</code> failed the backup
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swarm-the-mover-never-starts-image-pull-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Swarm: the mover never starts / image pull fails
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-local-target-only-backs-up-on-one-node-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        A local target only backs up on one node (swarm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restores-look-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Restores look empty
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -665,10 +807,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -682,22 +822,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -714,7 +851,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -782,36 +919,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-  API
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="././" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -826,99 +937,6 @@
   
 
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Authentication
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#endpoints" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Endpoints
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Endpoints">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reads" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Reads
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#triggers" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Triggers
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-history" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Run history
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Example
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -972,10 +990,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
+  <a href="#no-movers-spawn-nothing-gets-backed-up" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Authentication
+        No movers spawn / nothing gets backed up
       </span>
     </span>
   </a>
@@ -983,49 +1001,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoints" class="md-nav__link">
+  <a href="#403-permission-denied-against-the-docker-api" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Endpoints
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Endpoints">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reads" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Reads
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#triggers" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Triggers
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-history" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Run history
+        <code>403</code> / permission denied against the Docker API
       </span>
     </span>
   </a>
@@ -1033,10 +1012,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#repository-is-already-locked" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Example
+        <code>repository is already locked</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrong-password-repository-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>wrong password</code> / repository not found
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snapshot-zfs-failed-the-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>snapshot: zfs</code> failed the backup
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swarm-the-mover-never-starts-image-pull-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Swarm: the mover never starts / image pull fails
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-local-target-only-backs-up-on-one-node-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        A local target only backs up on one node (swarm)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restores-look-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Restores look empty
       </span>
     </span>
   </a>
@@ -1093,16 +1127,26 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
     
       <li class="md-path__item">
-        <a href="../metrics/" class="md-path__link">
+        <a href="../configuration/" class="md-path__link">
           
   
   <span class="md-ellipsis">
-    Reference
+    Guide
   </span>
 
         </a>
@@ -1122,164 +1166,67 @@
   
 
 
-<h1 id="http-api">HTTP API<a class="headerlink" href="#http-api" title="Permanent link">&para;</a></h1>
-<p>An optional, token-authenticated HTTP control API exposes sabon's operations —
-show config, list jobs and snapshots, trigger backup/check/prune/restore, and
-browse run history.</p>
-<p>It is <strong>off by default</strong>. Set <a href="../configuration/#sabon_api_addr"><code>SABON_API_ADDR</code></a>
-to enable it and <a href="../configuration/#sabon_api_token"><code>SABON_API_TOKEN</code></a> to a
-bearer token every request must carry. The token is optional but strongly
-recommended — leaving it empty disables authentication (sabon warns at
-startup). It is privileged — a <code>restore</code> overwrites live data — so bind it
-to loopback and put TLS in front of it (a reverse proxy), the same way you would
-expose anything else.</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">services</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">SABON_API_ADDR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;:8080&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">SABON_API_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${SABON_API_TOKEN}</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8080:8080&quot;</span><span class="w"> </span><span class="c1"># loopback; front with a TLS reverse proxy</span>
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<p>Almost every diagnosis starts the same way — validate the config and read the
+orchestrator log:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>validate<span class="w">   </span><span class="c1"># parse targets + every label, print what resolved</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>sabon<span class="w">               </span><span class="c1"># discovery, schedules, mover lifecycle</span>
 </span></code></pre></div>
-<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
-<p>Every request must send the token as a bearer:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SABON_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://127.0.0.1:8080/api/v1/config
+<p><code>validate</code> never touches a repository; it only reports what sabon <em>would</em> do, so
+it is safe to run any time.</p>
+<h2 id="no-movers-spawn-nothing-gets-backed-up">No movers spawn / nothing gets backed up<a class="headerlink" href="#no-movers-spawn-nothing-gets-backed-up" title="Permanent link">&para;</a></h2>
+<p>A container is only a job if it carries <strong>both</strong> <code>sabon.enable: "true"</code> <strong>and</strong> a
+valid <code>sabon.backup</code> spec. In <strong>swarm mode</strong> the labels must be on the service
+(<code>deploy.labels</code>), not on the container. Check that <code>sabon validate</code> lists the app,
+then look for exited movers:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>ps<span class="w"> </span>-a<span class="w">  </span>--filter<span class="w"> </span><span class="nv">label</span><span class="o">=</span>sabon.mover<span class="w">        </span><span class="c1"># standalone</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>docker<span class="w"> </span>service<span class="w"> </span>ls<span class="w"> </span>--filter<span class="w"> </span><span class="nv">label</span><span class="o">=</span>sabon.mover<span class="w">    </span><span class="c1"># swarm</span>
 </span></code></pre></div>
-<p>A missing or wrong token returns <code>401</code> (when a token is configured).</p>
-<h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
-<p>All routes are under <code>/api/v1</code>. Responses are JSON unless noted.</p>
-<h3 id="reads">Reads<a class="headerlink" href="#reads" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Path</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>GET</code></td>
-<td><code>/config</code></td>
-<td>Configured targets (secrets/credentials omitted).</td>
-</tr>
-<tr>
-<td><code>GET</code></td>
-<td><code>/jobs</code></td>
-<td>Discovered backup jobs (app, sources, targets, snapshot mode).</td>
-</tr>
-<tr>
-<td><code>GET</code></td>
-<td><code>/apps/{app}/snapshots?target=&lt;name&gt;</code></td>
-<td>restic snapshots for the app in a target (<code>target</code> required).</td>
-</tr>
-</tbody>
-</table>
-<h3 id="triggers">Triggers<a class="headerlink" href="#triggers" title="Permanent link">&para;</a></h3>
-<p>Mutating operations are <strong>fire-and-forget</strong>: the <code>POST</code> returns <code>202 Accepted</code>
-immediately and the work runs in the background. Watch it under
-<a href="#run-history">run history</a>. <code>target</code> is optional for backup/check/prune (empty
-= all of the app's targets).</p>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Path</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>POST</code></td>
-<td><code>/apps/{app}/backup?target=&lt;name&gt;</code></td>
-<td>Back up the app.</td>
-</tr>
-<tr>
-<td><code>POST</code></td>
-<td><code>/apps/{app}/check?target=&lt;name&gt;</code></td>
-<td><code>restic check</code> (repo integrity).</td>
-</tr>
-<tr>
-<td><code>POST</code></td>
-<td><code>/apps/{app}/prune?target=&lt;name&gt;</code></td>
-<td><code>restic prune</code> (reclaim space).</td>
-</tr>
-<tr>
-<td><code>POST</code></td>
-<td><code>/apps/{app}/restore</code></td>
-<td>Restore (JSON body below).</td>
-</tr>
-</tbody>
-</table>
-<p><code>restore</code> body:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>{
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  &quot;target&quot;: &quot;onsite&quot;,       // required — which repo to restore from
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &quot;snapshot&quot;: &quot;latest&quot;,     // snapshot id; default &quot;latest&quot;
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  &quot;into&quot;: &quot;/mnt/staging&quot;,   // host dir for a staging restore; omit for in-place
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  &quot;stop&quot;: true,             // stop the app during an in-place restore
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  &quot;include&quot;: [&quot;/data/immich-dbdump&quot;] // limit to matching paths (sources live under /data/&lt;name&gt;)
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>}
+<p>Each finished mover is retained as run history (see
+<a href="../configuration/#sabon_mover_history"><code>SABON_MOVER_HISTORY</code></a>); its restic output
+is in <code>docker logs &lt;id&gt;</code> / <code>docker service logs &lt;id&gt;</code>.</p>
+<h2 id="403-permission-denied-against-the-docker-api"><code>403</code> / permission denied against the Docker API<a class="headerlink" href="#403-permission-denied-against-the-docker-api" title="Permanent link">&para;</a></h2>
+<p>You are almost certainly behind a socket proxy that is missing an object group.
+sabon needs <code>POST=1</code> <strong>plus</strong>:</p>
+<ul>
+<li>standalone — <code>CONTAINERS</code>, <code>IMAGES</code>, <code>VOLUMES</code>, <code>EXEC</code>, <code>EVENTS</code></li>
+<li>swarm — <code>SERVICES</code>, <code>TASKS</code>, <code>NODES</code>, <code>IMAGES</code> (point it at a <strong>manager</strong>)</li>
+</ul>
+<p>See <a href="../deployment/#socket">socket access</a> for a complete proxy example.</p>
+<h2 id="repository-is-already-locked"><code>repository is already locked</code><a class="headerlink" href="#repository-is-already-locked" title="Permanent link">&para;</a></h2>
+<p>A previous restic run was killed before it released its lock. Confirm no mover is
+still running for that repo, then clear it:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>restic<span class="w"> </span>-r<span class="w"> </span>&lt;repo&gt;<span class="w"> </span>unlock
 </span></code></pre></div>
-<p>An API-triggered run is identical to a scheduled one — it takes the same locks
-and records the same metrics and notifications.</p>
-<h2 id="run-history">Run history<a class="headerlink" href="#run-history" title="Permanent link">&para;</a></h2>
-<p>History is <strong>durable</strong>: sabon keeps the last
-<a href="../configuration/#sabon_mover_history"><code>SABON_MOVER_HISTORY</code></a> (default <code>3</code>)
-exited <strong>mover containers</strong> per app/target/action, so each run's status and full
-restic <strong>logs</strong> live in Docker itself and survive a sabon restart. There is no
-in-memory store — they are ordinary containers, so <code>docker ps -a</code> and
-<code>docker logs &lt;id&gt;</code> see them too. In swarm mode the retained history is mover
-<em>services</em> instead (<code>docker service ls</code> / <code>docker service logs</code>).</p>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Path</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>GET</code></td>
-<td><code>/runs?app=&lt;name&gt;&amp;target=&lt;name&gt;</code></td>
-<td>Recent runs, newest first (filters optional).</td>
-</tr>
-<tr>
-<td><code>GET</code></td>
-<td><code>/runs/{id}</code></td>
-<td>One run (<code>id</code> is the mover container id).</td>
-</tr>
-<tr>
-<td><code>GET</code></td>
-<td><code>/runs/{id}/logs</code></td>
-<td>The run's restic output (<code>text/plain</code>).</td>
-</tr>
-</tbody>
-</table>
-<p>A run:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;9f3c…&quot;</span><span class="p">,</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;app&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;immich&quot;</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;onsite&quot;</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backup&quot;</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;succeeded&quot;</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;exit_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-27T21:00:00Z&quot;</span><span class="p">,</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">&quot;finished_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-27T21:00:08Z&quot;</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">}</span>
+<p>A <code>prune</code> job locks the repo for its whole duration and blocks backups — that is
+expected; see <a href="../backups/#checks">check &amp; prune</a>.</p>
+<h2 id="wrong-password-repository-not-found"><code>wrong password</code> / repository not found<a class="headerlink" href="#wrong-password-repository-not-found" title="Permanent link">&para;</a></h2>
+<p>A restic repository's password is fixed when it is first created. If
+<code>RESTIC_PASSWORD</code> (or a per-target password) later differs, restic cannot open the
+repo. Restore the original password, or start a new repository. The repo location
+is <code>&lt;target&gt;/&lt;app&gt;</code> (e.g. <code>/mnt/backup/immich</code>).</p>
+<h2 id="snapshot-zfs-failed-the-backup"><code>snapshot: zfs</code> failed the backup<a class="headerlink" href="#snapshot-zfs-failed-the-backup" title="Permanent link">&para;</a></h2>
+<p><code>snapshot: zfs</code> is strict: the source must actually live on a ZFS dataset, and the
+snapshotter only runs on <strong>standalone Docker</strong>. It fails (rather than silently
+copying live data) when the source is not on ZFS, and it is <strong>unsupported in
+swarm</strong>. Use <code>snapshot: auto</code> (snapshot what is on ZFS, mount the rest live) or
+<code>none</code>. See <a href="../backups/#snapshots">Snapshots</a>.</p>
+<h2 id="swarm-the-mover-never-starts-image-pull-fails">Swarm: the mover never starts / image pull fails<a class="headerlink" href="#swarm-the-mover-never-starts-image-pull-fails" title="Permanent link">&para;</a></h2>
+<p>Movers run as services scheduled onto arbitrary nodes, so the mover image must be
+pullable on <strong>every</strong> node. Self-detection is unreliable for a Swarm task — pin it
+explicitly:</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">SABON_MOVER_IMAGE</span><span class="o">=</span>ghcr.io/davidborzek/sabon:latest
 </span></code></pre></div>
-<p><code>status</code> is <code>running</code>, <code>succeeded</code> or <code>failed</code>. A failure that happens <strong>before</strong>
-a mover starts (e.g. a snapshot or pre-hook error) produces no run record — it is
-reported via logs, <a href="../metrics/#notifications">notifications</a> and metrics instead.</p>
-<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">T</span><span class="o">=</span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SABON_API_TOKEN</span><span class="s2">&quot;</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">base</span><span class="o">=</span>http://127.0.0.1:8080/api/v1
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/jobs&quot;</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/apps/immich/backup&quot;</span><span class="w">     </span><span class="c1"># -&gt; 202</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/runs?app=immich&quot;</span><span class="w">                </span><span class="c1"># find the run + its id</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$T</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$base</span><span class="s2">/runs/&lt;id&gt;/logs&quot;</span><span class="w">                 </span><span class="c1"># restic output</span>
-</span></code></pre></div>
+<p>Also check the mover isn't stuck <code>Pending</code>: a <code>node.hostname</code> placement constraint
+with no matching node (e.g. the app's node left the cluster) leaves it unscheduled.</p>
+<h2 id="a-local-target-only-backs-up-on-one-node-swarm">A local target only backs up on one node (swarm)<a class="headerlink" href="#a-local-target-only-backs-up-on-one-node-swarm" title="Permanent link">&para;</a></h2>
+<p>A local <code>path:</code> target is a host directory on whichever node the mover lands on —
+it is meaningless cluster-wide. On a multi-node cluster use a <strong>remote</strong> target
+(S3/R2/…) so every node writes to the same repository.</p>
+<h2 id="restores-look-empty">Restores look empty<a class="headerlink" href="#restores-look-empty" title="Permanent link">&para;</a></h2>
+<p>Sources are stored under <code>/data/&lt;name&gt;</code> inside the snapshot, so an <code>--include</code>
+must use that prefix (<code>--include /data/immich-dbdump</code>, not <code>/etc</code>). See
+<a href="../restore/#path-mapping">Path mapping</a>.</p>
 
 
 
@@ -1317,7 +1264,7 @@ reported via logs, <a href="../metrics/#notifications">notifications</a> and met
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture">
+          <a href="../deployment/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Deployment">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
@@ -1327,11 +1274,27 @@ reported via logs, <a href="../metrics/#notifications">notifications</a> and met
                 Previous
               </span>
               <div class="md-ellipsis">
-                Architecture
+                Deployment
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../faq/" class="md-footer__link md-footer__link--next" aria-label="Next: FAQ">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                FAQ
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
         
       </nav>
     

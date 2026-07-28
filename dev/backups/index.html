@@ -245,6 +245,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -378,6 +382,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -735,6 +743,60 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1073,6 +1135,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1229,6 +1295,12 @@ on the driver — see <a href="#drivers">Volumes &amp; storage drivers</a>. Use 
 to relax this: it snapshots the sources that are on ZFS and mounts the rest
 (non-ZFS or foreign-backed volumes) <strong>live</strong> in the same run — atomic where it
 can, live where it can't.</p>
+<div class="admonition warning">
+<p class="admonition-title">ZFS snapshots need standalone Docker</p>
+<p>The privileged ZFS snapshotter is a node-local container that can't run as a
+node-pinned Swarm service, so <code>snapshot: zfs</code>/<code>auto</code> are unsupported on Swarm
+— sources mount <strong>live</strong> there. See <a href="../deployment/#swarm">Deployment</a>.</p>
+</div>
 <p>If a run crashes mid-snapshot, the orphan is cleaned up at the next startup
 (when a snapshotting mode is configured — <code>zfs</code> or <code>auto</code>); a snapshot still read
 by a mover that survived a restart is spared until that backup finishes.</p>

@@ -245,6 +245,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -378,6 +382,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -889,6 +897,60 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1381,6 +1443,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1448,7 +1514,7 @@ configurable via <code>SABON_LABEL_PREFIX</code> (default <code>sabon</code>).</
 <h3 id="repo"><code>repo</code><a class="headerlink" href="#repo" title="Permanent link">&para;</a></h3>
 <p><em>string · default: compose service, else container name</em> — The app / repo name. Determines the per-target repo (<code>&lt;path&gt;/&lt;repo&gt;</code> or <code>{app}</code> → <code>repo</code>); sibling containers of the same app should share one <code>repo</code>.</p>
 <h3 id="auto"><code>auto</code><a class="headerlink" href="#auto" title="Permanent link">&para;</a></h3>
-<p><em>bool · default <code>true</code></em> — Include the labeled container's own bind mounts <strong>and</strong> named volumes automatically.</p>
+<p><em>bool · default <code>true</code></em> — Include the labelled container's own bind mounts <strong>and</strong> named volumes automatically.</p>
 <h3 id="extravolumes"><code>extraVolumes</code><a class="headerlink" href="#extravolumes" title="Permanent link">&para;</a></h3>
 <p><em>list · optional</em> — Extra <strong>named volumes</strong> to include. May belong to sibling containers of the app (e.g. a database container's data volume).</p>
 <h3 id="excludevolumes"><code>excludeVolumes</code><a class="headerlink" href="#excludevolumes" title="Permanent link">&para;</a></h3>
@@ -1469,7 +1535,7 @@ configurable via <code>SABON_LABEL_PREFIX</code> (default <code>sabon</code>).</
 </ul>
 <p>Omit <code>targets</code> entirely to back up to every configured target with its defaults.</p>
 <h3 id="stop"><code>stop</code><a class="headerlink" href="#stop" title="Permanent link">&para;</a></h3>
-<p><em>bool · default <code>false</code></em> — Stop the labeled container for the duration of the backup — a <strong>cold backup</strong>. Restarted afterwards.</p>
+<p><em>bool · default <code>false</code></em> — Stop the labelled container for the duration of the backup — a <strong>cold backup</strong>. Restarted afterwards.</p>
 <h3 id="snapshot"><code>snapshot</code><a class="headerlink" href="#snapshot" title="Permanent link">&para;</a></h3>
 <p><em>string · default <code>SABON_SNAPSHOT</code></em> — Source snapshot strategy: <code>none</code> (mount live), <code>zfs</code> (atomic ZFS snapshot of each source's dataset; a non-ZFS source fails the backup), or <code>auto</code> (snapshot the ZFS sources, mount the rest live). See <a href="../backups/#snapshots">Snapshots</a>.</p>
 <h3 id="prehooks"><code>preHooks</code><a class="headerlink" href="#prehooks" title="Permanent link">&para;</a></h3>

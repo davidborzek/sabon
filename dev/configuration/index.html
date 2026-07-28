@@ -245,6 +245,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -391,6 +395,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -513,6 +521,17 @@
   
     <nav class="md-nav" aria-label="Environment variables">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUNTIME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#sabon_label_prefix" class="md-nav__link">
@@ -823,6 +842,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>TZ</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#restic-credentials" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -835,6 +865,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -1192,6 +1233,60 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1396,6 +1491,17 @@
   
     <nav class="md-nav" aria-label="Environment variables">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUNTIME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#sabon_label_prefix" class="md-nav__link">
@@ -1706,6 +1812,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>TZ</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#restic-credentials" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1718,6 +1835,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
   
 </li>
       
@@ -1987,6 +2115,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2027,6 +2159,8 @@
 <p>Per-container backup policy lives in <strong>labels</strong>, documented separately in
 <a href="../labels/">Labels</a>.</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<h3 id="sabon_runtime"><code>SABON_RUNTIME</code><a class="headerlink" href="#sabon_runtime" title="Permanent link">&para;</a></h3>
+<p><em>default <code>auto</code></em> — Which container runtime to drive: <code>auto</code> detects it (a Docker <strong>Swarm manager</strong> → swarm, anything else → standalone), or force <code>standalone</code> / <code>swarm</code>. See <a href="#docker-swarm">Docker Swarm</a>.</p>
 <h3 id="sabon_label_prefix"><code>SABON_LABEL_PREFIX</code><a class="headerlink" href="#sabon_label_prefix" title="Permanent link">&para;</a></h3>
 <p><em>default <code>sabon</code></em> — Label namespace (<code>&lt;prefix&gt;.enable</code>, <code>&lt;prefix&gt;.backup</code>, …).</p>
 <h3 id="sabon_watch_by_default"><code>SABON_WATCH_BY_DEFAULT</code><a class="headerlink" href="#sabon_watch_by_default" title="Permanent link">&para;</a></h3>
@@ -2046,13 +2180,13 @@
 <h3 id="sabon_mover_user"><code>SABON_MOVER_USER</code><a class="headerlink" href="#sabon_mover_user" title="Permanent link">&para;</a></h3>
 <p><em>default <code>0:0</code></em> — <code>uid:gid</code> movers run as. Root by default — movers must read arbitrary app data and write repos. Labels may override per app (<code>user</code>).</p>
 <h3 id="sabon_mover_groups"><code>SABON_MOVER_GROUPS</code><a class="headerlink" href="#sabon_mover_groups" title="Permanent link">&para;</a></h3>
-<p><em>default: none</em> — Comma-separated supplementary groups (GIDs) added to every mover (<code>--group-add</code>), so a non-root mover can read group-owned data without a chown. Labels may override per app (<code>groups</code>).</p>
+<p><em>default: none</em> — Comma-separated supplementary groups (GIDs) added to every mover (<code>--group-add</code>), so a nonroot mover can read group-owned data without a chown. Labels may override per app (<code>groups</code>).</p>
 <h3 id="sabon_mover_network"><code>SABON_MOVER_NETWORK</code><a class="headerlink" href="#sabon_mover_network" title="Permanent link">&para;</a></h3>
 <p><em>default: none</em> — Optional Docker network to attach movers to (e.g. to reach a remote backend by service name).</p>
 <h3 id="sabon_cache_volume"><code>SABON_CACHE_VOLUME</code><a class="headerlink" href="#sabon_cache_volume" title="Permanent link">&para;</a></h3>
 <p><em>default <code>sabon-cache</code></em> — Named volume mounted at <code>/cache</code> in movers as the shared restic cache.</p>
 <h3 id="sabon_mover_history"><code>SABON_MOVER_HISTORY</code><a class="headerlink" href="#sabon_mover_history" title="Permanent link">&para;</a></h3>
-<p><em>default <code>3</code></em> — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the <a href="../api/#run-history">HTTP API</a> or directly with <code>docker ps -a</code> / <code>docker logs</code>, and surviving restarts. <code>0</code> removes every exited mover (no history).</p>
+<p><em>default <code>3</code></em> — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the <a href="../api/#run-history">HTTP API</a> or directly with <code>docker ps -a</code> / <code>docker logs</code> (in swarm mode these are retained mover <em>services</em>, seen with <code>docker service ls</code> / <code>docker service logs</code>), and surviving restarts. <code>0</code> removes every exited mover (no history).</p>
 <h3 id="sabon_run_on_startup"><code>SABON_RUN_ON_STARTUP</code><a class="headerlink" href="#sabon_run_on_startup" title="Permanent link">&para;</a></h3>
 <p><em>default <code>false</code></em> — When <code>true</code>, run all backups once immediately on startup, then follow the schedules.</p>
 <h3 id="sabon_instance"><code>SABON_INSTANCE</code><a class="headerlink" href="#sabon_instance" title="Permanent link">&para;</a></h3>
@@ -2091,6 +2225,8 @@
 <p>This applies only to <strong>hook</strong> <code>env</code>; the <code>env:</code> block in the targets file is operator-owned and expands from the full environment. See <a href="../hooks/#credentials-in-hooks">Hooks</a>.</p>
 <h3 id="docker_host"><code>DOCKER_HOST</code><a class="headerlink" href="#docker_host" title="Permanent link">&para;</a></h3>
 <p><em>default: docker default</em> — Standard Docker client variable; point it at a socket proxy.</p>
+<h3 id="tz"><code>TZ</code><a class="headerlink" href="#tz" title="Permanent link">&para;</a></h3>
+<p><em>default <code>UTC</code></em> — Standard timezone variable (e.g. <code>Europe/Berlin</code>). Cron schedules and log timestamps are interpreted in it; unset means UTC. The tz database is embedded in the image, so no <code>/etc/localtime</code> mount is needed. An invalid value falls back to UTC. restic records snapshot times in <strong>UTC</strong> (the mover has no zoneinfo) — deliberately: UTC is unambiguous and DST-safe.</p>
 <h3 id="restic-credentials">restic credentials<a class="headerlink" href="#restic-credentials" title="Permanent link">&para;</a></h3>
 <p>Movers need the restic repository password and any backend credentials. These
 are passed through from the orchestrator's environment:</p>
@@ -2102,6 +2238,18 @@ are passed through from the orchestrator's environment:</p>
 </ul>
 <p>Keep these in a <code>.env</code> file, a Docker secret, or your secret manager — never in
 the labels.</p>
+<h2 id="docker-swarm">Docker Swarm<a class="headerlink" href="#docker-swarm" title="Permanent link">&para;</a></h2>
+<p>With <code>SABON_RUNTIME=swarm</code> (or auto-detected on a manager node) sabon drives the Swarm <strong>service</strong> API instead of local containers. sabon must run <strong>on a manager node</strong>. What changes:</p>
+<ul>
+<li><strong>Discovery</strong> reads <strong>services</strong>, not containers. Put the backup labels in the service's <code>deploy.labels</code> (not the container labels): <code>sabon.enable</code>, <code>sabon.backup</code>, … Sources come from the service's mounts plus the spec's <code>extraVolumes</code>/<code>extraPaths</code>.</li>
+<li><strong>Placement</strong> — each job is pinned to the node its task currently runs on, and the mover runs there as a one-shot service (a <code>node.hostname</code> constraint) so it reaches the node-local volumes. A <strong>scaled-to-zero</strong> service has no running task, so its node is taken from its <code>node.hostname</code>/<code>node.id</code>/<code>node.labels</code> placement constraint instead; only a service with neither a running task nor a pinning constraint is left unconstrained (may land anywhere).</li>
+<li><strong>Cold backups</strong> scale the service to <strong>zero replicas</strong> and back. The original count is recorded on the service (<code>sabon.quiesce.replicas</code> label), not in memory, so a crash between stop and start cannot strand it at zero — sabon restores any stranded service on startup.</li>
+<li><strong>Hooks</strong> — run-mode hooks run as one-shot services; <strong>exec-mode hooks are not supported</strong> (a manager cannot exec into a task on another node) and return an error. Env and compose project are read from the service spec.</li>
+</ul>
+<p>Not supported in swarm mode: <strong>ZFS snapshots</strong> (<code>SABON_SNAPSHOT=zfs</code>/<code>auto</code> — the snapshotter is node-local) and cross-node exec hooks. Named volumes are node-local unless backed by a cluster volume driver.</p>
+<blockquote>
+<p>Swarm mode is exercised by a single-node <code>docker swarm init</code> end-to-end test in CI; it has not been validated against a multi-node production cluster.</p>
+</blockquote>
 <h2 id="the-targets-file">The targets file<a class="headerlink" href="#the-targets-file" title="Permanent link">&para;</a></h2>
 <p>The targets file (<code>SABON_CONFIG</code>, default <code>/etc/sabon/targets.yaml</code>) lists the
 backends. Every target becomes a per-app repository: an app named <code>paperless</code>
@@ -2231,6 +2379,7 @@ repacking to reclaim space is a separate <code>prune</code> job — see <a href=
 </tr>
 </tbody>
 </table>
+<p>Schedules run in the <a href="#tz"><code>TZ</code></a> timezone (UTC if unset).</p>
 <p>Validate a config without running anything with <code>sabon validate</code> (see
 <a href="../labels/">Labels</a>).</p>
 <h3 id="schema">Schema &amp; editor validation<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h3>

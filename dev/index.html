@@ -243,6 +243,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -467,6 +471,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -660,6 +668,60 @@
     
   
   Deployment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
 
     
   </span>
@@ -949,6 +1011,13 @@ independent and the blast radius stays small.</p>
 <p><a href="backups/">Backups →</a></p>
 </li>
 <li>
+<p>🔐 <strong>Incremental &amp; encrypted</strong></p>
+<hr />
+<p>Movers run <strong>restic</strong>: each run stores only changed data, deduplicated and
+client-side encrypted; a scheduled <code>restic check</code> verifies repository integrity.</p>
+<p><a href="backups/">Backups →</a></p>
+</li>
+<li>
 <p>🗃️ <strong>Any volume driver</strong></p>
 <hr />
 <p>Movers mount volumes by name, so named volumes (any driver) and bind mounts
@@ -956,10 +1025,17 @@ back up alike.</p>
 <p><a href="backups/#drivers">Storage drivers →</a></p>
 </li>
 <li>
+<p>🐝 <strong>Standalone or Swarm</strong></p>
+<hr />
+<p>Drives a single Docker host by default; on a Swarm manager it drives the
+whole cluster, running each mover as a node-pinned service.</p>
+<p><a href="deployment/#swarm">Deployment →</a></p>
+</li>
+<li>
 <p>📸 <strong>Atomic or best-effort snapshots</strong></p>
 <hr />
-<p><code>snapshot: zfs</code> backs up from a crash-consistent ZFS snapshot; <code>auto</code>
-snapshots what it can and mounts the rest live.</p>
+<p><code>snapshot: zfs</code> backs up from a crash-consistent ZFS snapshot — no app
+downtime; <code>auto</code> snapshots what it can and mounts the rest live.</p>
 <p><a href="backups/#snapshots">Snapshots →</a></p>
 </li>
 <li>
@@ -972,9 +1048,16 @@ if the original app is gone.</p>
 <li>
 <p>📊 <strong>Metrics &amp; alerts</strong></p>
 <hr />
-<p>Prometheus metrics, health endpoints, and ready-made alert rules catch
-silent failures.</p>
+<p>Prometheus metrics, health endpoints, ready-made alert rules, and
+notifications catch silent failures.</p>
 <p><a href="metrics/">Metrics →</a></p>
+</li>
+<li>
+<p>🔌 <strong>HTTP control API</strong></p>
+<hr />
+<p>An optional, token-authenticated API to trigger runs and browse durable
+run history — for dashboards and automation.</p>
+<p><a href="api/">HTTP API →</a></p>
 </li>
 </ul>
 </div>
@@ -1022,6 +1105,11 @@ runs <code>restic backup</code> of <code>paperless-data</code> into <code>/mnt/b
 applies retention. Run one immediately without waiting for the schedule:</p>
 <div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>paperless
 </span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Running Docker Swarm?</p>
+<p>sabon can drive a whole cluster too, running each mover as a node-pinned
+service — see <a href="deployment/#swarm">Docker Swarm</a> (experimental).</p>
+</div>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="configuration/">Configuration</a> — every <code>SABON_*</code> env var and the
@@ -1039,6 +1127,8 @@ applies retention. Run one immediately without waiting for the schedule:</p>
   crash/shutdown behaviour.</li>
 <li><a href="api/">HTTP API</a> — the optional, token-authenticated control API for
   triggering runs and browsing durable run history.</li>
+<li><a href="troubleshooting/">Troubleshooting</a> — first-response fixes for the common failures.</li>
+<li><a href="faq/">FAQ</a> — why root movers, per-app repos, <code>prune</code>, bare-restic restore, Swarm.</li>
 </ul>
 <h2 id="images">Images<a class="headerlink" href="#images" title="Permanent link">&para;</a></h2>
 <p><code>ghcr.io/davidborzek/sabon</code> — a distroless image with the restic binary bundled.

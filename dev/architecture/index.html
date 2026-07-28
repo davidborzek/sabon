@@ -243,6 +243,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -376,6 +380,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -594,6 +602,60 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -757,6 +819,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#runtimes-standalone-and-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Runtimes: standalone and Swarm
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#orchestrator-and-movers" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -895,6 +968,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#runtimes-standalone-and-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Runtimes: standalone and Swarm
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#orchestrator-and-movers" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1029,7 +1113,7 @@
 
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<p>sabon is a label-driven restic backup orchestrator for a single Docker host. It
+<p>sabon is a label-driven restic backup orchestrator for Docker. It
 recreates the ergonomics of a Kubernetes backup operator (the pattern is
 Volsync-style) for plain Docker / Compose: container labels declare what to back
 up and to which targets, and sabon schedules and runs those backups by spawning
@@ -1040,6 +1124,27 @@ container. This keeps the long-running daemon simple, lets in-flight backups
 survive an orchestrator restart, and means each job mounts exactly the named
 volumes (and paths) it needs <strong>on demand</strong> — the daemon never has to mount
 everything up front.</p>
+<h2 id="runtimes-standalone-and-swarm">Runtimes: standalone and Swarm<a class="headerlink" href="#runtimes-standalone-and-swarm" title="Permanent link">&para;</a></h2>
+<p>By default sabon drives a <strong>single Docker daemon</strong> (standalone or Compose), and
+the rest of this document describes that model. On a Swarm <strong>manager</strong> it instead
+drives the cluster through the service API: discovery reads <strong>services</strong>, and each
+mover runs as a one-shot <strong>service</strong> pinned to the node that holds the data.
+Everything else is identical (restic env, cache, per-app repos, snapshots, hooks,
+metrics, the control API); the difference is isolated behind a runtime seam —
+<code>internal/engine</code> (<code>Engine</code>, <code>Discoverer</code>, <code>Quiescer</code>, <code>Hooks</code>), implemented per
+runtime in <code>engine/docker</code> (containers) and <code>engine/swarm</code> (services), selected at
+startup by <code>docker info</code> or <code>SABON_RUNTIME</code>. Swarm mode is <strong>experimental</strong> — see
+<a href="../configuration/#docker-swarm">Docker Swarm</a> and <a href="../deployment/#swarm">Deployment</a>.</p>
+<pre class="mermaid"><code>flowchart TD
+  apps["labelled services&lt;br/&gt;(deploy.labels)"]
+  subgraph mgr["sabon orchestrator · manager node"]
+    S["discover services → reconcile → schedule"]
+  end
+  apps --&gt;|"service + task API"| S
+  S --&gt;|"mover service · constraint node==A"| MA["mover @ node A"]
+  S --&gt;|"mover service · constraint node==B"| MB["mover @ node B"]
+  MA --&gt; VA[("vol @ A")] --&gt; R[("remote restic repo")]
+  MB --&gt; VB[("vol @ B")] --&gt; R</code></pre>
 <h2 id="orchestrator-and-movers">Orchestrator and movers<a class="headerlink" href="#orchestrator-and-movers" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart LR
     apps["app containers&lt;br/&gt;sabon.* labels"]

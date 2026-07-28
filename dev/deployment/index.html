@@ -18,7 +18,7 @@
         <link rel="prev" href="../restore/">
       
       
-        <link rel="next" href="../metrics/">
+        <link rel="next" href="../troubleshooting/">
       
       
         
@@ -245,6 +245,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -378,6 +382,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -638,17 +646,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#swarm" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Docker Swarm
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -667,6 +664,45 @@
       </span>
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker Swarm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#swarm-volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Volumes &amp; node placement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swarm-replicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Replicated services
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -735,6 +771,60 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -934,17 +1024,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#swarm" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Docker Swarm
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -963,6 +1042,45 @@
       </span>
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker Swarm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#swarm-volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Volumes &amp; node placement
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swarm-replicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Replicated services
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1083,6 +1201,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1118,33 +1240,12 @@
 containers, mounts volumes into them, and execs hooks. This is a real privilege;
 read <a href="#privileges">Privileges</a> before exposing the socket.</p>
 <div class="admonition info">
-<p class="admonition-title">Scope: a single Docker host</p>
-<p>sabon targets <strong>one Docker daemon</strong> (standalone or Compose): it discovers
-containers and spawns movers on the daemon it connects to. It is not a
-cluster orchestrator.</p>
+<p class="admonition-title">Scope</p>
+<p>By default sabon targets <strong>one Docker daemon</strong> (standalone or Compose): it
+discovers containers and spawns movers on the daemon it connects to. On a
+Swarm <strong>manager</strong> it can instead drive the whole cluster via the service
+API — see <a href="#swarm">Docker Swarm</a>.</p>
 </div>
-<h2 id="swarm">Docker Swarm<a class="headerlink" href="#swarm" title="Permanent link">&para;</a></h2>
-<p>sabon has no cluster-wide view, but it composes with Swarm in a <strong>node-local</strong>
-way: deploy it as a <code>global</code> service (one task per node). Each instance then
-talks to its own node's daemon, discovers the Swarm <strong>task containers scheduled
-on that node</strong> (they carry the service's container labels), and spawns movers
-locally against their node-local volumes — no code changes needed. A single-node
-Swarm behaves just like standalone.</p>
-<p>Caveats of the node-local model:</p>
-<ul>
-<li>A mover is a plain node-local container, so it only reaches volumes on <strong>its
-  own node</strong>. A service's data must live where its task runs (node-local volumes
-  or a pinned placement) — the normal case for stateful services.</li>
-<li>The snapshot host is currently the app name, and the per-repo lock is
-  per-process (not cluster-wide). So if the <em>same</em> app is <strong>replicated across
-  nodes</strong> and backs up to a <em>shared</em> repository, snapshots and restic locks from
-  different nodes will collide. Prefer node-local repositories, single-replica
-  stateful services, or per-node target paths in that case.</li>
-</ul>
-<p>What sabon deliberately does <strong>not</strong> do: read the Swarm services/tasks API from a
-manager, schedule movers onto other nodes, or coordinate a cluster-wide
-repository. Volume locality makes backups inherently node-bound, so that
-cross-node orchestration is a non-goal.</p>
 <h2 id="docker-compose">Docker Compose<a class="headerlink" href="#docker-compose" title="Permanent link">&para;</a></h2>
 <p>Images live at <code>ghcr.io/davidborzek/sabon</code>. <code>latest</code> and <code>X.Y.Z</code>/<code>X.Y</code> track
 stable releases; <code>main</code> (and <code>sha-&lt;commit&gt;</code>) are rolling <strong>edge</strong> builds of the
@@ -1210,6 +1311,98 @@ go in as further <code>-e</code> flags. The <a href="#docker-compose">Compose ca
 identically: a local target <code>path:</code> must be a real host path (movers bind-mount
 the same path), and mounting the raw socket is a real privilege — see
 <a href="#socket">socket access</a> and <a href="#privileges">Privileges</a>.</p>
+<h2 id="swarm">Docker Swarm<a class="headerlink" href="#swarm" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Experimental</p>
+<p>Swarm support is <strong>early-stage</strong>: it is exercised by a single-node
+<code>docker swarm init</code> end-to-end test in CI, but has <strong>not been validated
+against a multi-node production cluster</strong>. Treat it as beta, pin an image
+tag, and verify a restore before relying on it.</p>
+</div>
+<p>On a Swarm <strong>manager</strong>, sabon drives the cluster through the service API
+(auto-detected, or forced with <code>SABON_RUNTIME=swarm</code>). It discovers <strong>services</strong>,
+and for each backup spawns the mover as a <strong>one-shot service pinned to the node
+that holds the data</strong> (a <code>node.hostname</code> constraint) — Swarm schedules it onto
+the right node, so no per-node agent is needed. Cold backups scale the service
+to zero and back; run history is the retained mover services. The behavioural
+details and limits are in <a href="../configuration/#docker-swarm">Docker Swarm</a>.</p>
+<p>Deploy sabon as a single <code>replicas: 1</code> service pinned to a manager node — it is
+the one orchestrator for the whole cluster and is stateless (it re-discovers
+each reconcile; history lives in the retained mover services):</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/davidborzek/sabon:latest</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">deploy</span><span class="p">:</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nt">placement</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">        </span><span class="nt">constraints</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">node.role == manager</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># the service API is manager-only</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span><span class="w">   </span><span class="c1"># a MANAGER node&#39;s socket</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./targets.yaml:/etc/sabon/targets.yaml:ro</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="nt">SABON_RUNTIME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">swarm</span><span class="w">          </span><span class="c1"># optional: auto-detected on a manager</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="nt">RESTIC_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${RESTIC_PASSWORD}</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="c1"># the apps you back up carry the sabon labels under their own deploy.labels:</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="c1"># myapp:</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="c1">#   deploy:</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="c1">#     labels:</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="c1">#       sabon.enable: &quot;true&quot;</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="c1">#       sabon.backup: |</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="c1">#         repo: myapp</span>
+</span></code></pre></div>
+<p>Requirements and limits:</p>
+<ul>
+<li><strong>Manager placement</strong> — pin sabon to a manager and give it that node's socket.</li>
+<li><strong>Remote repositories</strong> — a local <code>path:</code> target is per-node and meaningless
+  cluster-wide; use a remote backend (the cache volume stays per-node).</li>
+<li><strong>Labels go on <code>deploy.labels</code></strong> (the service), not container labels.</li>
+<li><strong>Replicated services only</strong> for cold backups (<code>global</code>-mode scale-to-0 is a
+  non-goal); <strong>exec hooks</strong> and <strong>ZFS snapshots</strong> are unsupported in swarm mode.</li>
+</ul>
+<p>A single-node Swarm works the same way — one manager that is also the only node.</p>
+<h3 id="swarm-volumes">Volumes &amp; node placement<a class="headerlink" href="#swarm-volumes" title="Permanent link">&para;</a></h3>
+<p>Swarm's default <code>local</code> volume driver is <strong>per node</strong> — not replicated. There are
+two ways to run a stateful service, and sabon backs up both:</p>
+<ul>
+<li><strong>Pin to a node + local volume</strong> — the simplest, and ideal for a single storage
+  node. Give the service <code>replicas: 1</code> and a placement constraint
+  (<code>node.hostname == …</code>, or a <code>node.labels.…</code> you set on the node), so its <code>local</code>
+  volumes always live on that one node. Tradeoff: no failover — if that node is
+  down, so is the service (its data lives only there).</li>
+<li><strong>Multi-node volume</strong> — only needed when the service must reschedule across
+  nodes: a CSI/cluster volume, an <strong>NFS-backed <code>local</code> volume</strong> (every node mounts
+  the same export — the simplest homelab option), or a plugin driver
+  (GlusterFS/Ceph/…). The data is then reachable wherever the task lands.</li>
+</ul>
+<p>sabon pins each mover to where the data is: it reads the node of the service's
+<strong>running task</strong> and constrains the mover there (<code>node.hostname==N</code>), so it mounts
+the same node-local volume. For a <strong>scaled-to-zero</strong> service (no running task) it
+falls back to the service's own <code>node.hostname</code>/<code>node.id</code>/<code>node.labels</code> placement
+constraint, so a pinned service is still backed up on the right node while stopped.
+A service with neither a running task nor a pinning constraint is left
+unconstrained — the mover may land on a node without the volume, so pin such
+services (or keep a replica running).</p>
+<p>There is no reliable way to locate a bare <code>local</code> volume on another node from a
+manager (the volume API is per-daemon), so pinning — via a running task or a
+placement constraint — is how sabon finds the data. And since a local <code>path:</code>
+repo is per-node, multi-node clusters must back up to a <strong>remote</strong> target.</p>
+<h3 id="swarm-replicas">Replicated services<a class="headerlink" href="#swarm-replicas" title="Permanent link">&para;</a></h3>
+<p>sabon backs up <strong>one job per service</strong>, not one per replica: it pins a single
+mover to the node of one running task. This matches the per-app repository model
+(one dataset per app) and avoids several movers writing the same repo at once.</p>
+<ul>
+<li><strong><code>replicas: 1</code></strong> (pinned or not) — the instance is backed up. The normal case
+  for stateful services.</li>
+<li><strong><code>replicas &gt; 1</code> on a shared volume</strong> (CSI / NFS-backed / plugin) — every
+  replica sees the same data, so the single backup covers them all.</li>
+<li><strong><code>replicas &gt; 1</code> with a per-node <code>local</code> volume each</strong> — only <strong>one</strong> replica's
+  volume is captured (which one is not deterministic); the others are silently
+  skipped. Distinct per-replica local data is not a supported topology — use
+  <code>replicas: 1</code> or a shared volume for anything stateful.</li>
+</ul>
+<p>Note that a <strong>cold</strong> backup (<code>stop: true</code>) scales the <em>whole</em> service to zero, so
+all replicas go down for the duration — another reason to keep stateful services
+at <code>replicas: 1</code> or on a shared volume.</p>
 <h2 id="socket">Docker socket access<a class="headerlink" href="#socket" title="Permanent link">&para;</a></h2>
 <p>sabon needs the Docker API with <strong>write</strong> enabled. It must be able to:</p>
 <ul>
@@ -1221,8 +1414,8 @@ the same path), and mounting the raw socket is a real privilege — see
 <p>There are two supported ways to grant this.</p>
 <h3 id="option-a-raw-socket-on-a-trusted-node">Option A — raw socket on a trusted node<a class="headerlink" href="#option-a-raw-socket-on-a-trusted-node" title="Permanent link">&para;</a></h3>
 <p>Simplest, and appropriate on a host you already trust:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
 </span></code></pre></div>
 <p>Mounting the raw socket grants full control of the host. Only do this where that
 is acceptable.</p>
@@ -1231,30 +1424,33 @@ is acceptable.</p>
 <a href="https://github.com/Tecnativa/docker-socket-proxy"><code>tecnativa/docker-socket-proxy</code></a>
 and point sabon at it via <code>DOCKER_HOST</code>. sabon needs <strong><code>POST=1</code></strong> plus the
 object groups it drives:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">services</span><span class="p">:</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">docker-socket-proxy</span><span class="p">:</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/tecnativa/docker-socket-proxy:latest</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="nt">POST</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># sabon must create/start/remove containers</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="nt">CONTAINERS</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">    </span><span class="c1"># list/inspect/create/start/remove</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="nt">IMAGES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">        </span><span class="c1"># pull/inspect the mover image</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">VOLUMES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">       </span><span class="c1"># mount volumes into movers</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">      </span><span class="nt">EXEC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># exec-mode hooks</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="nt">EVENTS</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">        </span><span class="c1"># discovery event stream</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock:ro</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="c1"># expose only to sabon, e.g. on a private network</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/davidborzek/sabon:latest</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">      </span><span class="nt">DOCKER_HOST</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp://docker-socket-proxy:2375</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">      </span><span class="c1"># …rest as above; drop the docker.sock mount</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">docker-socket-proxy</span><span class="p p-Indicator">]</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">docker-socket-proxy</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/tecnativa/docker-socket-proxy:latest</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">POST</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># sabon must create/start/remove containers</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">CONTAINERS</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">    </span><span class="c1"># list/inspect/create/start/remove</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">      </span><span class="nt">IMAGES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">        </span><span class="c1"># pull/inspect the mover image</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">VOLUMES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">       </span><span class="c1"># mount volumes into movers</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">EXEC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># exec-mode hooks</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="nt">EVENTS</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">        </span><span class="c1"># discovery event stream</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock:ro</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="c1"># expose only to sabon, e.g. on a private network</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/davidborzek/sabon:latest</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">      </span><span class="nt">DOCKER_HOST</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp://docker-socket-proxy:2375</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">      </span><span class="c1"># …rest as above; drop the docker.sock mount</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">docker-socket-proxy</span><span class="p p-Indicator">]</span>
 </span></code></pre></div>
 <p>Even with the proxy, <code>POST=1</code> is a meaningful grant — a client that can create
 containers and mount arbitrary volumes can effectively reach the host. The proxy
 limits <em>which</em> endpoints are reachable, not what those endpoints can do.</p>
+<p>In <strong>swarm mode</strong> the object groups differ: sabon drives the service API, so it
+needs <code>POST=1</code> with <code>SERVICES=1</code>, <code>TASKS=1</code> and <code>NODES=1</code> (plus <code>IMAGES=1</code>),
+instead of <code>CONTAINERS</code>/<code>EXEC</code>. Point it at a <strong>manager</strong> node's socket.</p>
 <h2 id="privileges">Privileges<a class="headerlink" href="#privileges" title="Permanent link">&para;</a></h2>
 <p>Two distinct privileges are in play; keep them separate in your head:</p>
 <ul>
@@ -1332,13 +1528,13 @@ live in <a href="https://github.com/davidborzek/sabon/tree/main/dashboards"><cod
         
         
           
-          <a href="../metrics/" class="md-footer__link md-footer__link--next" aria-label="Next: Observability">
+          <a href="../troubleshooting/" class="md-footer__link md-footer__link--next" aria-label="Next: Troubleshooting">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Observability
+                Troubleshooting
               </div>
             </div>
             <div class="md-footer__button md-icon">
