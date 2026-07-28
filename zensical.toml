@@ -24,6 +24,7 @@ nav = [
     { "Architecture" = "architecture.md" },
     { "API" = "api.md" },
   ] },
+  { "Releases" = "https://github.com/davidborzek/sabon/releases" },
 ]
 
 # ---------------------------------------------------------------------------
@@ -53,6 +54,7 @@ features = [
 
 [project.theme.icon]
 logo = "lucide/archive-restore"
+repo = "fontawesome/brands/github"
 
 [project.theme.icon.tag]
 default = "lucide/tag"
