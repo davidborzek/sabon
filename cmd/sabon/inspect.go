@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,18 +12,18 @@ import (
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/invopop/jsonschema"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // runMover is the mover-side entrypoint executed inside an ephemeral container.
-func runMover(cCtx *cli.Context) error {
-	return mover.Execute(cCtx.Context, os.Stdout, os.Stderr)
+func runMover(ctx context.Context, cmd *cli.Command) error {
+	return mover.Execute(ctx, os.Stdout, os.Stderr)
 }
 
 // runSchema prints a JSON schema for either the backup label or the targets file.
-func runSchema(cCtx *cli.Context) error {
+func runSchema(ctx context.Context, cmd *cli.Command) error {
 	var s *jsonschema.Schema
-	if cCtx.Bool("targets") {
+	if cmd.Bool("targets") {
 		s = jsonschema.Reflect(&api.File{})
 	} else {
 		s = jsonschema.Reflect(&api.Spec{})
@@ -36,7 +37,7 @@ func runSchema(cCtx *cli.Context) error {
 }
 
 // runValidate lists discovered jobs and their resolved plan without running.
-func runValidate(cCtx *cli.Context) error {
+func runValidate(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -48,13 +49,13 @@ func runValidate(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	rt, err := newRuntime(cCtx.Context, cli, cfg, logger)
+	rt, err := newRuntime(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}
 
 	disc := rt.disc
-	jobs, err := disc.List(cCtx.Context)
+	jobs, err := disc.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -80,7 +81,7 @@ func runValidate(cCtx *cli.Context) error {
 		if mode == "zfs" || mode == "auto" {
 			anyZFS = true
 			if zfsErr == "" {
-				rs, err := orch.PreviewSnapshots(cCtx.Context, j)
+				rs, err := orch.PreviewSnapshots(ctx, j)
 				if err != nil {
 					zfsErr = err.Error()
 				} else {
@@ -95,7 +96,7 @@ func runValidate(cCtx *cli.Context) error {
 			driver := "" // volume driver when known; "" for binds or inspect failure
 			if s.Type == mount.TypeVolume {
 				disp := "?"
-				if v, err := cli.VolumeInspect(cCtx.Context, s.Ref); err == nil {
+				if v, err := cli.VolumeInspect(ctx, s.Ref); err == nil {
 					driver, disp = v.Driver, v.Driver
 				}
 				kind = "volume, driver=" + disp
