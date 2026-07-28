@@ -35,9 +35,9 @@ composable:
 
 - `internal/label` — the container label schema (`sabon.backup`) and parsing.
 - `internal/config` — process (`SABON_*`) and targets-file configuration.
-- `internal/discovery` — watches the Docker API for labelled containers and resolves their sources.
-- `internal/mover` — the mover contract and both sides: spawning ephemeral containers (orchestrator) and running restic inside them (mover).
-- `internal/hook` — pre/post hooks: `exec` into an existing container or `run` a one-shot container.
+- `internal/discovery` — the shared backup-job domain types (`Job`/`Source`) and the source-resolution helpers.
+- `internal/mover` — the mover contract and the restic-running mover side (spawning lives in `internal/engine`).
+- `internal/engine` — the runtime seam: `Engine`/`Discoverer`/`Quiescer`/`Hooks`, implemented per runtime in `internal/engine/docker` (containers) and `internal/engine/swarm` (services); the composition root in `cmd/sabon` selects the set via `docker info` / `SABON_RUNTIME`.
 - `internal/backup` — orchestrates a run (hooks + mover + per-repo lock) and restore/snapshots.
 - `internal/scheduler` — drives backups on their configured cron schedules.
 - `internal/reconcile` — turns discovered containers into scheduled jobs and records metrics/notifications.

@@ -19,8 +19,6 @@ import (
 	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
 )
 
 func envMap(env []string) map[string]string {
@@ -167,31 +165,6 @@ func TestResticEnvCredentialsFile(t *testing.T) {
 	}
 }
 
-func TestNonLocalBacking(t *testing.T) {
-	cases := []struct {
-		name    string
-		vol     volume.Volume
-		foreign bool
-		substr  string
-	}{
-		{"plain local dir", volume.Volume{Driver: "local"}, false, ""},
-		{"plugin driver", volume.Volume{Driver: "rexray"}, true, "rexray"},
-		{"local nfs mount", volume.Volume{Driver: "local", Options: map[string]string{"type": "nfs", "device": ":/export"}}, true, "nfs"},
-		{"local opts without type", volume.Volume{Driver: "local", Options: map[string]string{"o": "bind"}}, true, "not local storage"},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			reason, ok := nonLocalBacking(c.vol)
-			if ok != c.foreign {
-				t.Errorf("nonLocalBacking(%+v) ok=%v, want %v (reason %q)", c.vol, ok, c.foreign, reason)
-			}
-			if c.foreign && !strings.Contains(reason, c.substr) {
-				t.Errorf("reason %q must contain %q", reason, c.substr)
-			}
-		})
-	}
-}
-
 // fakeSnap is a snapshot.Snapshotter over an in-memory "on this fs" set.
 type fakeSnap struct {
 	mode   string
@@ -234,6 +207,7 @@ func (f *fakeSnap) Reap(_ context.Context, _ []string) (int, error) { return 0, 
 func testOrch(mode string, snaps ...snapshot.Snapshotter) *Orchestrator {
 	return &Orchestrator{
 		cfg:   &config.Config{Snapshot: mode},
+		host:  fakeHost{},
 		snaps: snaps,
 		log:   slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
@@ -302,19 +276,18 @@ func TestSourceMountsForUnknownMode(t *testing.T) {
 	}
 }
 
-// fakeCli implements just VolumeInspect for resolveHostPaths; other methods
-// panic if ever reached.
-type fakeCli struct {
-	client.APIClient
-	vols map[string]volume.Volume
+// fakeHost is a no-op engine.Host for tests; foreign/paths configure
+// VolumeHostPath for the snapshot-resolution tests.
+type fakeHost struct {
+	foreign map[string]string // volume name -> non-local reason
+	paths   map[string]string // volume name -> host mountpoint
 }
 
-func (f *fakeCli) VolumeInspect(_ context.Context, name string) (volume.Volume, error) {
-	if v, ok := f.vols[name]; ok {
-		return v, nil
-	}
-	return volume.Volume{}, fmt.Errorf("no such volume %q", name)
+func (fakeHost) EnsureCache(context.Context, string) error { return nil }
+func (h fakeHost) VolumeHostPath(_ context.Context, name string) (string, string, error) {
+	return h.paths[name], h.foreign[name], nil
 }
+func (fakeHost) RunningMoverBinds(context.Context) ([]string, error) { return nil, nil }
 
 func TestSourceMountsForAutoForeignVolumeGoesLive(t *testing.T) {
 	// A foreign-backed volume (local driver + nfs options) must be mounted live
@@ -322,9 +295,10 @@ func TestSourceMountsForAutoForeignVolumeGoesLive(t *testing.T) {
 	// its resolved path.
 	fake := &fakeSnap{mode: "fakefs", onFS: map[string]bool{"nfsvol": true}}
 	o := testOrch("auto", fake)
-	o.cli = &fakeCli{vols: map[string]volume.Volume{
-		"nfsvol": {Name: "nfsvol", Driver: "local", Mountpoint: "/var/lib/docker/volumes/nfsvol/_data", Options: map[string]string{"type": "nfs"}},
-	}}
+	o.host = fakeHost{
+		paths:   map[string]string{"nfsvol": "/var/lib/docker/volumes/nfsvol/_data"},
+		foreign: map[string]string{"nfsvol": "nfs mount, not local storage"},
+	}
 	job := discovery.Job{App: "x", Sources: []discovery.Source{{Name: "nfsvol", Type: mount.TypeVolume, Ref: "nfsvol"}}}
 	ms, _, err := o.sourceMountsFor(context.Background(), job)
 	if err != nil {
@@ -457,5 +431,18 @@ func TestExpandEnvResolution(t *testing.T) {
 	}
 	if got["C"] != "" {
 		t.Errorf("RESTIC_PASSWORD leaked into hook env: %q", got["C"])
+	}
+}
+
+// With no registered providers (e.g. the swarm runtime), a strict snapshot mode
+// must fail both a real run and `sabon validate`, not silently report available.
+func TestSnapshotModeUnavailableWithoutProviders(t *testing.T) {
+	job := discovery.Job{App: "x", Sources: binds("a")}
+	o := testOrch("zfs") // no snapshot providers
+	if _, _, err := o.sourceMountsFor(context.Background(), job); err == nil {
+		t.Error("strict snapshot mode with no providers must fail the run")
+	}
+	if _, err := o.PreviewSnapshots(context.Background(), job); err == nil {
+		t.Error("validate must report a strict snapshot mode unavailable when no providers are registered")
 	}
 }

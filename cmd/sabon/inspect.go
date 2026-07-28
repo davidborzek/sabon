@@ -7,7 +7,6 @@ import (
 
 	"github.com/davidborzek/sabon/api"
 	"github.com/davidborzek/sabon/internal/config"
-	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/davidborzek/sabon/internal/mover"
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/docker/docker/api/types/mount"
@@ -49,7 +48,12 @@ func runValidate(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	disc := discovery.New(cli, cfg.LabelPrefix, cfg.WatchByDefault, cfg.CacheVolume, cfg.Instance, logger)
+	rt, err := newRuntime(cCtx.Context, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+
+	disc := rt.disc
 	jobs, err := disc.List(cCtx.Context)
 	if err != nil {
 		return err
@@ -59,7 +63,7 @@ func runValidate(cCtx *cli.Context) error {
 		return nil
 	}
 
-	orch := newOrchestrator(cli, cfg, "", logger)
+	orch := newOrchestrator(cfg, "", rt, logger)
 	anyZFS := false
 	zfsErr := ""
 	for _, j := range jobs {

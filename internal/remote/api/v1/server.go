@@ -22,6 +22,7 @@ import (
 	"github.com/davidborzek/sabon/api"
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/discovery"
+	"github.com/davidborzek/sabon/internal/engine"
 )
 
 // Backend is the set of operations the API exposes. *reconcile.Reconciler
@@ -37,8 +38,8 @@ type Backend interface {
 	Check(ctx context.Context, app, target string) error
 	Prune(ctx context.Context, app, target string) error
 	Restore(ctx context.Context, app, target string, opts backup.RestoreOptions, out io.Writer) error
-	ListRuns(ctx context.Context, app, target string) ([]backup.RunInfo, error)
-	GetRun(ctx context.Context, id string) (backup.RunInfo, bool, error)
+	ListRuns(ctx context.Context, app, target string) ([]engine.RunInfo, error)
+	GetRun(ctx context.Context, id string) (engine.RunInfo, bool, error)
 	RunLogs(ctx context.Context, id string, out io.Writer) error
 }
 

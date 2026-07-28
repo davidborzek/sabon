@@ -16,6 +16,8 @@ nav = [
     { "Backups" = "backups.md" },
     { "Restore" = "restore.md" },
     { "Deployment" = "deployment.md" },
+    { "Troubleshooting" = "troubleshooting.md" },
+    { "FAQ" = "faq.md" },
   ] },
   { "Reference" = [
     { "Observability" = "metrics.md" },

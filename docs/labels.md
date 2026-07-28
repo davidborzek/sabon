@@ -46,7 +46,7 @@ labels:
 
 ### `auto`
 
-*bool · default `true`* — Include the labeled container's own bind mounts **and** named volumes automatically.
+*bool · default `true`* — Include the labelled container's own bind mounts **and** named volumes automatically.
 
 ### `extraVolumes`
 
@@ -81,7 +81,7 @@ Omit `targets` entirely to back up to every configured target with its defaults.
 
 ### `stop`
 
-*bool · default `false`* — Stop the labeled container for the duration of the backup — a **cold backup**. Restarted afterwards.
+*bool · default `false`* — Stop the labelled container for the duration of the backup — a **cold backup**. Restarted afterwards.
 
 ### `snapshot`
 

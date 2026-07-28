@@ -16,7 +16,12 @@ import (
 
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/config"
+	"github.com/davidborzek/sabon/internal/engine"
+	"github.com/davidborzek/sabon/internal/engine/docker"
+	"github.com/davidborzek/sabon/internal/engine/swarm"
 	"github.com/davidborzek/sabon/internal/mover"
+	"github.com/davidborzek/sabon/internal/snapshot"
+	"github.com/davidborzek/sabon/internal/snapshot/providers/zfs"
 	"github.com/docker/docker/client"
 	"github.com/urfave/cli/v2"
 )
@@ -113,10 +118,96 @@ func zfsSnapshotterImage(cfg *config.Config) string {
 	return "ghcr.io/davidborzek/sabon/zfs-snapshotter:" + version
 }
 
-// newOrchestrator builds the backup orchestrator with the zfs snapshotter image
-// resolved once, so every entry point (daemon, backup, validate, snapshots,
-// check, prune, restore) is consistent.
-func newOrchestrator(cli client.APIClient, cfg *config.Config, image string, log *slog.Logger) *backup.Orchestrator {
-	cfg.SnapshotZFSImage = zfsSnapshotterImage(cfg)
-	return backup.New(cli, cfg, image, log)
+// newOrchestrator builds the backup orchestrator from the resolved runtime
+// (engine, hooks, quiescer, host and snapshot providers).
+func newOrchestrator(cfg *config.Config, image string, rt *runtime, log *slog.Logger) *backup.Orchestrator {
+	return backup.New(cfg, image, rt.eng, rt.hooks, rt.quiesce, rt.host, rt.snaps, log)
+}
+
+// runtime bundles the runtime-specific implementations the composition root
+// wires in: standalone Docker or Docker Swarm, chosen by detectRuntime.
+type runtime struct {
+	mode    string
+	eng     engine.Engine
+	disc    engine.Discoverer
+	quiesce engine.Quiescer
+	hooks   engine.Hooks
+	host    engine.Host
+	snaps   []snapshot.Snapshotter
+}
+
+// newRuntime detects whether sabon drives a standalone Docker host or a Swarm
+// manager and builds the matching engine, discoverer, quiescer, hooks and
+// snapshot providers (snapshots are a Docker-only capability).
+func newRuntime(ctx context.Context, cli client.APIClient, cfg *config.Config, log *slog.Logger) (*runtime, error) {
+	mode, err := detectRuntime(ctx, cli, cfg.Runtime)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("runtime detected", "mode", mode)
+	rt := &runtime{mode: mode}
+	switch mode {
+	case "swarm":
+		rt.eng = swarm.New(cli)
+		rt.disc = swarm.NewDiscoverer(cli, cfg.LabelPrefix, cfg.WatchByDefault, cfg.CacheVolume, cfg.Instance, log)
+		rt.quiesce = swarm.NewQuiescer(cli, cfg.Instance)
+		rt.hooks = swarm.NewHooks(cli)
+		rt.host = swarm.NewHost()
+		// Snapshots are unsupported in swarm: the ZFS snapshotter is a
+		// privileged, node-local container that cannot run as a node-pinned
+		// service. rt.snaps stays nil, so "auto" mounts sources live while a
+		// strict "zfs" default fails every backup — warn accordingly.
+		switch cfg.Snapshot {
+		case "auto":
+			log.Warn("SABON_SNAPSHOT=auto has no snapshot effect in swarm mode; sources are backed up live (snapshots are unsupported)", "snapshot", cfg.Snapshot)
+		case "none":
+		default:
+			log.Warn("SABON_SNAPSHOT is a strict snapshot mode unsupported in swarm mode; backups defaulting to it will fail — set 'auto' to back up live, or 'none'", "snapshot", cfg.Snapshot)
+		}
+	default:
+		rt.eng = docker.New(cli)
+		rt.disc = docker.NewDiscoverer(cli, cfg.LabelPrefix, cfg.WatchByDefault, cfg.CacheVolume, cfg.Instance, log)
+		rt.quiesce = docker.NewQuiescer(cli)
+		rt.hooks = docker.NewHooks(cli)
+		rt.host = docker.NewHost(cli)
+		// The ZFS snapshotter is a standalone-Docker capability (a privileged
+		// local container); only the docker runtime provides it.
+		cfg.SnapshotZFSImage = zfsSnapshotterImage(cfg)
+		rt.snaps = []snapshot.Snapshotter{zfs.New(cli, cfg.SnapshotZFSImage, cfg.Instance, log)}
+	}
+	return rt, nil
+}
+
+// detectRuntime honours the SABON_RUNTIME override, else auto-detects: a Swarm
+// manager (control available) uses the swarm runtime, anything else standalone.
+func detectRuntime(ctx context.Context, cli client.APIClient, override string) (string, error) {
+	switch override {
+	case "standalone", "swarm":
+		return override, nil
+	case "", "auto":
+		info, err := cli.Info(ctx)
+		if err != nil {
+			return "", fmt.Errorf("detect runtime (docker info): %w", err)
+		}
+		if info.Swarm.ControlAvailable {
+			return "swarm", nil
+		}
+		return "standalone", nil
+	default:
+		return "", fmt.Errorf("SABON_RUNTIME must be \"auto\", \"standalone\" or \"swarm\", got %q", override)
+	}
+}
+
+// recoverQuiesced brings back any app a previous run stranded at zero replicas
+// by crashing between a cold backup's Stop and Start. No-op on standalone.
+func (rt *runtime) recoverQuiesced(ctx context.Context, log *slog.Logger) {
+	q, ok := rt.quiesce.(engine.Recoverer)
+	if !ok {
+		return
+	}
+	if n, err := q.RecoverQuiesced(ctx); err != nil {
+		log.Warn("recover quiesced services failed", "error", err)
+	} else if n > 0 {
+		log.Info("recovered quiesced services", "count", n)
+	}
 }

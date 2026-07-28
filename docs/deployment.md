@@ -5,35 +5,11 @@ sabon runs as a single long-running container (the orchestrator) that needs
 containers, mounts volumes into them, and execs hooks. This is a real privilege;
 read [Privileges](#privileges) before exposing the socket.
 
-!!! info "Scope: a single Docker host"
-    sabon targets **one Docker daemon** (standalone or Compose): it discovers
-    containers and spawns movers on the daemon it connects to. It is not a
-    cluster orchestrator.
-
-## Docker Swarm {#swarm}
-
-sabon has no cluster-wide view, but it composes with Swarm in a **node-local**
-way: deploy it as a `global` service (one task per node). Each instance then
-talks to its own node's daemon, discovers the Swarm **task containers scheduled
-on that node** (they carry the service's container labels), and spawns movers
-locally against their node-local volumes — no code changes needed. A single-node
-Swarm behaves just like standalone.
-
-Caveats of the node-local model:
-
-- A mover is a plain node-local container, so it only reaches volumes on **its
-  own node**. A service's data must live where its task runs (node-local volumes
-  or a pinned placement) — the normal case for stateful services.
-- The snapshot host is currently the app name, and the per-repo lock is
-  per-process (not cluster-wide). So if the *same* app is **replicated across
-  nodes** and backs up to a *shared* repository, snapshots and restic locks from
-  different nodes will collide. Prefer node-local repositories, single-replica
-  stateful services, or per-node target paths in that case.
-
-What sabon deliberately does **not** do: read the Swarm services/tasks API from a
-manager, schedule movers onto other nodes, or coordinate a cluster-wide
-repository. Volume locality makes backups inherently node-bound, so that
-cross-node orchestration is a non-goal.
+!!! info "Scope"
+    By default sabon targets **one Docker daemon** (standalone or Compose): it
+    discovers containers and spawns movers on the daemon it connects to. On a
+    Swarm **manager** it can instead drive the whole cluster via the service
+    API — see [Docker Swarm](#swarm).
 
 ## Docker Compose
 
@@ -109,6 +85,108 @@ identically: a local target `path:` must be a real host path (movers bind-mount
 the same path), and mounting the raw socket is a real privilege — see
 [socket access](#socket) and [Privileges](#privileges).
 
+## Docker Swarm {#swarm}
+
+!!! warning "Experimental"
+    Swarm support is **early-stage**: it is exercised by a single-node
+    `docker swarm init` end-to-end test in CI, but has **not been validated
+    against a multi-node production cluster**. Treat it as beta, pin an image
+    tag, and verify a restore before relying on it.
+
+On a Swarm **manager**, sabon drives the cluster through the service API
+(auto-detected, or forced with `SABON_RUNTIME=swarm`). It discovers **services**,
+and for each backup spawns the mover as a **one-shot service pinned to the node
+that holds the data** (a `node.hostname` constraint) — Swarm schedules it onto
+the right node, so no per-node agent is needed. Cold backups scale the service
+to zero and back; run history is the retained mover services. The behavioural
+details and limits are in [Docker Swarm](configuration.md#docker-swarm).
+
+Deploy sabon as a single `replicas: 1` service pinned to a manager node — it is
+the one orchestrator for the whole cluster and is stateless (it re-discovers
+each reconcile; history lives in the retained mover services):
+
+```yaml
+services:
+  sabon:
+    image: ghcr.io/davidborzek/sabon:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]   # the service API is manager-only
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # a MANAGER node's socket
+      - ./targets.yaml:/etc/sabon/targets.yaml:ro
+    environment:
+      SABON_RUNTIME: swarm          # optional: auto-detected on a manager
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+  # the apps you back up carry the sabon labels under their own deploy.labels:
+  # myapp:
+  #   deploy:
+  #     labels:
+  #       sabon.enable: "true"
+  #       sabon.backup: |
+  #         repo: myapp
+```
+
+Requirements and limits:
+
+- **Manager placement** — pin sabon to a manager and give it that node's socket.
+- **Remote repositories** — a local `path:` target is per-node and meaningless
+  cluster-wide; use a remote backend (the cache volume stays per-node).
+- **Labels go on `deploy.labels`** (the service), not container labels.
+- **Replicated services only** for cold backups (`global`-mode scale-to-0 is a
+  non-goal); **exec hooks** and **ZFS snapshots** are unsupported in swarm mode.
+
+A single-node Swarm works the same way — one manager that is also the only node.
+
+### Volumes & node placement {#swarm-volumes}
+
+Swarm's default `local` volume driver is **per node** — not replicated. There are
+two ways to run a stateful service, and sabon backs up both:
+
+- **Pin to a node + local volume** — the simplest, and ideal for a single storage
+  node. Give the service `replicas: 1` and a placement constraint
+  (`node.hostname == …`, or a `node.labels.…` you set on the node), so its `local`
+  volumes always live on that one node. Tradeoff: no failover — if that node is
+  down, so is the service (its data lives only there).
+- **Multi-node volume** — only needed when the service must reschedule across
+  nodes: a CSI/cluster volume, an **NFS-backed `local` volume** (every node mounts
+  the same export — the simplest homelab option), or a plugin driver
+  (GlusterFS/Ceph/…). The data is then reachable wherever the task lands.
+
+sabon pins each mover to where the data is: it reads the node of the service's
+**running task** and constrains the mover there (`node.hostname==N`), so it mounts
+the same node-local volume. For a **scaled-to-zero** service (no running task) it
+falls back to the service's own `node.hostname`/`node.id`/`node.labels` placement
+constraint, so a pinned service is still backed up on the right node while stopped.
+A service with neither a running task nor a pinning constraint is left
+unconstrained — the mover may land on a node without the volume, so pin such
+services (or keep a replica running).
+
+There is no reliable way to locate a bare `local` volume on another node from a
+manager (the volume API is per-daemon), so pinning — via a running task or a
+placement constraint — is how sabon finds the data. And since a local `path:`
+repo is per-node, multi-node clusters must back up to a **remote** target.
+
+### Replicated services {#swarm-replicas}
+
+sabon backs up **one job per service**, not one per replica: it pins a single
+mover to the node of one running task. This matches the per-app repository model
+(one dataset per app) and avoids several movers writing the same repo at once.
+
+- **`replicas: 1`** (pinned or not) — the instance is backed up. The normal case
+  for stateful services.
+- **`replicas > 1` on a shared volume** (CSI / NFS-backed / plugin) — every
+  replica sees the same data, so the single backup covers them all.
+- **`replicas > 1` with a per-node `local` volume each** — only **one** replica's
+  volume is captured (which one is not deterministic); the others are silently
+  skipped. Distinct per-replica local data is not a supported topology — use
+  `replicas: 1` or a shared volume for anything stateful.
+
+Note that a **cold** backup (`stop: true`) scales the *whole* service to zero, so
+all replicas go down for the duration — another reason to keep stateful services
+at `replicas: 1` or on a shared volume.
+
 ## Docker socket access {#socket}
 
 sabon needs the Docker API with **write** enabled. It must be able to:
@@ -165,6 +243,10 @@ services:
 Even with the proxy, `POST=1` is a meaningful grant — a client that can create
 containers and mount arbitrary volumes can effectively reach the host. The proxy
 limits *which* endpoints are reachable, not what those endpoints can do.
+
+In **swarm mode** the object groups differ: sabon drives the service API, so it
+needs `POST=1` with `SERVICES=1`, `TASKS=1` and `NODES=1` (plus `IMAGES=1`),
+instead of `CONTAINERS`/`EXEC`. Point it at a **manager** node's socket.
 
 ## Privileges {#privileges}
 

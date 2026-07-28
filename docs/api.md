@@ -66,7 +66,7 @@ immediately and the work runs in the background. Watch it under
   "snapshot": "latest",     // snapshot id; default "latest"
   "into": "/mnt/staging",   // host dir for a staging restore; omit for in-place
   "stop": true,             // stop the app during an in-place restore
-  "include": ["/etc"]       // limit the restore to matching paths
+  "include": ["/data/immich-dbdump"] // limit to matching paths (sources live under /data/<name>)
 }
 ```
 
@@ -80,7 +80,8 @@ History is **durable**: sabon keeps the last
 exited **mover containers** per app/target/action, so each run's status and full
 restic **logs** live in Docker itself and survive a sabon restart. There is no
 in-memory store — they are ordinary containers, so `docker ps -a` and
-`docker logs <id>` see them too.
+`docker logs <id>` see them too. In swarm mode the retained history is mover
+*services* instead (`docker service ls` / `docker service logs`).
 
 | Method | Path | Description |
 | --- | --- | --- |

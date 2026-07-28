@@ -29,6 +29,15 @@ gone.
 
     [Backups →](backups.md)
 
+-   🔐 **Incremental & encrypted**
+
+    ---
+
+    Movers run **restic**: each run stores only changed data, deduplicated and
+    client-side encrypted; a scheduled `restic check` verifies repository integrity.
+
+    [Backups →](backups.md)
+
 -   🗃️ **Any volume driver**
 
     ---
@@ -38,12 +47,21 @@ gone.
 
     [Storage drivers →](backups.md#drivers)
 
+-   🐝 **Standalone or Swarm**
+
+    ---
+
+    Drives a single Docker host by default; on a Swarm manager it drives the
+    whole cluster, running each mover as a node-pinned service.
+
+    [Deployment →](deployment.md#swarm)
+
 -   📸 **Atomic or best-effort snapshots**
 
     ---
 
-    `snapshot: zfs` backs up from a crash-consistent ZFS snapshot; `auto`
-    snapshots what it can and mounts the rest live.
+    `snapshot: zfs` backs up from a crash-consistent ZFS snapshot — no app
+    downtime; `auto` snapshots what it can and mounts the rest live.
 
     [Snapshots →](backups.md#snapshots)
 
@@ -60,10 +78,19 @@ gone.
 
     ---
 
-    Prometheus metrics, health endpoints, and ready-made alert rules catch
-    silent failures.
+    Prometheus metrics, health endpoints, ready-made alert rules, and
+    notifications catch silent failures.
 
     [Metrics →](metrics.md)
+
+-   🔌 **HTTP control API**
+
+    ---
+
+    An optional, token-authenticated API to trigger runs and browse durable
+    run history — for dashboards and automation.
+
+    [HTTP API →](api.md)
 
 </div>
 
@@ -120,6 +147,10 @@ applies retention. Run one immediately without waiting for the schedule:
 docker compose exec sabon sabon backup --app paperless
 ```
 
+!!! tip "Running Docker Swarm?"
+    sabon can drive a whole cluster too, running each mover as a node-pinned
+    service — see [Docker Swarm](deployment.md#swarm) (experimental).
+
 ## Documentation
 
 - [Configuration](configuration.md) — every `SABON_*` env var and the
@@ -137,6 +168,8 @@ docker compose exec sabon sabon backup --app paperless
   crash/shutdown behaviour.
 - [HTTP API](api.md) — the optional, token-authenticated control API for
   triggering runs and browsing durable run history.
+- [Troubleshooting](troubleshooting.md) — first-response fixes for the common failures.
+- [FAQ](faq.md) — why root movers, per-app repos, `prune`, bare-restic restore, Swarm.
 
 ## Images
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/davidborzek/sabon/internal/config"
-	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/davidborzek/sabon/internal/metrics"
 	"github.com/davidborzek/sabon/internal/notify"
 	"github.com/davidborzek/sabon/internal/reconcile"
@@ -29,15 +28,20 @@ func runBackupOnce(cCtx *cli.Context) error {
 		return err
 	}
 
+	rt, err := newRuntime(ctx, cli, cfg, logger)
+	if err != nil {
+		return err
+	}
+
 	m := metrics.New(version)
-	orch := newOrchestrator(cli, cfg, image, logger)
+	orch := newOrchestrator(cfg, image, rt, logger)
 	if _, err := orch.Reap(ctx); err != nil {
 		logger.Warn("reap orphan movers failed", "error", err)
 	}
 	if _, err := orch.ReapSnapshotter(ctx); err != nil {
 		logger.Warn("reap orphan snapshots failed", "error", err)
 	}
-	disc := discovery.New(cli, cfg.LabelPrefix, cfg.WatchByDefault, cfg.CacheVolume, cfg.Instance, logger)
+	disc := rt.disc
 	sched := scheduler.New(logger)
 	notifier, err := notify.New(cfg.NotifyURLs, cfg.NotifyTitleTemplate, cfg.NotifyTemplate)
 	if err != nil {

@@ -67,6 +67,18 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      # Full stack: builds the sabon binary and drives a labelled demo
+      # Standalone full stack: builds the sabon binary and drives a labelled demo
       # container through a backup to a real restic repository (both in Docker).
-      - run: go test -tags e2e ./test/e2e/
+      - run: go test -tags e2e -run TestBackupSnapshotsRestore ./test/e2e/
+
+  e2e-swarm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # Swarm gate: a single-node `docker swarm init` cluster; sabon runs in swarm
+      # mode and backs up a labelled service through a node-pinned mover service.
+      # This is the only validation of the otherwise cluster-unvalidated runtime.
+      - run: go test -tags e2e -run TestSwarmBackupSnapshotsRestore ./test/e2e/

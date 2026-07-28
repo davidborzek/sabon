@@ -11,11 +11,8 @@ import (
 	"sync"
 
 	"github.com/davidborzek/sabon/internal/config"
-	"github.com/davidborzek/sabon/internal/hook"
-	"github.com/davidborzek/sabon/internal/mover"
+	"github.com/davidborzek/sabon/internal/engine"
 	"github.com/davidborzek/sabon/internal/snapshot"
-	"github.com/davidborzek/sabon/internal/snapshot/providers/zfs"
-	"github.com/docker/docker/client"
 )
 
 const (
@@ -30,32 +27,34 @@ const (
 // Orchestrator runs backups. It is safe for concurrent use across different
 // repositories; runs against the same repository are serialised.
 type Orchestrator struct {
-	cli     client.APIClient
+	host    engine.Host
 	cfg     *config.Config
-	runner  *mover.Runner
-	hooks   *hook.Runner
+	eng     engine.Engine
+	hooks   engine.Hooks
+	quiesce engine.Quiescer
 	image   string
 	log     *slog.Logger
 	locks   keyedMutex
 	cacheMu sync.Mutex
 	cacheOK bool
 	sem     chan struct{}          // caps concurrent backups when SABON_MAX_PARALLEL > 0
-	snaps   []snapshot.Snapshotter // registered source-snapshot providers; selected per run by mode
+	snaps   []snapshot.Snapshotter // source-snapshot providers, supplied by the runtime (Docker: zfs; swarm: none); selected per run by mode
 	colds   coldStops              // coordinates cold-backup container stops
 }
 
 // New returns an Orchestrator. image is the resolved mover image reference.
-func New(cli client.APIClient, cfg *config.Config, image string, log *slog.Logger) *Orchestrator {
+func New(cfg *config.Config, image string, eng engine.Engine, hooks engine.Hooks, quiesce engine.Quiescer, host engine.Host, snaps []snapshot.Snapshotter, log *slog.Logger) *Orchestrator {
 	o := &Orchestrator{
-		cli:    cli,
-		cfg:    cfg,
-		runner: mover.NewRunner(cli),
-		hooks:  hook.New(cli),
-		image:  image,
-		log:    log,
-		snaps:  []snapshot.Snapshotter{zfs.New(cli, cfg.SnapshotZFSImage, cfg.Instance, log)},
-		locks:  newKeyedMutex(),
-		colds:  newColdStops(),
+		host:    host,
+		cfg:     cfg,
+		eng:     eng,
+		hooks:   hooks,
+		quiesce: quiesce,
+		image:   image,
+		log:     log,
+		snaps:   snaps,
+		locks:   newKeyedMutex(),
+		colds:   newColdStops(),
 	}
 	if cfg.MaxParallel > 0 {
 		o.sem = make(chan struct{}, cfg.MaxParallel)
@@ -85,7 +84,7 @@ func (o *Orchestrator) release() {
 // Reap removes exited leftover mover containers from a previous crash. Safe to
 // call periodically: running movers are spared.
 func (o *Orchestrator) Reap(ctx context.Context) (int, error) {
-	n, err := o.runner.Reap(ctx, o.cfg.MoverHistory)
+	n, err := o.eng.Reap(ctx, o.cfg.MoverHistory)
 	hn, herr := o.hooks.Reap(ctx)
 	if err == nil {
 		err = herr

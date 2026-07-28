@@ -18,7 +18,8 @@ _사본 — Korean for "a copy". Declare a backup next to the service; sabon doe
 
 sabon watches the Docker API for containers that carry a backup **label**, and on a
 schedule spawns ephemeral **mover** containers that run [restic](https://restic.net)
-to back each app's volumes up to its own repository — onsite, offsite, or both.
+— so every backup is incremental, deduplicated and encrypted — to back each app's
+volumes up to its own repository, onsite, offsite, or both.
 The backup spec lives next to the service in your Compose file; there is no central
 list of apps to maintain.
 
@@ -48,8 +49,11 @@ flowchart LR
 - **Any volume** — because a mover *mounts* the volume, sabon backs up named volumes
   (any driver) as well as bind mounts, without poking at `/var/lib/docker`.
 - **Consistency** — dump a database in a pre-hook, quiesce an app with
-  `stop: true`, or back up from an atomic ZFS snapshot (`snapshot: zfs`, or `auto`
-  to snapshot what's on ZFS and mount the rest live).
+  `stop: true`, or back up from an atomic ZFS snapshot with no downtime
+  (`snapshot: zfs`, or `auto` to snapshot what's on ZFS and mount the rest live).
+- **Standalone or Swarm** *(experimental)* — drives a single Docker host by default; on a Docker
+  Swarm manager it drives the whole cluster, running each mover as a node-pinned
+  service. See [Deployment](docs/deployment.md#swarm).
 
 ## Quick start
 
@@ -72,10 +76,10 @@ services:
       sabon.enable: "true"
       sabon.backup: |
         repo: immich
-        extraVolumes: [immich-db-dump]        # a consistent dump written by the hook below
+        extraVolumes: [immich-dbdump]         # a consistent dump written by the hook below
         preHooks:
           - container: immich-postgres
-            command: [sh, -c, "pg_dump -U $$POSTGRES_USER -d $$POSTGRES_DB -Fc -f /dump/immich.dump"]
+            command: [sh, -c, "pg_dump -U $$POSTGRES_USER -d $$POSTGRES_DB -f /dump/immich.sql"]
     # ...
 
 volumes:
@@ -121,7 +125,7 @@ docker compose exec sabon sabon restore --app immich --target onsite --in-place 
 
 sabon needs **write** access to the Docker API — it creates, starts and removes
 mover containers and mounts arbitrary volumes. Movers run as **root** (they must read
-all app data and write repositories). Run sabon on a trusted single host; harden the
+all app data and write repositories). Run sabon on a trusted host (a Swarm manager for cluster mode); harden the
 socket with a POST-enabled [docker-socket-proxy](docs/deployment.md) if you don't want
 to mount the raw socket. See [SECURITY.md](SECURITY.md).
 
