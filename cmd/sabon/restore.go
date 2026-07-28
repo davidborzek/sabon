@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -8,11 +9,11 @@ import (
 	"github.com/davidborzek/sabon/internal/backup"
 	"github.com/davidborzek/sabon/internal/config"
 	"github.com/davidborzek/sabon/internal/discovery"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // runSnapshots lists snapshots for an app across one or all targets.
-func runSnapshots(cCtx *cli.Context) error {
+func runSnapshots(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -24,7 +25,6 @@ func runSnapshots(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	ctx := cCtx.Context
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {
 		return err
@@ -34,9 +34,9 @@ func runSnapshots(cCtx *cli.Context) error {
 		return err
 	}
 	orch := newOrchestrator(cfg, image, rt, logger)
-	app := cCtx.String("app")
+	app := cmd.String("app")
 	targets := cfg.Targets
-	if name := cCtx.String("target"); name != "" {
+	if name := cmd.String("target"); name != "" {
 		t, ok := cfg.Target(name)
 		if !ok {
 			return fmt.Errorf("unknown target %q", name)
@@ -58,7 +58,7 @@ func runSnapshots(cCtx *cli.Context) error {
 }
 
 // runCheckCmd runs `restic check` for an app across one or all targets.
-func runCheckCmd(cCtx *cli.Context) error {
+func runCheckCmd(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -70,7 +70,6 @@ func runCheckCmd(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	ctx := cCtx.Context
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {
 		return err
@@ -80,9 +79,9 @@ func runCheckCmd(cCtx *cli.Context) error {
 		return err
 	}
 	orch := newOrchestrator(cfg, image, rt, logger)
-	app := cCtx.String("app")
+	app := cmd.String("app")
 	targets := cfg.Targets
-	if name := cCtx.String("target"); name != "" {
+	if name := cmd.String("target"); name != "" {
 		t, ok := cfg.Target(name)
 		if !ok {
 			return fmt.Errorf("unknown target %q", name)
@@ -104,7 +103,7 @@ func runCheckCmd(cCtx *cli.Context) error {
 }
 
 // runPruneCmd runs `restic prune` for an app across one or all targets.
-func runPruneCmd(cCtx *cli.Context) error {
+func runPruneCmd(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -116,7 +115,6 @@ func runPruneCmd(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	ctx := cCtx.Context
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {
 		return err
@@ -126,9 +124,9 @@ func runPruneCmd(cCtx *cli.Context) error {
 		return err
 	}
 	orch := newOrchestrator(cfg, image, rt, logger)
-	app := cCtx.String("app")
+	app := cmd.String("app")
 	targets := cfg.Targets
-	if name := cCtx.String("target"); name != "" {
+	if name := cmd.String("target"); name != "" {
 		t, ok := cfg.Target(name)
 		if !ok {
 			return fmt.Errorf("unknown target %q", name)
@@ -151,7 +149,7 @@ func runPruneCmd(cCtx *cli.Context) error {
 
 // runRestore restores a snapshot into a staging directory or, with --in-place,
 // into the app's live volumes.
-func runRestore(cCtx *cli.Context) error {
+func runRestore(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -163,18 +161,17 @@ func runRestore(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	app := cCtx.String("app")
-	into := cCtx.String("into")
-	inPlace := cCtx.Bool("in-place")
+	app := cmd.String("app")
+	into := cmd.String("into")
+	inPlace := cmd.Bool("in-place")
 	if (into == "") == !inPlace {
 		return fmt.Errorf("specify exactly one of --into <dir> or --in-place")
 	}
-	t, ok := cfg.Target(cCtx.String("target"))
+	t, ok := cfg.Target(cmd.String("target"))
 	if !ok {
-		return fmt.Errorf("unknown target %q", cCtx.String("target"))
+		return fmt.Errorf("unknown target %q", cmd.String("target"))
 	}
 
-	ctx := cCtx.Context
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {
 		return err
@@ -185,10 +182,10 @@ func runRestore(cCtx *cli.Context) error {
 	}
 	orch := newOrchestrator(cfg, image, rt, logger)
 	opts := backup.RestoreOptions{
-		Snapshot: cCtx.String("snapshot"),
+		Snapshot: cmd.String("snapshot"),
 		Into:     into,
-		Stop:     cCtx.Bool("stop"),
-		Include:  cCtx.StringSlice("include"),
+		Stop:     cmd.Bool("stop"),
+		Include:  cmd.StringSlice("include"),
 	}
 
 	var job *discovery.Job

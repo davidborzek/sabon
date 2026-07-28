@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
+
 	"github.com/davidborzek/sabon/internal/config"
 	"github.com/davidborzek/sabon/internal/metrics"
 	"github.com/davidborzek/sabon/internal/notify"
 	"github.com/davidborzek/sabon/internal/reconcile"
 	"github.com/davidborzek/sabon/internal/scheduler"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // runBackupOnce runs every discovered job against its targets once.
-func runBackupOnce(cCtx *cli.Context) error {
+func runBackupOnce(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -22,7 +24,6 @@ func runBackupOnce(cCtx *cli.Context) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	ctx := cCtx.Context
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {
 		return err
@@ -48,5 +49,5 @@ func runBackupOnce(cCtx *cli.Context) error {
 		return err
 	}
 	rec := reconcile.New(ctx, disc, orch, cfg, sched, m, notifier, logger)
-	return rec.RunAll(ctx, cCtx.String("app"))
+	return rec.RunAll(ctx, cmd.String("app"))
 }

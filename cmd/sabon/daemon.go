@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os/signal"
 	"sync"
@@ -13,11 +14,11 @@ import (
 	"github.com/davidborzek/sabon/internal/reconcile"
 	remoteapi "github.com/davidborzek/sabon/internal/remote/api/v1"
 	"github.com/davidborzek/sabon/internal/scheduler"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // runDaemon is the default action: discover, schedule, and watch for changes.
-func runDaemon(cCtx *cli.Context) error {
+func runDaemon(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
@@ -25,7 +26,7 @@ func runDaemon(cCtx *cli.Context) error {
 	logger := newLogger(cfg.LogLevel)
 	logger.Info("starting sabon", "version", version, "label_prefix", cfg.LabelPrefix, "targets", len(cfg.Targets))
 
-	ctx, stop := signal.NotifyContext(cCtx.Context, syscall.SIGINT, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	cli, err := dockerClient()

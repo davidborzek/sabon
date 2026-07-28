@@ -23,14 +23,14 @@ import (
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/davidborzek/sabon/internal/snapshot/providers/zfs"
 	"github.com/docker/docker/client"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
 var version = "dev"
 
 func main() {
-	app := &cli.App{
+	app := &cli.Command{
 		Name:    "sabon",
 		Usage:   "Label-driven restic backup orchestrator for Docker",
 		Version: version,
@@ -67,7 +67,7 @@ func main() {
 			}},
 		},
 	}
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, "sabon:", err)
 		os.Exit(1)
 	}
