@@ -15,6 +15,12 @@
       "description": "Major updates: open a PR for manual review, never automerge",
       "matchUpdateTypes": ["major"],
       "automerge": false
+    },
+    {
+      "description": "docker/docker uses +incompatible versioning Renovate cannot resolve (module github.com/docker/docker vs repo moby/moby, no /vN path); bump it manually via `go get`.",
+      "matchDatasources": ["go"],
+      "matchPackageNames": ["github.com/docker/docker"],
+      "enabled": false
     }
   ]
 }
