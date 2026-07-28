@@ -1,0 +1,2608 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Label-driven restic backup orchestrator for Docker">
+      
+      
+        <meta name="author" content="David Borzek">
+      
+      
+        <link rel="canonical" href="https://davidborzek.github.io/sabon/0.1.0/configuration/">
+      
+      
+        <link rel="prev" href="./..">
+      
+      
+        <link rel="next" href="../labels/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.51">
+    
+    
+      
+        <title>Configuration - sabon</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.62c9b9cc.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+  
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+  
+  <style>:root{.md-tag.md-tag--backup{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8M10%2012h4%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-settings%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.671%204.136a2.34%202.34%200%200%201%204.659%200%202.34%202.34%200%200%200%203.319%201.915%202.34%202.34%200%200%201%202.33%204.033%202.34%202.34%200%200%200%200%203.831%202.34%202.34%200%200%201-2.33%204.033%202.34%202.34%200%200%200-3.319%201.915%202.34%202.34%200%200%201-4.659%200%202.34%202.34%200%200%200-3.32-1.915%202.34%202.34%200%200%201-2.33-4.033%202.34%202.34%200%200%200%200-3.831A2.34%202.34%200%200%201%206.35%206.051a2.34%202.34%200%200%200%203.319-1.915%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-tag%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12.586%202.586A2%202%200%200%200%2011.172%202H4a2%202%200%200%200-2%202v7.172a2%202%200%200%200%20.586%201.414l8.704%208.704a2.426%202.426%200%200%200%203.42%200l6.58-6.58a2.426%202.426%200%200%200%200-3.42z%22/%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%227.5%22%20r%3D%22.5%22%20fill%3D%22currentColor%22/%3E%3C/svg%3E');}.md-tag.md-tag--restore{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive-restore%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h2M20%208v11a2%202%200%200%201-2%202h-2M9%2015l3-3%203%203M12%2012v9%22/%3E%3C/svg%3E');}.md-tag.md-tag--security{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-shield%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20%2013c0%205-3.5%207.5-7.66%208.95a1%201%200%200%201-.67-.01C7.5%2020.5%204%2018%204%2013V6a1%201%200%200%201%201-1c2%200%204.5-1.2%206.24-2.72a1.17%201.17%200%200%201%201.52%200C14.51%203.81%2017%205%2019%205a1%201%200%200%201%201%201z%22/%3E%3C/svg%3E');}.md-tag.md-tag--snapshot{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-camera%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13.997%204a2%202%200%200%201%201.76%201.05l.486.9A2%202%200%200%200%2018.003%207H20a2%202%200%200%201%202%202v9a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2h1.997a2%202%200%200%200%201.759-1.048l.489-.904A2%202%200%200%201%2010.004%204z%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--swarm{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-boxes%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2.97%2012.92A2%202%200%200%200%202%2014.63v3.24a2%202%200%200%200%20.97%201.71l3%201.8a2%202%200%200%200%202.06%200L12%2019v-5.5l-5-3zM7%2016.5l-4.74-2.85M7%2016.5l5-3M7%2016.5v5.17M12%2013.5V19l3.97%202.38a2%202%200%200%200%202.06%200l3-1.8a2%202%200%200%200%20.97-1.71v-3.24a2%202%200%200%200-.97-1.71L17%2010.5zM17%2016.5l-5-3M17%2016.5l4.74-2.85M17%2016.5v5.17%22/%3E%3Cpath%20d%3D%22M7.97%204.42A2%202%200%200%200%207%206.13v4.37l5%203%205-3V6.13a2%202%200%200%200-.97-1.71l-3-1.8a2%202%200%200%200-2.06%200zM12%208%207.26%205.15M12%208l4.74-2.85M12%2013.5V8%22/%3E%3C/svg%3E');}}</style>
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="sabon" class="md-header__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sabon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./.." class="md-tabs__link">
+        
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="././" class="md-tabs__link">
+          
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../metrics/" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="sabon" class="md-nav__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    sabon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Guide
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configuration
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configuration
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Environment variables
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUNTIME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_label_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_LABEL_PREFIX</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_watch_by_default" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_WATCH_BY_DEFAULT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_CONFIG</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_resync_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RESYNC_INTERVAL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_debounce_delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_DEBOUNCE_DELAY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_metrics_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_METRICS_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_log_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_LOG_LEVEL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_IMAGE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_user" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_USER</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_GROUPS</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_network" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_NETWORK</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_cache_volume" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_CACHE_VOLUME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_HISTORY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_run_on_startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUN_ON_STARTUP</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_INSTANCE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_max_parallel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MAX_PARALLEL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_schedule_jitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SCHEDULE_JITTER</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_BACKUP_TIMEOUT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SNAPSHOT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_snapshot_zfs_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SNAPSHOT_ZFS_IMAGE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_URLS</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_ON</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_title_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_TITLE_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_TOKEN</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_hook_env_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_HOOK_ENV_&lt;NAME&gt;</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker_host" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>DOCKER_HOST</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>TZ</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restic-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        restic credentials
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-targets-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The targets file
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The targets file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#target-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Target fields
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Target fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>name</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>path</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>repo</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passwordenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>passwordEnv</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passwordfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>passwordFile</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentialsfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>credentialsFile</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>env</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resticargs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>resticArgs</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>schedule</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>retention</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prune" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>prune</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#placeholders" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Placeholders
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Retention keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cron-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cron format
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Schema &amp; editor validation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Labels
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hooks
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Backups
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Restore
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Deployment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Reference
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Reference
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Observability
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Architecture
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Environment variables
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUNTIME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_label_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_LABEL_PREFIX</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_watch_by_default" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_WATCH_BY_DEFAULT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_CONFIG</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_resync_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RESYNC_INTERVAL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_debounce_delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_DEBOUNCE_DELAY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_metrics_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_METRICS_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_log_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_LOG_LEVEL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_IMAGE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_user" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_USER</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_GROUPS</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_network" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_NETWORK</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_cache_volume" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_CACHE_VOLUME</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_mover_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MOVER_HISTORY</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_run_on_startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_RUN_ON_STARTUP</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_INSTANCE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_max_parallel" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_MAX_PARALLEL</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_schedule_jitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SCHEDULE_JITTER</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_BACKUP_TIMEOUT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SNAPSHOT</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_snapshot_zfs_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_SNAPSHOT_ZFS_IMAGE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_URLS</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_ON</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_title_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_TITLE_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_notify_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_NOTIFY_TEMPLATE</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_api_token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_API_TOKEN</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_hook_env_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_HOOK_ENV_&lt;NAME&gt;</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker_host" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>DOCKER_HOST</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>TZ</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restic-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        restic credentials
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-swarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker Swarm
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-targets-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The targets file
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The targets file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#target-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Target fields
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Target fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#name" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>name</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>path</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>repo</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passwordenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>passwordEnv</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passwordfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>passwordFile</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentialsfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>credentialsFile</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>env</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resticargs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>resticArgs</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>schedule</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>retention</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prune" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>prune</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#placeholders" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Placeholders
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Retention keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cron-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cron format
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Schema &amp; editor validation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="./.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="././" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
+<p>sabon has two configuration surfaces:</p>
+<ol>
+<li><strong>Process configuration</strong> — environment variables (<code>SABON_*</code>) that control the
+   orchestrator itself.</li>
+<li><strong>The targets file</strong> — a YAML document describing the backup backends
+   (restic repositories) and their schedules and retention.</li>
+</ol>
+<p>Per-container backup policy lives in <strong>labels</strong>, documented separately in
+<a href="../labels/">Labels</a>.</p>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<h3 id="sabon_runtime"><code>SABON_RUNTIME</code><a class="headerlink" href="#sabon_runtime" title="Permanent link">&para;</a></h3>
+<p><em>default <code>auto</code></em> — Which container runtime to drive: <code>auto</code> detects it (a Docker <strong>Swarm manager</strong> → swarm, anything else → standalone), or force <code>standalone</code> / <code>swarm</code>. See <a href="#docker-swarm">Docker Swarm</a>.</p>
+<h3 id="sabon_label_prefix"><code>SABON_LABEL_PREFIX</code><a class="headerlink" href="#sabon_label_prefix" title="Permanent link">&para;</a></h3>
+<p><em>default <code>sabon</code></em> — Label namespace (<code>&lt;prefix&gt;.enable</code>, <code>&lt;prefix&gt;.backup</code>, …).</p>
+<h3 id="sabon_watch_by_default"><code>SABON_WATCH_BY_DEFAULT</code><a class="headerlink" href="#sabon_watch_by_default" title="Permanent link">&para;</a></h3>
+<p><em>default <code>false</code></em> — When <code>true</code>, back up every container unless it sets <code>&lt;prefix&gt;.enable=false</code>. When <code>false</code> (default), only containers with <code>&lt;prefix&gt;.enable=true</code>.</p>
+<h3 id="sabon_config"><code>SABON_CONFIG</code><a class="headerlink" href="#sabon_config" title="Permanent link">&para;</a></h3>
+<p><em>default <code>/etc/sabon/targets.yaml</code></em> — Path to the targets file.</p>
+<h3 id="sabon_resync_interval"><code>SABON_RESYNC_INTERVAL</code><a class="headerlink" href="#sabon_resync_interval" title="Permanent link">&para;</a></h3>
+<p><em>default <code>5m</code></em> — Periodic full reconcile, on top of event-driven ones.</p>
+<h3 id="sabon_debounce_delay"><code>SABON_DEBOUNCE_DELAY</code><a class="headerlink" href="#sabon_debounce_delay" title="Permanent link">&para;</a></h3>
+<p><em>default <code>2s</code></em> — Coalesces bursts of container events into one reconcile.</p>
+<h3 id="sabon_metrics_addr"><code>SABON_METRICS_ADDR</code><a class="headerlink" href="#sabon_metrics_addr" title="Permanent link">&para;</a></h3>
+<p><em>default <code>:9333</code></em> — Listen address for <code>/metrics</code>, <code>/healthz</code>, <code>/readyz</code>. Blank disables the server.</p>
+<h3 id="sabon_log_level"><code>SABON_LOG_LEVEL</code><a class="headerlink" href="#sabon_log_level" title="Permanent link">&para;</a></h3>
+<p><em>default <code>info</code></em> — <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>. <code>debug</code> traces what the daemon does: discovered jobs and the container events that trigger reconciles, scheduler (re/un)registration, and the per-run mechanics — resolved snapshot mode, each host <code>zfs</code> call, snapshot create/destroy, and every mover spawn.</p>
+<h3 id="sabon_mover_image"><code>SABON_MOVER_IMAGE</code><a class="headerlink" href="#sabon_mover_image" title="Permanent link">&para;</a></h3>
+<p><em>default: auto-detect</em> — Image used for mover containers. Empty reuses sabon's own running image — auto-detected inside Docker (the exact ref you deployed: registry, digest, fork and all), else the version-matched <code>ghcr.io/davidborzek/sabon:&lt;version&gt;</code>. Set it explicitly for a custom mover image, or on a dev build with no version stamped in.</p>
+<h3 id="sabon_mover_user"><code>SABON_MOVER_USER</code><a class="headerlink" href="#sabon_mover_user" title="Permanent link">&para;</a></h3>
+<p><em>default <code>0:0</code></em> — <code>uid:gid</code> movers run as. Root by default — movers must read arbitrary app data and write repos. Labels may override per app (<code>user</code>).</p>
+<h3 id="sabon_mover_groups"><code>SABON_MOVER_GROUPS</code><a class="headerlink" href="#sabon_mover_groups" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Comma-separated supplementary groups (GIDs) added to every mover (<code>--group-add</code>), so a nonroot mover can read group-owned data without a chown. Labels may override per app (<code>groups</code>).</p>
+<h3 id="sabon_mover_network"><code>SABON_MOVER_NETWORK</code><a class="headerlink" href="#sabon_mover_network" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Optional Docker network to attach movers to (e.g. to reach a remote backend by service name).</p>
+<h3 id="sabon_cache_volume"><code>SABON_CACHE_VOLUME</code><a class="headerlink" href="#sabon_cache_volume" title="Permanent link">&para;</a></h3>
+<p><em>default <code>sabon-cache</code></em> — Named volume mounted at <code>/cache</code> in movers as the shared restic cache.</p>
+<h3 id="sabon_mover_history"><code>SABON_MOVER_HISTORY</code><a class="headerlink" href="#sabon_mover_history" title="Permanent link">&para;</a></h3>
+<p><em>default <code>3</code></em> — Exited mover containers kept per app/target/action as run history — each run's status and restic logs, readable via the <a href="../api/#run-history">HTTP API</a> or directly with <code>docker ps -a</code> / <code>docker logs</code> (in swarm mode these are retained mover <em>services</em>, seen with <code>docker service ls</code> / <code>docker service logs</code>), and surviving restarts. <code>0</code> removes every exited mover (no history).</p>
+<h3 id="sabon_run_on_startup"><code>SABON_RUN_ON_STARTUP</code><a class="headerlink" href="#sabon_run_on_startup" title="Permanent link">&para;</a></h3>
+<p><em>default <code>false</code></em> — When <code>true</code>, run all backups once immediately on startup, then follow the schedules.</p>
+<h3 id="sabon_instance"><code>SABON_INSTANCE</code><a class="headerlink" href="#sabon_instance" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — When set, only manage containers whose <code>&lt;prefix&gt;.instance</code> matches — for running several sabon instances side by side. Empty = manage all.</p>
+<h3 id="sabon_max_parallel"><code>SABON_MAX_PARALLEL</code><a class="headerlink" href="#sabon_max_parallel" title="Permanent link">&para;</a></h3>
+<p><em>default <code>0</code></em> — Cap on concurrent backups (movers). <code>0</code> = unlimited. Prevents a thundering herd when many apps share a schedule.</p>
+<h3 id="sabon_schedule_jitter"><code>SABON_SCHEDULE_JITTER</code><a class="headerlink" href="#sabon_schedule_jitter" title="Permanent link">&para;</a></h3>
+<p><em>default <code>0</code></em> — Random <code>0..jitter</code> delay before each <em>scheduled</em> run, to spread load off exact cron boundaries.</p>
+<h3 id="sabon_backup_timeout"><code>SABON_BACKUP_TIMEOUT</code><a class="headerlink" href="#sabon_backup_timeout" title="Permanent link">&para;</a></h3>
+<p><em>default <code>0</code></em> — Deadline per backup run; <code>0</code> = none. A run that exceeds it is aborted and its mover removed. Labels may override per app (<code>timeout</code>).</p>
+<h3 id="sabon_snapshot"><code>SABON_SNAPSHOT</code><a class="headerlink" href="#sabon_snapshot" title="Permanent link">&para;</a></h3>
+<p><em>default <code>none</code></em> — Default source-snapshot strategy: <code>none</code> (mount live), <code>zfs</code> (snapshot each source's dataset first; a source not on ZFS fails the backup), or <code>auto</code> (snapshot the ZFS sources, mount the rest live). Labels may override per app (<code>snapshot</code>). See <a href="../backups/#snapshots">Snapshots</a>.</p>
+<h3 id="sabon_snapshot_zfs_image"><code>SABON_SNAPSHOT_ZFS_IMAGE</code><a class="headerlink" href="#sabon_snapshot_zfs_image" title="Permanent link">&para;</a></h3>
+<p><em>default <code>ghcr.io/davidborzek/sabon/zfs-snapshotter:&lt;sabon version&gt;</code></em> — Privileged image the <strong>zfs</strong> provider uses to run the host's <code>zfs</code>. A released binary defaults to the snapshotter tagged with its own version; an unversioned dev build has <strong>no</strong> default and must set this to use ZFS snapshots (it will not silently pull a floating <code>:latest</code> privileged image). Override to pin or replace it. See <a href="../backups/#snapshots">Snapshots</a>.</p>
+<h3 id="sabon_notify_urls"><code>SABON_NOTIFY_URLS</code><a class="headerlink" href="#sabon_notify_urls" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Comma-separated <a href="https://containrrr.dev/shoutrrr/">shoutrrr</a> URLs (Slack, Telegram, Discord, ntfy, generic webhook, …); every one receives each notification. Empty disables notifications.</p>
+<h3 id="sabon_notify_on"><code>SABON_NOTIFY_ON</code><a class="headerlink" href="#sabon_notify_on" title="Permanent link">&para;</a></h3>
+<p><em>default <code>failure</code></em> — When to notify: <code>failure</code> (only failed backups) or <code>always</code>.</p>
+<h3 id="sabon_notify_title_template"><code>SABON_NOTIFY_TITLE_TEMPLATE</code><a class="headerlink" href="#sabon_notify_title_template" title="Permanent link">&para;</a></h3>
+<p><em>default: built-in</em> — Go <a href="https://pkg.go.dev/text/template">text/template</a> for the notification <strong>title</strong>, overriding the built-in. A value beginning with <code>@</code> is read from that file. See <a href="../metrics/#notifications">Notifications</a> for the template data and functions.</p>
+<h3 id="sabon_notify_template"><code>SABON_NOTIFY_TEMPLATE</code><a class="headerlink" href="#sabon_notify_template" title="Permanent link">&para;</a></h3>
+<p><em>default: built-in</em> — Go text/template for the notification <strong>body</strong> (same <code>@file</code> support and data model as the title template).</p>
+<h3 id="sabon_api_addr"><code>SABON_API_ADDR</code><a class="headerlink" href="#sabon_api_addr" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Listen address for the <a href="../api/">HTTP control API</a> (e.g. <code>:8080</code>); empty disables it. It is privileged (a restore overwrites live data) — bind it to loopback and put TLS in front.</p>
+<h3 id="sabon_api_token"><code>SABON_API_TOKEN</code><a class="headerlink" href="#sabon_api_token" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Bearer token for the API. When set, every request must carry it (<code>Authorization: Bearer &lt;token&gt;</code>). <strong>Empty disables authentication</strong> — every request is allowed and sabon logs a warning at startup; only acceptable for a loopback bind behind a trusted proxy. Recommended to set.</p>
+<h3 id="sabon_hook_env_name"><code>SABON_HOOK_ENV_&lt;NAME&gt;</code><a class="headerlink" href="#sabon_hook_env_name" title="Permanent link">&para;</a></h3>
+<p><em>default: none</em> — Fallback allowlist for hook environment interpolation. A <code>${NAME}</code> reference in a hook's <code>env:</code> value (in a container label) resolves <strong>first</strong> from the labelled container's own environment, and falls back to <strong><code>SABON_HOOK_ENV_&lt;NAME&gt;</code></strong> from sabon's environment for a value that lives nowhere on the app's container (e.g. only in a sibling database). A label can never read sabon's <code>RESTIC_PASSWORD</code>, cloud credentials or another target's password. Prefer exec-mode hooks, which need no injection at all.</p>
+<p>Expose such a value on the sabon service, and reference it in the label escaped for Compose (<code>$$</code>):</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">SABON_HOOK_ENV_DB_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DB_PASSWORD}</span><span class="w">   </span><span class="c1"># sabon side: ordinary Compose interpolation</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># in the sabon.backup label:   env: { PGPASSWORD: &quot;$${DB_PASSWORD}&quot; }</span>
+</span></code></pre></div>
+<p>This applies only to <strong>hook</strong> <code>env</code>; the <code>env:</code> block in the targets file is operator-owned and expands from the full environment. See <a href="../hooks/#credentials-in-hooks">Hooks</a>.</p>
+<h3 id="docker_host"><code>DOCKER_HOST</code><a class="headerlink" href="#docker_host" title="Permanent link">&para;</a></h3>
+<p><em>default: docker default</em> — Standard Docker client variable; point it at a socket proxy.</p>
+<h3 id="tz"><code>TZ</code><a class="headerlink" href="#tz" title="Permanent link">&para;</a></h3>
+<p><em>default <code>UTC</code></em> — Standard timezone variable (e.g. <code>Europe/Berlin</code>). Cron schedules and log timestamps are interpreted in it; unset means UTC. The tz database is embedded in the image, so no <code>/etc/localtime</code> mount is needed. An invalid value falls back to UTC. restic records snapshot times in <strong>UTC</strong> (the mover has no zoneinfo) — deliberately: UTC is unambiguous and DST-safe.</p>
+<h3 id="restic-credentials">restic credentials<a class="headerlink" href="#restic-credentials" title="Permanent link">&para;</a></h3>
+<p>Movers need the restic repository password and any backend credentials. These
+are passed through from the orchestrator's environment:</p>
+<ul>
+<li><strong><code>RESTIC_PASSWORD</code></strong> — the repository password, unless a target overrides the
+  variable name with <code>passwordEnv</code>.</li>
+<li><strong>Backend credentials</strong> — e.g. <code>AWS_ACCESS_KEY_ID</code> / <code>AWS_SECRET_ACCESS_KEY</code>,
+  referenced from a target's <code>env:</code> block (see below).</li>
+</ul>
+<p>Keep these in a <code>.env</code> file, a Docker secret, or your secret manager — never in
+the labels.</p>
+<h2 id="docker-swarm">Docker Swarm<a class="headerlink" href="#docker-swarm" title="Permanent link">&para;</a></h2>
+<p>With <code>SABON_RUNTIME=swarm</code> (or auto-detected on a manager node) sabon drives the Swarm <strong>service</strong> API instead of local containers. sabon must run <strong>on a manager node</strong>. What changes:</p>
+<ul>
+<li><strong>Discovery</strong> reads <strong>services</strong>, not containers. Put the backup labels in the service's <code>deploy.labels</code> (not the container labels): <code>sabon.enable</code>, <code>sabon.backup</code>, … Sources come from the service's mounts plus the spec's <code>extraVolumes</code>/<code>extraPaths</code>.</li>
+<li><strong>Placement</strong> — each job is pinned to the node its task currently runs on, and the mover runs there as a one-shot service (a <code>node.hostname</code> constraint) so it reaches the node-local volumes. A <strong>scaled-to-zero</strong> service has no running task, so its node is taken from its <code>node.hostname</code>/<code>node.id</code>/<code>node.labels</code> placement constraint instead; only a service with neither a running task nor a pinning constraint is left unconstrained (may land anywhere).</li>
+<li><strong>Cold backups</strong> scale the service to <strong>zero replicas</strong> and back. The original count is recorded on the service (<code>sabon.quiesce.replicas</code> label), not in memory, so a crash between stop and start cannot strand it at zero — sabon restores any stranded service on startup.</li>
+<li><strong>Hooks</strong> — run-mode hooks run as one-shot services; <strong>exec-mode hooks are not supported</strong> (a manager cannot exec into a task on another node) and return an error. Env and compose project are read from the service spec.</li>
+</ul>
+<p>Not supported in swarm mode: <strong>ZFS snapshots</strong> (<code>SABON_SNAPSHOT=zfs</code>/<code>auto</code> — the snapshotter is node-local) and cross-node exec hooks. Named volumes are node-local unless backed by a cluster volume driver.</p>
+<blockquote>
+<p>Swarm mode is exercised by a single-node <code>docker swarm init</code> end-to-end test in CI; it has not been validated against a multi-node production cluster.</p>
+</blockquote>
+<h2 id="the-targets-file">The targets file<a class="headerlink" href="#the-targets-file" title="Permanent link">&para;</a></h2>
+<p>The targets file (<code>SABON_CONFIG</code>, default <code>/etc/sabon/targets.yaml</code>) lists the
+backends. Every target becomes a per-app repository: an app named <code>paperless</code>
+backed up to a target named <code>onsite</code> lives in that target's repo for <code>paperless</code>.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">targets</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">onsite</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/backup</span><span class="w">             </span><span class="c1"># local backend: repo = /mnt/backup/&lt;app&gt;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*/6</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w">     </span><span class="c1"># 6-field cron (seconds first)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> hourly</span><span class="p">:</span><span class="w"> </span><span class="nv">24</span><span class="p p-Indicator">,</span><span class="nt"> daily</span><span class="p">:</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="nt"> weekly</span><span class="p">:</span><span class="w"> </span><span class="nv">5</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offsite</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}&quot;</span><span class="w">   </span><span class="c1"># remote backend</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">passwordEnv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RESTIC_PASSWORD</span><span class="w">  </span><span class="c1"># default; name of the env var holding the password</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">AWS_ACCESS_KEY_ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${R2_ACCESS_KEY_ID}</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">AWS_SECRET_ACCESS_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${R2_SECRET_ACCESS_KEY}</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">30</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> daily</span><span class="p">:</span><span class="w"> </span><span class="nv">7</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<h3 id="target-fields">Target fields<a class="headerlink" href="#target-fields" title="Permanent link">&para;</a></h3>
+<h4 id="name"><code>name</code><a class="headerlink" href="#name" title="Permanent link">&para;</a></h4>
+<p>Target name. Referenced from a label's <code>targets</code>, <code>schedule</code> and <code>retention</code> maps.</p>
+<h4 id="path"><code>path</code><a class="headerlink" href="#path" title="Permanent link">&para;</a></h4>
+<p><strong>Local backend.</strong> The repo for app <code>&lt;app&gt;</code> is <code>&lt;path&gt;/&lt;app&gt;</code>, bind-mounted into the mover at <code>/repo</code>.</p>
+<h4 id="repo"><code>repo</code><a class="headerlink" href="#repo" title="Permanent link">&para;</a></h4>
+<p><strong>Remote backend.</strong> A restic repository string with <code>{app}</code> and <code>${ENV}</code> placeholders, e.g. <code>s3:…/{app}</code>. See restic's <a href="https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html">repository backends</a> for the supported schemes (<code>s3:</code>, <code>rest:</code>, <code>sftp:</code>, <code>b2:</code>, …).</p>
+<h4 id="passwordenv"><code>passwordEnv</code><a class="headerlink" href="#passwordenv" title="Permanent link">&para;</a></h4>
+<p>Name of the environment variable holding the repo password. Default <code>RESTIC_PASSWORD</code>.</p>
+<h4 id="passwordfile"><code>passwordFile</code><a class="headerlink" href="#passwordfile" title="Permanent link">&para;</a></h4>
+<p>Host path to a file holding the repo password. Mounted <strong>read-only</strong> into the mover; restic reads it via <code>RESTIC_PASSWORD_FILE</code>, so the password is in <strong>no</strong> container's environment. Overrides <code>passwordEnv</code>.</p>
+<h4 id="credentialsfile"><code>credentialsFile</code><a class="headerlink" href="#credentialsfile" title="Permanent link">&para;</a></h4>
+<p>Host path to an AWS shared-credentials file (<code>[default]</code> with <code>aws_access_key_id</code>/<code>aws_secret_access_key</code>). Mounted <strong>read-only</strong> and exposed via <code>AWS_SHARED_CREDENTIALS_FILE</code> so S3/B2/… creds stay out of the mover's environment.</p>
+<h4 id="env"><code>env</code><a class="headerlink" href="#env" title="Permanent link">&para;</a></h4>
+<p>Extra environment (map) passed to movers for this target — backend credentials, endpoints, etc. Values support <code>${ENV}</code> expansion.</p>
+<h4 id="resticargs"><code>resticArgs</code><a class="headerlink" href="#resticargs" title="Permanent link">&para;</a></h4>
+<p>Extra <strong>global</strong> restic flags prepended to every invocation for this target (e.g. <code>--limit-upload</code>, <code>--pack-size</code>, <code>--compression</code>, <code>-o key=value</code>). See restic's <a href="https://restic.readthedocs.io/en/stable/040_backup.html">backup options and tuning parameters</a>.</p>
+<h4 id="schedule"><code>schedule</code><a class="headerlink" href="#schedule" title="Permanent link">&para;</a></h4>
+<p>6-field cron (seconds first) for this target. Labels may override it per app.</p>
+<h4 id="retention"><code>retention</code><a class="headerlink" href="#retention" title="Permanent link">&para;</a></h4>
+<p>restic retention policy for this target — see <a href="https://restic.readthedocs.io/en/stable/060_forget.html">restic's forget policies</a>. Labels may override it per app.</p>
+<h4 id="check"><code>check</code><a class="headerlink" href="#check" title="Permanent link">&para;</a></h4>
+<p>Optional 6-field cron for periodic <code>restic check</code> (<a href="https://restic.readthedocs.io/en/stable/045_working_with_repos.html">repository integrity</a>) of this target's per-app repos. Empty disables it. See <a href="../backups/#checks">check &amp; prune</a>.</p>
+<h4 id="prune"><code>prune</code><a class="headerlink" href="#prune" title="Permanent link">&para;</a></h4>
+<p>Optional 6-field cron for periodic <code>restic prune</code> (repack / reclaim space; see <a href="https://restic.readthedocs.io/en/stable/060_forget.html">restic forget &amp; prune</a>). Empty disables it — backups then only run <code>forget</code> (mark), and space is reclaimed by this job. See <a href="../backups/#checks">check &amp; prune</a>.</p>
+<p><strong>Exactly one of <code>path</code> or <code>repo</code></strong> must be set per target — a target is either
+local or remote.</p>
+<p>Prefer <code>passwordFile</code> over <code>passwordEnv</code> to keep the repo password out of every
+container's environment (it is otherwise visible via <code>docker inspect</code>). Point it
+at a Docker secret or a <code>0600</code> file; it must be readable by the mover user
+(<code>SABON_MOVER_USER</code> / label <code>user</code>). For remote backends, <code>credentialsFile</code>
+does the same for S3/B2/… credentials: an AWS shared-credentials file mounted
+read-only and exposed via <code>AWS_SHARED_CREDENTIALS_FILE</code>, keeping the keys out of
+<code>env</code> too. Don't also put <code>AWS_*</code> in <code>env</code> — env wins over the file.</p>
+<h3 id="placeholders">Placeholders<a class="headerlink" href="#placeholders" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>{app}</code></strong> — expands to the app name (from the label's <code>repo</code>, else the
+  compose service, else the container name). Used to give every app its own repo
+  inside a shared remote bucket.</li>
+<li><strong><code>${ENV}</code></strong> — expands from the orchestrator's environment at load time, in
+  both <code>repo</code> and <code>env</code> values. Keeps endpoints and secrets out of the file.</li>
+</ul>
+<h3 id="retention-keys">Retention keys<a class="headerlink" href="#retention-keys" title="Permanent link">&para;</a></h3>
+<p><code>retention</code> maps directly to restic's <code>forget --keep-*</code> policy. Any combination
+of these keys is allowed:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Keeps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>last</code></td>
+<td>The N most recent snapshots.</td>
+</tr>
+<tr>
+<td><code>hourly</code></td>
+<td>The last snapshot for each of N hours.</td>
+</tr>
+<tr>
+<td><code>daily</code></td>
+<td>The last snapshot for each of N days.</td>
+</tr>
+<tr>
+<td><code>weekly</code></td>
+<td>The last snapshot for each of N weeks.</td>
+</tr>
+<tr>
+<td><code>monthly</code></td>
+<td>The last snapshot for each of N months.</td>
+</tr>
+<tr>
+<td><code>yearly</code></td>
+<td>The last snapshot for each of N years.</td>
+</tr>
+<tr>
+<td><code>within</code></td>
+<td>All snapshots within a duration, e.g. <code>within: 14d</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Retention marks old snapshots after each successful backup (<code>restic forget</code>);
+repacking to reclaim space is a separate <code>prune</code> job — see <a href="../backups/">Backups</a>.</p>
+<h3 id="cron-format">Cron format<a class="headerlink" href="#cron-format" title="Permanent link">&para;</a></h3>
+<p>Schedules are <strong>6-field</strong> cron expressions with <strong>seconds first</strong>
+(<code>sec min hour dom mon dow</code>). Examples:</p>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0 0 */6 * * *</code></td>
+<td>Every 6 hours, on the hour.</td>
+</tr>
+<tr>
+<td><code>0 30 3 * * *</code></td>
+<td>Daily at 03:30.</td>
+</tr>
+<tr>
+<td><code>0 0 2 * * 0</code></td>
+<td>Weekly, Sunday 02:00.</td>
+</tr>
+</tbody>
+</table>
+<p>Schedules run in the <a href="#tz"><code>TZ</code></a> timezone (UTC if unset).</p>
+<p>Validate a config without running anything with <code>sabon validate</code> (see
+<a href="../labels/">Labels</a>).</p>
+<h3 id="schema">Schema &amp; editor validation<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h3>
+<p>The targets file has a JSON schema —
+<a href="https://github.com/davidborzek/sabon/blob/main/schemas/targets.json"><code>schemas/targets.json</code></a>
+(regenerate with <code>sabon schema --targets</code>). Point your editor at it via
+<a href="https://github.com/redhat-developer/yaml-language-server">yaml-language-server</a>
+for completion and validation of your <code>targets.yaml</code>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># yaml-language-server: $schema=https://raw.githubusercontent.com/davidborzek/sabon/main/schemas/targets.json</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">targets</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">onsite</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/backup</span>
+</span></code></pre></div>
+
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+        
+        
+          
+        
+      
+      
+        <span class="md-tag md-tag-icon md-tag--config">Configuration</span>
+      
+    
+      
+      
+      
+        
+        
+      
+      
+        <span class="md-tag md-tag-icon">Reference</span>
+      
+    
+  </nav>
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="./.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Home
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../labels/" class="md-footer__link md-footer__link--next" aria-label="Next: Labels">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Labels
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 David Borzek
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/davidborzek/sabon" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.b6b7e04f.min.js","tags":{"Backups":"backup","Configuration":"config","Restore":"restore","Security":"security","Snapshots":"snapshot","Swarm":"swarm"},"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7f30b55.min.js"></script>
+      
+    
+  </body>
+</html>
