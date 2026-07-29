@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.1](https://github.com/davidborzek/sabon/compare/v0.1.0...v0.1.1) (2026-07-29)
+
+
+### Bug Fixes
+
+* **deps:** bump invopop/jsonschema and prometheus/client_golang ([3246853](https://github.com/davidborzek/sabon/commit/32468531413c5f851a56a0dfee5b528432785904))
+
 ## 0.1.0 (2026-07-28)
 
 First public release of **sabon** — a label-driven [restic](https://restic.net)
