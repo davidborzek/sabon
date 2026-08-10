@@ -46,3 +46,29 @@ func TestLoadAPITokenOptional(t *testing.T) {
 		}
 	})
 }
+
+func TestLoadMoverLabels(t *testing.T) {
+	t.Setenv("SABON_CONFIG", "/nonexistent/sabon/targets.yaml")
+	t.Run("parses key=value pairs", func(t *testing.T) {
+		t.Setenv("SABON_MOVER_LABELS", "team=infra, cost-center=backups")
+		c, err := Load()
+		if err != nil {
+			t.Fatalf("Load: %v", err)
+		}
+		if c.MoverLabels["team"] != "infra" || c.MoverLabels["cost-center"] != "backups" {
+			t.Errorf("MoverLabels = %v", c.MoverLabels)
+		}
+	})
+	t.Run("rejects non-pair entries", func(t *testing.T) {
+		t.Setenv("SABON_MOVER_LABELS", "team")
+		if _, err := Load(); err == nil {
+			t.Error("Load must reject an entry without =")
+		}
+	})
+	t.Run("rejects reserved sabon. prefix", func(t *testing.T) {
+		t.Setenv("SABON_MOVER_LABELS", "sabon.app=evil")
+		if _, err := Load(); err == nil {
+			t.Error("Load must reject the reserved sabon. prefix")
+		}
+	})
+}

@@ -93,6 +93,13 @@
           "type": "array",
           "description": "Extra global restic flags for this target (e.g. --limit-upload"
         },
+        "moverLabels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Extra labels set on every mover container for this target (merged over SABON_MOVER_LABELS; target wins). Keys must not use the reserved sabon. prefix"
+        },
         "schedule": {
           "type": "string",
           "description": "Default cron schedule (6-field"

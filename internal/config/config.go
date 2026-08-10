@@ -26,12 +26,13 @@ type Config struct {
 	DebounceDelay       time.Duration
 	MetricsAddr         string
 	LogLevel            string
-	MoverImage          string   // empty -> auto-detect from sabon's own container
-	MoverUser           string   // uid[:gid] the mover runs as; movers need to read arbitrary data
-	MoverGroups         []string // SABON_MOVER_GROUPS: extra supplementary groups (GIDs) added to movers
-	MoverNetwork        string   // optional docker network to attach movers to
-	CacheVolume         string   // shared restic cache volume name
-	MoverHistory        int      // SABON_MOVER_HISTORY: exited movers kept per app/target/action for run history; 0 = keep none
+	MoverImage          string            // empty -> auto-detect from sabon's own container
+	MoverUser           string            // uid[:gid] the mover runs as; movers need to read arbitrary data
+	MoverGroups         []string          // SABON_MOVER_GROUPS: extra supplementary groups (GIDs) added to movers
+	MoverNetwork        string            // optional docker network to attach movers to
+	MoverLabels         map[string]string // SABON_MOVER_LABELS: extra labels set on every mover container (key=value,...); sabon's own labels always win
+	CacheVolume         string            // shared restic cache volume name
+	MoverHistory        int               // SABON_MOVER_HISTORY: exited movers kept per app/target/action for run history; 0 = keep none
 	RunOnStartup        bool
 	Instance            string        // SABON_INSTANCE: only manage containers whose sabon.instance matches; empty = all
 	MaxParallel         int           // SABON_MAX_PARALLEL: cap concurrent movers; 0 = unlimited
@@ -97,6 +98,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	if c.NotifyTemplate, err = envTemplate("SABON_NOTIFY_TEMPLATE"); err != nil {
+		return nil, err
+	}
+	if c.MoverLabels, err = envMap("SABON_MOVER_LABELS"); err != nil {
 		return nil, err
 	}
 
@@ -190,6 +194,32 @@ func envList(key string) []string {
 		}
 	}
 	return out
+}
+
+// envMap parses a comma-separated env var of key=value pairs into a map.
+// Keys must be non-empty and, since they become container labels alongside
+// sabon's own, must not use the reserved "sabon." prefix. Empty/unset -> nil.
+func envMap(key string) (map[string]string, error) {
+	v, ok := os.LookupEnv(key)
+	if !ok || strings.TrimSpace(v) == "" {
+		return nil, nil
+	}
+	out := map[string]string{}
+	for _, pair := range strings.Split(v, ",") {
+		if strings.TrimSpace(pair) == "" {
+			continue
+		}
+		k, val, found := strings.Cut(pair, "=")
+		k = strings.TrimSpace(k)
+		if !found || k == "" {
+			return nil, fmt.Errorf("%s: %q is not a key=value pair", key, strings.TrimSpace(pair))
+		}
+		if strings.HasPrefix(k, "sabon.") {
+			return nil, fmt.Errorf("%s: key %q uses the reserved \"sabon.\" prefix", key, k)
+		}
+		out[k] = strings.TrimSpace(val)
+	}
+	return out, nil
 }
 
 // envTemplate reads a template from an env var. A value beginning with "@" is

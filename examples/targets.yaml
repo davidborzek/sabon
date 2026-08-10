@@ -19,6 +19,8 @@ targets:
       hourly: 24 # keep the last 24 hourly snapshots
       daily: 7 #   … 7 daily
       weekly: 5 #  … 5 weekly
+    moverLabels: # extra labels set on every mover container for this target
+      tier: onsite # (merged over SABON_MOVER_LABELS; keys must not start with "sabon.")
 
   # ── offsite: a remote repo (Cloudflare R2 / any S3) ────────────────────
   # Uncomment to fan out to a second, off-host copy. `repo` is a restic

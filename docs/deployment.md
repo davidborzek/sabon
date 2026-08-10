@@ -92,6 +92,30 @@ identically: a local target `path:` must be a real host path (movers bind-mount
 the same path), and mounting the raw socket is a real privilege — see
 [socket access](#socket) and [Privileges](#privileges).
 
+## Podman {#podman}
+
+!!! warning "Experimental — untested in CI"
+    Not part of sabon's test matrix. It works because sabon speaks the Docker
+    API and Podman's socket serves it; verify a backup **and a restore** before
+    relying on it.
+
+Podman needs no special runtime — enable its socket, point sabon at it with
+`DOCKER_HOST`, then deploy as for [Plain Docker](#plain-docker):
+
+```sh
+systemctl --user enable --now podman.socket   # rootless; system-wide for rootful
+export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+```
+
+- **Rootless** works only with the default `SABON_MOVER_USER=0:0`: Podman maps
+  container-root to your user, so movers read the volumes and write local repos
+  as you. Don't narrow it under rootless.
+- **Compose** labels resolve as on Docker — both `podman compose` and current
+  `podman-compose` set the `com.docker.compose.*` labels sabon reads.
+- **ZFS snapshots** (`snapshot: zfs`/`auto`) need a privileged, host-PID
+  snapshotter — so **rootful only**; rootless Podman cannot enter the host
+  namespaces the kernel reserves for root. **Swarm** mode does not exist on Podman.
+
 ## Docker Swarm {#swarm}
 
 !!! warning "Experimental"
