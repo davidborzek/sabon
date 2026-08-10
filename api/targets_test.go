@@ -13,6 +13,8 @@ func TestValidate(t *testing.T) {
 		{"both path and repo", []Target{{Name: "x", Path: "/p", Repo: "s3:y"}}, true},
 		{"neither path nor repo", []Target{{Name: "x"}}, true},
 		{"duplicate name", []Target{{Name: "x", Path: "/p"}, {Name: "x", Repo: "s3:y"}}, true},
+		{"moverLabels ok", []Target{{Name: "x", Path: "/p", MoverLabels: map[string]string{"tier": "onsite"}}}, false},
+		{"moverLabels reserved prefix", []Target{{Name: "x", Path: "/p", MoverLabels: map[string]string{"sabon.app": "evil"}}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

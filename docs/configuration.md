@@ -66,6 +66,10 @@ Per-container backup policy lives in **labels**, documented separately in
 
 *default: none* — Optional Docker network to attach movers to (e.g. to reach a remote backend by service name).
 
+### `SABON_MOVER_LABELS`
+
+*default: none* — Comma-separated `key=value` pairs set as labels on every mover container (e.g. `SABON_MOVER_LABELS=team=infra,cost-center=backups`) — useful for external log/metrics scrapers or housekeeping tools. Keys must not use the reserved `sabon.` prefix; sabon's own run-history labels (`sabon.app`/`sabon.target`/`sabon.action`) always win.
+
 ### `SABON_CACHE_VOLUME`
 
 *default `sabon-cache`* — Named volume mounted at `/cache` in movers as the shared restic cache.
@@ -233,6 +237,10 @@ Extra environment (map) passed to movers for this target — backend credentials
 #### `resticArgs`
 
 Extra **global** restic flags prepended to every invocation for this target (e.g. `--limit-upload`, `--pack-size`, `--compression`, `-o key=value`). See restic's [backup options and tuning parameters](https://restic.readthedocs.io/en/stable/040_backup.html).
+
+#### `moverLabels`
+
+Extra labels (map) set on every mover container spawned for this target, merged on top of the global [`SABON_MOVER_LABELS`](#sabon_mover_labels) (target wins on key collisions). Keys must not use the reserved `sabon.` prefix; sabon's own run-history labels always win.
 
 #### `schedule`
 
