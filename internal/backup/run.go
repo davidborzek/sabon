@@ -101,7 +101,7 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		Mounts:         mounts,
 		Binds:          binds,
 		KeepOnShutdown: !job.Spec.Stop,
-		Labels:         moverLabels(job.App, target.Name, "backup"),
+		Labels:         o.moverLabels(target, job.App, "backup"),
 		Retain:         true,
 		Node:           job.Node,
 	}
@@ -144,6 +144,7 @@ func (o *Orchestrator) RunSnapshots(ctx context.Context, app string, target api.
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
+		Labels: o.customLabels(target),
 	})
 	return err
 }
@@ -177,7 +178,7 @@ func (o *Orchestrator) RunCheck(ctx context.Context, app string, target api.Targ
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
-		Labels: moverLabels(app, target.Name, "check"),
+		Labels: o.moverLabels(target, app, "check"),
 		Retain: true,
 	})
 	return err
@@ -211,7 +212,7 @@ func (o *Orchestrator) RunPrune(ctx context.Context, app string, target api.Targ
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
-		Labels: moverLabels(app, target.Name, "prune"),
+		Labels: o.moverLabels(target, app, "prune"),
 		Retain: true,
 	})
 	return err
@@ -287,18 +288,34 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		Mounts: mounts,
 		Binds:  binds,
 		Stdout: out,
-		Labels: moverLabels(app, target.Name, "restore"),
+		Labels: o.moverLabels(target, app, "restore"),
 		Retain: true,
 		Node:   node,
 	})
 	return err
 }
 
-// moverLabels tags a mover with the run-history labels the API reads back.
-func moverLabels(app, target, action string) map[string]string {
-	return map[string]string{
-		mover.LabelApp:    app,
-		mover.LabelTarget: target,
-		mover.LabelAction: action,
+// moverLabels tags a mover with the run-history labels the API reads back, on
+// top of the operator-configured custom labels (global SABON_MOVER_LABELS plus
+// the target's own moverLabels). sabon's own labels always win over custom ones.
+func (o *Orchestrator) moverLabels(target api.Target, app, action string) map[string]string {
+	l := o.customLabels(target)
+	l[mover.LabelApp] = app
+	l[mover.LabelTarget] = target.Name
+	l[mover.LabelAction] = action
+	return l
+}
+
+// customLabels returns a fresh map of the operator-configured mover labels:
+// the global SABON_MOVER_LABELS with the target's own moverLabels merged on top
+// (target wins). Safe for a caller to extend per run.
+func (o *Orchestrator) customLabels(target api.Target) map[string]string {
+	l := make(map[string]string, len(o.cfg.MoverLabels)+len(target.MoverLabels))
+	for k, v := range o.cfg.MoverLabels {
+		l[k] = v
 	}
+	for k, v := range target.MoverLabels {
+		l[k] = v
+	}
+	return l
 }

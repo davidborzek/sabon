@@ -1,6 +1,9 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Backend is how a target's restic repository is located.
 type Backend string
@@ -46,6 +49,10 @@ type Target struct {
 	// --compression, -o key=value) prepended to every restic invocation for this
 	// target.
 	ResticArgs []string `yaml:"resticArgs,omitempty" json:"resticArgs,omitempty" jsonschema:"description=Extra global restic flags for this target (e.g. --limit-upload, --pack-size, -o key=value); prepended to every invocation"`
+	// MoverLabels are extra labels set on every mover container spawned for this
+	// target, merged on top of the global SABON_MOVER_LABELS (target wins).
+	// Keys must not use the reserved "sabon." prefix.
+	MoverLabels map[string]string `yaml:"moverLabels,omitempty" json:"moverLabels,omitempty" jsonschema:"description=Extra labels set on every mover container for this target (merged over SABON_MOVER_LABELS; target wins). Keys must not use the reserved sabon. prefix"`
 	// Schedule is the default cron for this target (6-field, seconds first).
 	Schedule string `yaml:"schedule,omitempty" json:"schedule,omitempty" jsonschema:"description=Default cron schedule (6-field, seconds first)"`
 	// Retention is the default forget policy for this target.
@@ -85,6 +92,11 @@ func (f *File) Validate() error {
 		seen[t.Name] = true
 		if (t.Path == "") == (t.Repo == "") {
 			return fmt.Errorf("target %q: set exactly one of path or repo", t.Name)
+		}
+		for k := range t.MoverLabels {
+			if strings.HasPrefix(k, "sabon.") {
+				return fmt.Errorf("target %q: moverLabels key %q uses the reserved \"sabon.\" prefix", t.Name, k)
+			}
 		}
 	}
 	return nil
