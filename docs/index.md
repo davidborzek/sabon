@@ -144,7 +144,7 @@ runs `restic backup` of `paperless-data` into `/mnt/backup/paperless`, then
 applies retention. Run one immediately without waiting for the schedule:
 
 ```sh
-docker compose exec sabon sabon backup --app paperless
+docker compose exec sabon /sabon backup --app paperless
 ```
 
 !!! tip "Running Docker Swarm?"

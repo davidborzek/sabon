@@ -56,26 +56,26 @@ fan the same apps out to a remote R2/S3 repository.
 Show the discovered plan without backing anything up:
 
 ```sh
-docker compose exec sabon sabon validate
+docker compose exec sabon /sabon validate
 ```
 
 List the snapshots written to the onsite repo:
 
 ```sh
-docker compose exec sabon sabon snapshots --app demo --target onsite
+docker compose exec sabon /sabon snapshots --app demo --target onsite
 ```
 
 Restore the latest snapshot into a staging directory (a safe, non-destructive
 restore into a host dir — works even if the app is gone):
 
 ```sh
-docker compose exec sabon sabon restore --app demo --target onsite --into /tmp/restore
+docker compose exec sabon /sabon restore --app demo --target onsite --into /tmp/restore
 ```
 
 You can also trigger a one-off backup instead of waiting for the schedule:
 
 ```sh
-docker compose exec sabon sabon backup --app demo
+docker compose exec sabon /sabon backup --app demo
 ```
 
 ## Tear down

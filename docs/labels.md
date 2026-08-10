@@ -201,7 +201,7 @@ recreate the database from the dump rather than from raw Postgres files. See
 
 ## Validating and schema
 
-These run inside the sabon container (e.g. `docker compose exec sabon sabon validate`):
+These run inside the sabon container (e.g. `docker compose exec sabon /sabon validate`):
 
 - `sabon validate` — discovers all jobs from the running containers and the
   targets file and prints the resulting plan **without backing up**. Use it to

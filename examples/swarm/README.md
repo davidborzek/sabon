@@ -44,15 +44,15 @@ snapshotter is node-local). For a real multi-node cluster, back up to a
 
 ## Verify
 
-sabon's CLI runs inside its task container. Grab it, then invoke `sabon`:
+sabon's CLI runs inside its task container. Grab it, then invoke `/sabon`:
 
 ```sh
 sid=$(docker ps -q -f name=sabon-demo_sabon | head -1)
 
-docker exec "$sid" sabon validate                                   # the discovered plan
-docker exec "$sid" sabon snapshots --app demo --target onsite       # snapshots written
-docker exec "$sid" sabon restore  --app demo --target onsite --into /tmp/restore
-docker exec "$sid" sabon backup   --app demo                        # one-off, off-schedule
+docker exec "$sid" /sabon validate                                   # the discovered plan
+docker exec "$sid" /sabon snapshots --app demo --target onsite       # snapshots written
+docker exec "$sid" /sabon restore  --app demo --target onsite --into /tmp/restore
+docker exec "$sid" /sabon backup   --app demo                        # one-off, off-schedule
 ```
 
 ## Tear down
