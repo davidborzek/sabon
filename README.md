@@ -95,7 +95,7 @@ targets:
     retention: { hourly: 24, daily: 7, weekly: 5 }
 ```
 
-Then preview with `docker compose exec sabon sabon validate`, and let the daemon
+Then preview with `docker compose exec sabon /sabon validate`, and let the daemon
 schedule the rest.
 
 ## Restore
@@ -104,9 +104,9 @@ sabon's CLI runs **inside the container** — invoke it via `docker compose exec
 (or `docker exec <container> sabon …`):
 
 ```bash
-docker compose exec sabon sabon snapshots --app immich --target onsite
-docker compose exec sabon sabon restore --app immich --target onsite --into /tmp/immich-restore  # safe staging
-docker compose exec sabon sabon restore --app immich --target onsite --in-place --stop           # into live volumes
+docker compose exec sabon /sabon snapshots --app immich --target onsite
+docker compose exec sabon /sabon restore --app immich --target onsite --into /tmp/immich-restore  # safe staging
+docker compose exec sabon /sabon restore --app immich --target onsite --in-place --stop           # into live volumes
 ```
 
 ## Documentation

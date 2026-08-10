@@ -10,7 +10,7 @@ Almost every diagnosis starts the same way — validate the config and read the
 orchestrator log:
 
 ```sh
-docker compose exec sabon sabon validate   # parse targets + every label, print what resolved
+docker compose exec sabon /sabon validate   # parse targets + every label, print what resolved
 docker compose logs -f sabon               # discovery, schedules, mover lifecycle
 ```
 

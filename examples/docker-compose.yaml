@@ -9,8 +9,8 @@
 #                           logical app via a single `sabon.backup` label
 #
 # Try it:  RESTIC_PASSWORD=change-me docker compose up -d --build
-# Then:    docker compose exec sabon sabon validate
-#          docker compose exec sabon sabon snapshots --app demo --target onsite
+# Then:    docker compose exec sabon /sabon validate
+#          docker compose exec sabon /sabon snapshots --app demo --target onsite
 #
 # HEADS UP — this needs a real host directory for the onsite repo. Create it
 # first (the mover bind-mounts it directly, see below):

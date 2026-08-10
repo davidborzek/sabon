@@ -15,16 +15,17 @@ snapshot, then restore it into a **staging directory** (safe) or **in place**
 
 !!! note "sabon runs as a container"
     sabon is a long-running container, so its CLI subcommands are executed
-    **inside** it — e.g. `docker compose exec sabon sabon <subcommand>` (or
-    `docker exec <sabon-container> sabon <subcommand>`). The examples below use
-    the Compose form; drop the `docker compose exec sabon` prefix only if you run
-    the `sabon` binary directly against the Docker socket.
+    **inside** it — e.g. `docker compose exec sabon /sabon <subcommand>` (or
+    `docker exec <sabon-container> /sabon <subcommand>`). The binary lives at
+    `/sabon` in the distroless image and is not on `$PATH`, so it must be called
+    by its full path. The examples below use the Compose form; use a bare `sabon`
+    only if you run the binary directly on a host where it is on `$PATH`.
 
 ## Listing snapshots
 
 ```sh
-docker compose exec sabon sabon snapshots --app immich                  # all targets
-docker compose exec sabon sabon snapshots --app immich --target offsite # one target
+docker compose exec sabon /sabon snapshots --app immich                  # all targets
+docker compose exec sabon /sabon snapshots --app immich --target offsite # one target
 ```
 
 ## Path mapping
@@ -40,7 +41,7 @@ Restore into a host directory. This is non-destructive and works **even if the
 app no longer exists** — the disaster-recovery path:
 
 ```sh
-docker compose exec sabon sabon restore --app immich --target offsite \
+docker compose exec sabon /sabon restore --app immich --target offsite \
   --snapshot latest \
   --into /srv/restore/immich
 ```
@@ -51,7 +52,7 @@ fresh Postgres). `--snapshot` defaults to `latest`; pass a restic snapshot ID fo
 an earlier one. Narrow the restore with `--include`:
 
 ```sh
-docker compose exec sabon sabon restore --app immich --target offsite \
+docker compose exec sabon /sabon restore --app immich --target offsite \
   --into /srv/restore/immich \
   --include /data/immich-dbdump          # just the DB dump
 ```
@@ -68,7 +69,7 @@ so stop the app first with `--stop` (sabon stops it, restores, and starts it
 again):
 
 ```sh
-docker compose exec sabon sabon restore --app immich --target offsite \
+docker compose exec sabon /sabon restore --app immich --target offsite \
   --snapshot latest \
   --in-place --stop
 ```

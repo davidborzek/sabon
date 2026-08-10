@@ -181,6 +181,6 @@ Outcomes are recorded as `sabon_checks_total` / `sabon_prunes_total` (with
 configured). Run either on demand:
 
 ```sh
-docker compose exec sabon sabon check --app immich --target onsite
-docker compose exec sabon sabon prune --app immich --target onsite
+docker compose exec sabon /sabon check --app immich --target onsite
+docker compose exec sabon /sabon prune --app immich --target onsite
 ```
