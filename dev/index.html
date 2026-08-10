@@ -1204,7 +1204,7 @@ upgrading.</p>
 <p>sabon discovers the <code>paperless</code> container, and every six hours a mover container
 runs <code>restic backup</code> of <code>paperless-data</code> into <code>/mnt/backup/paperless</code>, then
 applies retention. Run one immediately without waiting for the schedule:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>paperless
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>paperless
 </span></code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Running Docker Swarm?</p>

@@ -1723,7 +1723,7 @@ a consistent <code>.sql</code> into <code>immich-dbdump</code>, which <em>is</em
 recreate the database from the dump rather than from raw Postgres files. See
 <a href="../hooks/">Hooks</a> for the exec-mode variant of the same <code>pg_dump</code>.</p>
 <h2 id="validating-and-schema">Validating and schema<a class="headerlink" href="#validating-and-schema" title="Permanent link">&para;</a></h2>
-<p>These run inside the sabon container (e.g. <code>docker compose exec sabon sabon validate</code>):</p>
+<p>These run inside the sabon container (e.g. <code>docker compose exec sabon /sabon validate</code>):</p>
 <ul>
 <li><code>sabon validate</code> — discovers all jobs from the running containers and the
   targets file and prints the resulting plan <strong>without backing up</strong>. Use it to

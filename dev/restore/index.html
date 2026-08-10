@@ -1255,14 +1255,15 @@ snapshot, then restore it into a <strong>staging directory</strong> (safe) or <s
 <div class="admonition note">
 <p class="admonition-title">sabon runs as a container</p>
 <p>sabon is a long-running container, so its CLI subcommands are executed
-<strong>inside</strong> it — e.g. <code>docker compose exec sabon sabon &lt;subcommand&gt;</code> (or
-<code>docker exec &lt;sabon-container&gt; sabon &lt;subcommand&gt;</code>). The examples below use
-the Compose form; drop the <code>docker compose exec sabon</code> prefix only if you run
-the <code>sabon</code> binary directly against the Docker socket.</p>
+<strong>inside</strong> it — e.g. <code>docker compose exec sabon /sabon &lt;subcommand&gt;</code> (or
+<code>docker exec &lt;sabon-container&gt; /sabon &lt;subcommand&gt;</code>). The binary lives at
+<code>/sabon</code> in the distroless image and is not on <code>$PATH</code>, so it must be called
+by its full path. The examples below use the Compose form; use a bare <code>sabon</code>
+only if you run the binary directly on a host where it is on <code>$PATH</code>.</p>
 </div>
 <h2 id="listing-snapshots">Listing snapshots<a class="headerlink" href="#listing-snapshots" title="Permanent link">&para;</a></h2>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>snapshots<span class="w"> </span>--app<span class="w"> </span>immich<span class="w">                  </span><span class="c1"># all targets</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>snapshots<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="c1"># one target</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>snapshots<span class="w"> </span>--app<span class="w"> </span>immich<span class="w">                  </span><span class="c1"># all targets</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>snapshots<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="c1"># one target</span>
 </span></code></pre></div>
 <h2 id="path-mapping">Path mapping<a class="headerlink" href="#path-mapping" title="Permanent link">&para;</a></h2>
 <p>Because the mover backed sources up from <code>/data/&lt;name&gt;</code>, that is how they appear
@@ -1272,7 +1273,7 @@ the <code>sabon</code> binary directly against the Docker socket.</p>
 <h2 id="staging-restore-into-recommended">Staging restore — <code>--into</code> (recommended)<a class="headerlink" href="#staging-restore-into-recommended" title="Permanent link">&para;</a></h2>
 <p>Restore into a host directory. This is non-destructive and works <strong>even if the
 app no longer exists</strong> — the disaster-recovery path:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--snapshot<span class="w"> </span>latest<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--into<span class="w"> </span>/srv/restore/immich
 </span></code></pre></div>
@@ -1280,7 +1281,7 @@ app no longer exists</strong> — the disaster-recovery path:</p>
 them into place yourself (e.g. recreate the volume, load <code>immich.sql</code> into a
 fresh Postgres). <code>--snapshot</code> defaults to <code>latest</code>; pass a restic snapshot ID for
 an earlier one. Narrow the restore with <code>--include</code>:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--into<span class="w"> </span>/srv/restore/immich<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--include<span class="w"> </span>/data/immich-dbdump<span class="w">          </span><span class="c1"># just the DB dump</span>
 </span></code></pre></div>
@@ -1294,7 +1295,7 @@ the sabon container.</p>
 <p>Restore directly into the app's <strong>live volumes</strong>. This overwrites current data,
 so stop the app first with <code>--stop</code> (sabon stops it, restores, and starts it
 again):</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>restore<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>offsite<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--snapshot<span class="w"> </span>latest<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--in-place<span class="w"> </span>--stop
 </span></code></pre></div>

@@ -1270,7 +1270,7 @@
 <h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
 <p>Almost every diagnosis starts the same way — validate the config and read the
 orchestrator log:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>validate<span class="w">   </span><span class="c1"># parse targets + every label, print what resolved</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>validate<span class="w">   </span><span class="c1"># parse targets + every label, print what resolved</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>sabon<span class="w">               </span><span class="c1"># discovery, schedules, mover lifecycle</span>
 </span></code></pre></div>
 <p><code>validate</code> never touches a repository; it only reports what sabon <em>would</em> do, so

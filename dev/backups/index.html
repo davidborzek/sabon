@@ -1424,8 +1424,8 @@ happens on your schedule.</p>
 <p>Outcomes are recorded as <code>sabon_checks_total</code> / <code>sabon_prunes_total</code> (with
 <code>_last_*_success_timestamp_seconds</code>), and a failure triggers a notification (if
 configured). Run either on demand:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>check<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>onsite
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>sabon<span class="w"> </span>prune<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>onsite
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>check<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>onsite
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>prune<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>onsite
 </span></code></pre></div>
 
 
