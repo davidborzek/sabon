@@ -66,6 +66,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Strip the leading "v" so the snapshotter tag matches the sabon image
+      # (goreleaser publishes 0.1.0, not v0.1.0) and the binary's version-matched
+      # default (main.version is stamped without the "v" too).
+      - id: version
+        run: echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
       - uses: docker/build-push-action@v7
         with:
           context: .
@@ -74,7 +81,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/davidborzek/sabon/zfs-snapshotter:latest
-            ghcr.io/davidborzek/sabon/zfs-snapshotter:${{ needs.release-please.outputs.tag_name }}
+            ghcr.io/davidborzek/sabon/zfs-snapshotter:${{ steps.version.outputs.version }}
 
   docs:
     # Versioned docs (mike) are deployed here, in the release run, because a
