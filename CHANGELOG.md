@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0](https://github.com/davidborzek/sabon/compare/v0.2.0...v0.3.0) (2026-08-20)
+
+
+### Features
+
+* add healthcheck command ([#22](https://github.com/davidborzek/sabon/issues/22)) ([5cf4423](https://github.com/davidborzek/sabon/commit/5cf4423829693d44e7752050e6f996ba99d129d0))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/urfave/cli/v3 to v3.11.0 ([#20](https://github.com/davidborzek/sabon/issues/20)) ([db207e3](https://github.com/davidborzek/sabon/commit/db207e339cea4cf36ea337a8acbebf9569136f30))
+
 ## [0.2.0](https://github.com/davidborzek/sabon/compare/v0.1.0...v0.2.0) (2026-08-17)
 
 
