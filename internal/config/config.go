@@ -25,6 +25,7 @@ type Config struct {
 	ResyncInterval      time.Duration
 	DebounceDelay       time.Duration
 	MetricsAddr         string
+	HealthAddr          string // SABON_HEALTH_ADDR: extra liveness/readiness listener; see HealthAddrFromEnv
 	LogLevel            string
 	MoverImage          string            // empty -> auto-detect from sabon's own container
 	MoverUser           string            // uid[:gid] the mover runs as; movers need to read arbitrary data
@@ -58,7 +59,8 @@ func Load() (*Config, error) {
 		ConfigFile:       env("SABON_CONFIG", "/etc/sabon/targets.yaml"),
 		ResyncInterval:   envDuration("SABON_RESYNC_INTERVAL", 5*time.Minute),
 		DebounceDelay:    envDuration("SABON_DEBOUNCE_DELAY", 2*time.Second),
-		MetricsAddr:      env("SABON_METRICS_ADDR", ":9333"),
+		MetricsAddr:      MetricsAddrFromEnv(),
+		HealthAddr:       HealthAddrFromEnv(),
 		LogLevel:         env("SABON_LOG_LEVEL", "info"),
 		MoverImage:       env("SABON_MOVER_IMAGE", ""),
 		MoverUser:        env("SABON_MOVER_USER", "0:0"),
@@ -146,6 +148,41 @@ func (c *Config) Target(name string) (api.Target, bool) {
 		}
 	}
 	return api.Target{}, false
+}
+
+const (
+	// DefaultMetricsAddr is where the metrics and health server listens unless
+	// SABON_METRICS_ADDR says otherwise.
+	DefaultMetricsAddr = ":9333"
+	// DefaultHealthAddr binds loopback: reachable for the container's own
+	// HEALTHCHECK, and nowhere else.
+	DefaultHealthAddr = "127.0.0.1:9333"
+)
+
+// MetricsAddrFromEnv resolves SABON_METRICS_ADDR without loading the targets
+// file, for commands that only need an endpoint address.
+func MetricsAddrFromEnv() string { return env("SABON_METRICS_ADDR", DefaultMetricsAddr) }
+
+// HealthAddrFromEnv resolves the health-only listener's address. It defaults to
+// running only when metrics are disabled — otherwise /healthz and /readyz, and
+// with them the container HEALTHCHECK, would vanish along with the metrics.
+func HealthAddrFromEnv() string {
+	if v, ok := os.LookupEnv("SABON_HEALTH_ADDR"); ok {
+		return v
+	}
+	if MetricsAddrFromEnv() != "" {
+		return "" // the metrics server already serves /healthz and /readyz
+	}
+	return DefaultHealthAddr
+}
+
+// HealthProbeAddr is where `sabon healthcheck` probes; blank when nothing
+// serves the health endpoints.
+func HealthProbeAddr() string {
+	if h := HealthAddrFromEnv(); h != "" {
+		return h
+	}
+	return MetricsAddrFromEnv()
 }
 
 func env(key, fallback string) string {

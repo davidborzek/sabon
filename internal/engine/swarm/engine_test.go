@@ -94,6 +94,9 @@ func TestSwarmRunMoverBuildsService(t *testing.T) {
 	if len(cs.Command) != 2 || cs.Command[0] != "/sabon" || cs.Command[1] != "mover" {
 		t.Errorf("command = %v, want [/sabon mover]", cs.Command)
 	}
+	if cs.Healthcheck == nil || len(cs.Healthcheck.Test) != 1 || cs.Healthcheck.Test[0] != "NONE" {
+		t.Errorf("healthcheck = %+v, want disabled (NONE)", cs.Healthcheck)
+	}
 	if spec.TaskTemplate.RestartPolicy == nil || spec.TaskTemplate.RestartPolicy.Condition != swarm.RestartPolicyConditionNone {
 		t.Errorf("restart policy not 'none': %+v", spec.TaskTemplate.RestartPolicy)
 	}

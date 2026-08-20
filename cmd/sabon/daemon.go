@@ -37,6 +37,7 @@ func runDaemon(ctx context.Context, cmd *cli.Command) error {
 
 	m := metrics.New(version)
 	m.Serve(ctx, cfg.MetricsAddr, logger)
+	m.ServeHealth(ctx, cfg.HealthAddr, logger)
 
 	image, err := resolveImage(ctx, cli, cfg)
 	if err != nil {

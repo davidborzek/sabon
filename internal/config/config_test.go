@@ -72,3 +72,41 @@ func TestLoadMoverLabels(t *testing.T) {
 		}
 	})
 }
+
+func TestHealthAddrFromEnv(t *testing.T) {
+	t.Run("metrics enabled: no extra listener", func(t *testing.T) {
+		t.Setenv("SABON_METRICS_ADDR", ":9333")
+		if got := HealthAddrFromEnv(); got != "" {
+			t.Errorf("HealthAddrFromEnv() = %q, want \"\"", got)
+		}
+		if got := HealthProbeAddr(); got != ":9333" {
+			t.Errorf("HealthProbeAddr() = %q, want \":9333\"", got)
+		}
+	})
+
+	t.Run("metrics disabled: loopback listener", func(t *testing.T) {
+		t.Setenv("SABON_METRICS_ADDR", "")
+		if got := HealthAddrFromEnv(); got != DefaultHealthAddr {
+			t.Errorf("HealthAddrFromEnv() = %q, want %q", got, DefaultHealthAddr)
+		}
+		if got := HealthProbeAddr(); got != DefaultHealthAddr {
+			t.Errorf("HealthProbeAddr() = %q, want %q", got, DefaultHealthAddr)
+		}
+	})
+
+	t.Run("override wins over the metrics server", func(t *testing.T) {
+		t.Setenv("SABON_METRICS_ADDR", ":9333")
+		t.Setenv("SABON_HEALTH_ADDR", "127.0.0.1:9999")
+		if got := HealthProbeAddr(); got != "127.0.0.1:9999" {
+			t.Errorf("HealthProbeAddr() = %q, want \"127.0.0.1:9999\"", got)
+		}
+	})
+
+	t.Run("both blank: nothing to probe", func(t *testing.T) {
+		t.Setenv("SABON_METRICS_ADDR", "")
+		t.Setenv("SABON_HEALTH_ADDR", "")
+		if got := HealthProbeAddr(); got != "" {
+			t.Errorf("HealthProbeAddr() = %q, want \"\"", got)
+		}
+	})
+}

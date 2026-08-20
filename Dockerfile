@@ -25,4 +25,7 @@ FROM gcr.io/distroless/static:nonroot
 COPY --from=restic /usr/bin/restic /usr/bin/restic
 COPY --from=build /sabon /sabon
 USER nonroot:nonroot
+# Distroless has no shell, curl or wget: sabon probes its own /readyz.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD ["/sabon", "healthcheck"]
 ENTRYPOINT ["/sabon"]

@@ -44,7 +44,11 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ### `SABON_METRICS_ADDR`
 
-*default `:9333`* — Listen address for `/metrics`, `/healthz`, `/readyz`. Blank disables the server.
+*default `:9333`* — Listen address for `/metrics`, `/healthz`, `/readyz`. Blank disables the server; the health endpoints then move to `SABON_HEALTH_ADDR`.
+
+### `SABON_HEALTH_ADDR`
+
+*default: `127.0.0.1:9333` when metrics are disabled, else unused* — Separate listener for `/healthz` and `/readyz`, so the [container healthcheck](metrics.md#container-healthcheck) keeps working without the metrics server. Set it to run the listener alongside metrics too; blank disables it.
 
 ### `SABON_LOG_LEVEL`
 

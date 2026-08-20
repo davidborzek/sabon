@@ -80,6 +80,8 @@ func (r *Runner) Run(ctx context.Context, req Request) (Result, bool, error) {
 		Cmd:    []string{"mover"},
 		Env:    append([]string{SpecEnv + "=" + specJSON}, req.Env...),
 		Labels: labels,
+		// A mover serves no health endpoint, so the image's HEALTHCHECK must not apply.
+		Healthcheck: &container.HealthConfig{Test: []string{"NONE"}},
 	}
 	host := &container.HostConfig{
 		Mounts:     req.Mounts,

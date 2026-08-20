@@ -162,11 +162,23 @@ func (m *Metrics) ObservePrune(app, target string, ok bool) {
 // Serve exposes /metrics, /healthz and /readyz until ctx is cancelled. A blank
 // addr disables the server.
 func (m *Metrics) Serve(ctx context.Context, addr string, log *slog.Logger) {
+	m.serve(ctx, addr, true, log)
+}
+
+// ServeHealth exposes only /healthz and /readyz until ctx is cancelled, so the
+// health endpoints survive a disabled metrics server. A blank addr disables it.
+func (m *Metrics) ServeHealth(ctx context.Context, addr string, log *slog.Logger) {
+	m.serve(ctx, addr, false, log)
+}
+
+func (m *Metrics) serve(ctx context.Context, addr string, withMetrics bool, log *slog.Logger) {
 	if addr == "" {
 		return
 	}
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.HandlerFor(m.reg, promhttp.HandlerOpts{}))
+	if withMetrics {
+		mux.Handle("/metrics", promhttp.HandlerFor(m.reg, promhttp.HandlerOpts{}))
+	}
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
@@ -186,9 +198,13 @@ func (m *Metrics) Serve(ctx context.Context, addr string, log *slog.Logger) {
 		defer cancel()
 		_ = srv.Shutdown(sctx)
 	}()
+	name := "health server"
+	if withMetrics {
+		name = "metrics server"
+	}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error("metrics server error", "error", err)
+			log.Error(name+" error", "error", err)
 		}
 	}()
 }

@@ -62,6 +62,11 @@ func main() {
 				&cli.StringFlag{Name: "app", Usage: "app (repo) name", Required: true},
 				&cli.StringFlag{Name: "target", Usage: "target name (default: all targets)"},
 			}},
+			{Name: "healthcheck", Usage: "Probe the local health endpoint and exit non-zero if unhealthy (used by the image's HEALTHCHECK)", Action: runHealthcheck, Flags: []cli.Flag{
+				&cli.StringFlag{Name: "endpoint", Usage: "endpoint to probe: \"readyz\" or \"healthz\"", Value: "readyz"},
+				&cli.StringFlag{Name: "addr", Usage: "listen address to probe (default: SABON_METRICS_ADDR)"},
+				&cli.DurationFlag{Name: "timeout", Usage: "probe deadline", Value: healthcheckTimeout},
+			}},
 			{Name: "schema", Usage: "Print the JSON schema for the backup label", Action: runSchema, Flags: []cli.Flag{
 				&cli.BoolFlag{Name: "targets", Usage: "print the targets-file schema instead of the label schema"},
 			}},
