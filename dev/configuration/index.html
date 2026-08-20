@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.53">
+      <meta name="generator" content="zensical-0.0.56">
     
     
       
@@ -668,6 +668,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>SABON_METRICS_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_health_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_HEALTH_ADDR</code>
       </span>
     </span>
   </a>
@@ -1693,6 +1704,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sabon_health_addr" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>SABON_HEALTH_ADDR</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sabon_log_level" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2317,7 +2339,9 @@
 <h3 id="sabon_debounce_delay"><code>SABON_DEBOUNCE_DELAY</code><a class="headerlink" href="#sabon_debounce_delay" title="Permanent link">&para;</a></h3>
 <p><em>default <code>2s</code></em> — Coalesces bursts of container events into one reconcile.</p>
 <h3 id="sabon_metrics_addr"><code>SABON_METRICS_ADDR</code><a class="headerlink" href="#sabon_metrics_addr" title="Permanent link">&para;</a></h3>
-<p><em>default <code>:9333</code></em> — Listen address for <code>/metrics</code>, <code>/healthz</code>, <code>/readyz</code>. Blank disables the server.</p>
+<p><em>default <code>:9333</code></em> — Listen address for <code>/metrics</code>, <code>/healthz</code>, <code>/readyz</code>. Blank disables the server; the health endpoints then move to <code>SABON_HEALTH_ADDR</code>.</p>
+<h3 id="sabon_health_addr"><code>SABON_HEALTH_ADDR</code><a class="headerlink" href="#sabon_health_addr" title="Permanent link">&para;</a></h3>
+<p><em>default: <code>127.0.0.1:9333</code> when metrics are disabled, else unused</em> — Separate listener for <code>/healthz</code> and <code>/readyz</code>, so the <a href="../metrics/#container-healthcheck">container healthcheck</a> keeps working without the metrics server. Set it to run the listener alongside metrics too; blank disables it.</p>
 <h3 id="sabon_log_level"><code>SABON_LOG_LEVEL</code><a class="headerlink" href="#sabon_log_level" title="Permanent link">&para;</a></h3>
 <p><em>default <code>info</code></em> — <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>. <code>debug</code> traces what the daemon does: discovered jobs and the container events that trigger reconciles, scheduler (re/un)registration, and the per-run mechanics — resolved snapshot mode, each host <code>zfs</code> call, snapshot create/destroy, and every mover spawn.</p>
 <h3 id="sabon_mover_image"><code>SABON_MOVER_IMAGE</code><a class="headerlink" href="#sabon_mover_image" title="Permanent link">&para;</a></h3>
@@ -2367,7 +2391,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">SABON_HOOK_ENV_DB_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DB_PASSWORD}</span><span class="w">   </span><span class="c1"># sabon side: ordinary Compose interpolation</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># in the sabon.backup label:   env: { PGPASSWORD: &quot;$${DB_PASSWORD}&quot; }</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># in the sabon.backup label:   env: { PGPASSWORD: "$${DB_PASSWORD}" }</span>
 </span></code></pre></div>
 <p>This applies only to <strong>hook</strong> <code>env</code>; the <code>env:</code> block in the targets file is operator-owned and expands from the full environment. See <a href="../hooks/#credentials-in-hooks">Hooks</a>.</p>
 <h3 id="docker_host"><code>DOCKER_HOST</code><a class="headerlink" href="#docker_host" title="Permanent link">&para;</a></h3>
@@ -2404,16 +2428,16 @@ backed up to a target named <code>onsite</code> lives in that target's repo for 
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">targets</span><span class="p">:</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">onsite</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/backup</span><span class="w">             </span><span class="c1"># local backend: repo = /mnt/backup/&lt;app&gt;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*/6</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w">     </span><span class="c1"># 6-field cron (seconds first)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">"0</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*/6</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span><span class="w">     </span><span class="c1"># 6-field cron (seconds first)</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> hourly</span><span class="p">:</span><span class="w"> </span><span class="nv">24</span><span class="p p-Indicator">,</span><span class="nt"> daily</span><span class="p">:</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="nt"> weekly</span><span class="p">:</span><span class="w"> </span><span class="nv">5</span><span class="w"> </span><span class="p p-Indicator">}</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">offsite</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}&quot;</span><span class="w">   </span><span class="c1"># remote backend</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">"s3:${R2_ENDPOINT}/${R2_BUCKET}/{app}"</span><span class="w">   </span><span class="c1"># remote backend</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">passwordEnv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RESTIC_PASSWORD</span><span class="w">  </span><span class="c1"># default; name of the env var holding the password</span>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">env</span><span class="p">:</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">AWS_ACCESS_KEY_ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${R2_ACCESS_KEY_ID}</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">AWS_SECRET_ACCESS_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${R2_SECRET_ACCESS_KEY}</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0</span><span class="nv"> </span><span class="s">30</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">"0</span><span class="nv"> </span><span class="s">30</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> daily</span><span class="p">:</span><span class="w"> </span><span class="nv">7</span><span class="w"> </span><span class="p p-Indicator">}</span>
 </span></code></pre></div>
 <h3 id="target-fields">Target fields<a class="headerlink" href="#target-fields" title="Permanent link">&para;</a></h3>
@@ -2691,7 +2715,7 @@ for completion and validation of your <code>targets.yaml</code>:</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":{"Backups":"backup","Configuration":"config","Restore":"restore","Security":"security","Snapshots":"snapshot","Swarm":"swarm"},"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"default":"latest","provider":"mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.69c251d7.min.js"></script>
+      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
       
     
   </body>
