@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0](https://github.com/davidborzek/sabon/compare/v0.1.0...v0.2.0) (2026-08-17)
+
+
+### Features
+
+* configurable custom labels on mover containers ([#17](https://github.com/davidborzek/sabon/issues/17)) ([7e967df](https://github.com/davidborzek/sabon/commit/7e967df8e0f13321b8d294969141444ebf323ec3))
+
+
+### Bug Fixes
+
+* **deps:** bump invopop/jsonschema and prometheus/client_golang ([3246853](https://github.com/davidborzek/sabon/commit/32468531413c5f851a56a0dfee5b528432785904))
+
 ## 0.1.0 (2026-07-28)
 
 First public release of **sabon** — a label-driven [restic](https://restic.net)
