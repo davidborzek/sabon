@@ -117,6 +117,16 @@ func TestBackupSnapshotsRestore(t *testing.T) {
 		t.Fatalf("backup did not complete:\n%s", out)
 	}
 
+	// The mover reuses sabon's image but serves no health endpoint, so it must
+	// not inherit the image's HEALTHCHECK.
+	ids := strings.Fields(mustRun(t, env, "docker", "ps", "-a", "--filter", "label=sabon.app="+app, "--format", "{{.ID}}"))
+	if len(ids) == 0 {
+		t.Fatal("no mover container found to inspect")
+	}
+	if hc := mustRun(t, env, "docker", "inspect", ids[0], "--format", "{{json .Config.Healthcheck}}"); !strings.Contains(hc, "NONE") {
+		t.Errorf("mover healthcheck = %s, want disabled (NONE)", strings.TrimSpace(hc))
+	}
+
 	// List snapshots.
 	out = mustRun(t, env, bin, "snapshots", "--app", app, "--target", "onsite")
 	if !strings.Contains(out, app) {

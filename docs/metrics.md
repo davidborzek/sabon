@@ -20,6 +20,28 @@ or a private interface and scrape it there.
 | `GET /healthz` | Liveness — `200` while the process runs. |
 | `GET /readyz` | Readiness — `200` once sabon is ready (after the first reconcile), else `503`. |
 
+### Container healthcheck
+
+The image ships a `HEALTHCHECK` that probes `/readyz` through the sabon binary
+itself — the image is distroless, so there is no shell, `curl` or `wget` to
+probe with:
+
+```bash
+docker compose exec sabon /sabon healthcheck              # -> ok
+docker compose exec sabon /sabon healthcheck --endpoint healthz
+```
+
+It exits non-zero when the probe fails, so Docker marks the container
+`unhealthy`. Mover containers reuse sabon's image but serve no endpoint, so
+sabon disables the inherited healthcheck on them.
+
+The endpoints do not depend on metrics being enabled: with a blank
+`SABON_METRICS_ADDR`, sabon serves `/healthz` and `/readyz` on a separate
+listener bound to `127.0.0.1:9333` — reachable for the container's own
+healthcheck and nothing else. `SABON_HEALTH_ADDR` overrides that address (and
+starts the listener even alongside the metrics server); blank on both switches
+the endpoints off entirely, and the healthcheck then passes without probing.
+
 ## Metrics
 
 ### `sabon_build_info`

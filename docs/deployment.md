@@ -300,7 +300,9 @@ spawns are the privileged part, and they exist only for the duration of a backup
 With `SABON_METRICS_ADDR` set (default `:9333`), sabon serves `/metrics`
 (Prometheus), `/healthz` (liveness) and `/readyz` (readiness). Bind it to
 loopback or a private interface and scrape it; wire the health endpoints into
-your orchestrator's probes. Full details, the metric reference and PromQL are in
+your orchestrator's probes. The image also declares a `HEALTHCHECK` that probes
+`/readyz` via `/sabon healthcheck`, so `docker ps` reports sabon's health
+out of the box. Full details, the metric reference and PromQL are in
 [Metrics](metrics.md); ready-made Grafana dashboards and Prometheus alerts
 live in [`dashboards/`](https://github.com/davidborzek/sabon/tree/main/dashboards).
 

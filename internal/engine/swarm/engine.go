@@ -275,6 +275,8 @@ func (s *Engine) serviceSpec(req mover.Request) (swarm.ServiceSpec, error) {
 				Groups:  req.Groups,
 				Mounts:  mounts,
 				Labels:  labels,
+				// A mover serves no health endpoint, so the image's HEALTHCHECK must not apply.
+				Healthcheck: &container.HealthConfig{Test: []string{"NONE"}},
 			},
 			RestartPolicy: &swarm.RestartPolicy{Condition: swarm.RestartPolicyConditionNone},
 			Placement:     placement,
