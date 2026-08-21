@@ -7,11 +7,6 @@ name: edge
 # its own running image, and the zfs-snapshotter default becomes :main (built
 # by the second job below). A local/unstamped build stays "dev" and fail-closed.
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - docs/**
-      - "**.md"
   workflow_dispatch:
 
 permissions:
