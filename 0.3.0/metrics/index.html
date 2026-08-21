@@ -1,0 +1,1942 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Label-driven restic backup orchestrator for Docker">
+      
+      
+        <meta name="author" content="David Borzek">
+      
+      
+        <link rel="canonical" href="https://davidborzek.github.io/sabon/0.3.0/metrics/">
+      
+      
+        <link rel="prev" href="../faq/">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.56">
+    
+    
+      
+        <title>Observability - sabon</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.20815dad.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+  
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+  
+  <style>:root{.md-tag.md-tag--backup{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8M10%2012h4%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-settings%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.671%204.136a2.34%202.34%200%200%201%204.659%200%202.34%202.34%200%200%200%203.319%201.915%202.34%202.34%200%200%201%202.33%204.033%202.34%202.34%200%200%200%200%203.831%202.34%202.34%200%200%201-2.33%204.033%202.34%202.34%200%200%200-3.319%201.915%202.34%202.34%200%200%201-4.659%200%202.34%202.34%200%200%200-3.32-1.915%202.34%202.34%200%200%201-2.33-4.033%202.34%202.34%200%200%200%200-3.831A2.34%202.34%200%200%201%206.35%206.051a2.34%202.34%200%200%200%203.319-1.915%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-tag%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12.586%202.586A2%202%200%200%200%2011.172%202H4a2%202%200%200%200-2%202v7.172a2%202%200%200%200%20.586%201.414l8.704%208.704a2.426%202.426%200%200%200%203.42%200l6.58-6.58a2.426%202.426%200%200%200%200-3.42z%22/%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%227.5%22%20r%3D%22.5%22%20fill%3D%22currentColor%22/%3E%3C/svg%3E');}.md-tag.md-tag--restore{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive-restore%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h2M20%208v11a2%202%200%200%201-2%202h-2M9%2015l3-3%203%203M12%2012v9%22/%3E%3C/svg%3E');}.md-tag.md-tag--security{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-shield%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20%2013c0%205-3.5%207.5-7.66%208.95a1%201%200%200%201-.67-.01C7.5%2020.5%204%2018%204%2013V6a1%201%200%200%201%201-1c2%200%204.5-1.2%206.24-2.72a1.17%201.17%200%200%201%201.52%200C14.51%203.81%2017%205%2019%205a1%201%200%200%201%201%201z%22/%3E%3C/svg%3E');}.md-tag.md-tag--snapshot{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-camera%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13.997%204a2%202%200%200%201%201.76%201.05l.486.9A2%202%200%200%200%2018.003%207H20a2%202%200%200%201%202%202v9a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2h1.997a2%202%200%200%200%201.759-1.048l.489-.904A2%202%200%200%201%2010.004%204z%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--swarm{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-boxes%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2.97%2012.92A2%202%200%200%200%202%2014.63v3.24a2%202%200%200%200%20.97%201.71l3%201.8a2%202%200%200%200%202.06%200L12%2019v-5.5l-5-3zM7%2016.5l-4.74-2.85M7%2016.5l5-3M7%2016.5v5.17M12%2013.5V19l3.97%202.38a2%202%200%200%200%202.06%200l3-1.8a2%202%200%200%200%20.97-1.71v-3.24a2%202%200%200%200-.97-1.71L17%2010.5zM17%2016.5l-5-3M17%2016.5l4.74-2.85M17%2016.5v5.17%22/%3E%3Cpath%20d%3D%22M7.97%204.42A2%202%200%200%200%207%206.13v4.37l5%203%205-3V6.13a2%202%200%200%200-.97-1.71l-3-1.8a2%202%200%200%200-2.06%200zM12%208%207.26%205.15M12%208l4.74-2.85M12%2013.5V8%22/%3E%3C/svg%3E');}}</style>
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#observability" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="sabon" class="md-header__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sabon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Observability
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./.." class="md-tabs__link">
+        
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="././" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/davidborzek/sabon/releases" class="md-tabs__link">
+        
+  
+  Releases
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="sabon" class="md-nav__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    sabon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Guide
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configuration
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Labels
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hooks
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Backups
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Restore
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Deployment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Reference
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Reference
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Observability
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Observability
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Endpoints
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#container-healthcheck" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Container healthcheck
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Metrics
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_build_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_build_info</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_ready</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_managed_jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_managed_jobs</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_reconciles_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_reconciles_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_reconcile_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_reconcile_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_watch_restarts_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_watch_restarts_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_deprecated_label_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_deprecated_label_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backups_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backups_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_duration_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_duration_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_backup_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_backup_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_files_new" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_files_new</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_data_added_bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_data_added_bytes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_checks_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_checks_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_check_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_check_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_prunes_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_prunes_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_prune_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_prune_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scraping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scraping
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Useful queries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboards-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboards &amp; alerts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Notifications
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Architecture
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/davidborzek/sabon/releases" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Releases
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Endpoints
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#container-healthcheck" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Container healthcheck
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Metrics
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sabon_build_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_build_info</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_ready</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_managed_jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_managed_jobs</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_reconciles_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_reconciles_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_reconcile_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_reconcile_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_watch_restarts_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_watch_restarts_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_deprecated_label_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_deprecated_label_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backups_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backups_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_duration_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_duration_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_backup_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_backup_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_files_new" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_files_new</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_backup_data_added_bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_backup_data_added_bytes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_checks_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_checks_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_check_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_check_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_prunes_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_prunes_total</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sabon_last_prune_success_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>sabon_last_prune_success_timestamp_seconds</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scraping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scraping
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Useful queries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboards-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Dashboards &amp; alerts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Notifications
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="./.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="././" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h1>
+<p>sabon's observability comes in two forms: a built-in HTTP server exposing
+Prometheus <strong>metrics</strong> and <strong>health</strong> endpoints (below), and push
+<strong><a href="#notifications">notifications</a></strong> on each run's outcome. The server listens on
+<code>SABON_METRICS_ADDR</code> (default <code>:9333</code>; blank disables it) — bind it to loopback
+or a private interface and scrape it there.</p>
+<h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /metrics</code></td>
+<td>Prometheus exposition — the metrics below plus Go runtime and process metrics.</td>
+</tr>
+<tr>
+<td><code>GET /healthz</code></td>
+<td>Liveness — <code>200</code> while the process runs.</td>
+</tr>
+<tr>
+<td><code>GET /readyz</code></td>
+<td>Readiness — <code>200</code> once sabon is ready (after the first reconcile), else <code>503</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="container-healthcheck">Container healthcheck<a class="headerlink" href="#container-healthcheck" title="Permanent link">&para;</a></h3>
+<p>The image ships a <code>HEALTHCHECK</code> that probes <code>/readyz</code> through the sabon binary
+itself — the image is distroless, so there is no shell, <code>curl</code> or <code>wget</code> to
+probe with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>healthcheck<span class="w">              </span><span class="c1"># -&gt; ok</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sabon<span class="w"> </span>/sabon<span class="w"> </span>healthcheck<span class="w"> </span>--endpoint<span class="w"> </span>healthz
+</span></code></pre></div>
+<p>It exits non-zero when the probe fails, so Docker marks the container
+<code>unhealthy</code>. Mover containers reuse sabon's image but serve no endpoint, so
+sabon disables the inherited healthcheck on them.</p>
+<p>The endpoints do not depend on metrics being enabled: with a blank
+<code>SABON_METRICS_ADDR</code>, sabon serves <code>/healthz</code> and <code>/readyz</code> on a separate
+listener bound to <code>127.0.0.1:9333</code> — reachable for the container's own
+healthcheck and nothing else. <code>SABON_HEALTH_ADDR</code> overrides that address (and
+starts the listener even alongside the metrics server); blank on both switches
+the endpoints off entirely, and the healthcheck then passes without probing.</p>
+<h2 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h2>
+<h3 id="sabon_build_info"><code>sabon_build_info</code><a class="headerlink" href="#sabon_build_info" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>version</code></em> — Constant <code>1</code>; exposes the build version.</p>
+<h3 id="sabon_ready"><code>sabon_ready</code><a class="headerlink" href="#sabon_ready" title="Permanent link">&para;</a></h3>
+<p><em>gauge</em> — <code>1</code> when the last reconcile succeeded, else <code>0</code>.</p>
+<h3 id="sabon_managed_jobs"><code>sabon_managed_jobs</code><a class="headerlink" href="#sabon_managed_jobs" title="Permanent link">&para;</a></h3>
+<p><em>gauge</em> — Number of discovered backup jobs currently managed.</p>
+<h3 id="sabon_reconciles_total"><code>sabon_reconciles_total</code><a class="headerlink" href="#sabon_reconciles_total" title="Permanent link">&para;</a></h3>
+<p><em>counter · labels <code>result</code></em> — Reconcile runs, by <code>result</code> (<code>success</code>|<code>error</code>).</p>
+<h3 id="sabon_last_reconcile_timestamp_seconds"><code>sabon_last_reconcile_timestamp_seconds</code><a class="headerlink" href="#sabon_last_reconcile_timestamp_seconds" title="Permanent link">&para;</a></h3>
+<p><em>gauge</em> — Unix time of the last reconcile.</p>
+<h3 id="sabon_watch_restarts_total"><code>sabon_watch_restarts_total</code><a class="headerlink" href="#sabon_watch_restarts_total" title="Permanent link">&para;</a></h3>
+<p><em>counter</em> — Docker event-stream resubscriptions (self-heal).</p>
+<h3 id="sabon_deprecated_label_total"><code>sabon_deprecated_label_total</code><a class="headerlink" href="#sabon_deprecated_label_total" title="Permanent link">&para;</a></h3>
+<p><em>counter · labels <code>label</code></em> — Uses of a deprecated label, by label name.</p>
+<h3 id="sabon_backups_total"><code>sabon_backups_total</code><a class="headerlink" href="#sabon_backups_total" title="Permanent link">&para;</a></h3>
+<p><em>counter · labels <code>app</code>, <code>target</code>, <code>result</code></em> — Backup runs, by app, target and <code>result</code> (<code>success</code>|<code>error</code>).</p>
+<h3 id="sabon_backup_duration_seconds"><code>sabon_backup_duration_seconds</code><a class="headerlink" href="#sabon_backup_duration_seconds" title="Permanent link">&para;</a></h3>
+<p><em>histogram · labels <code>app</code>, <code>target</code></em> — Backup run duration (<code>_bucket</code>/<code>_sum</code>/<code>_count</code>).</p>
+<h3 id="sabon_last_backup_success_timestamp_seconds"><code>sabon_last_backup_success_timestamp_seconds</code><a class="headerlink" href="#sabon_last_backup_success_timestamp_seconds" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>app</code>, <code>target</code></em> — Unix time of the last successful backup.</p>
+<h3 id="sabon_backup_files_new"><code>sabon_backup_files_new</code><a class="headerlink" href="#sabon_backup_files_new" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>app</code>, <code>target</code></em> — New files in the most recent backup.</p>
+<h3 id="sabon_backup_data_added_bytes"><code>sabon_backup_data_added_bytes</code><a class="headerlink" href="#sabon_backup_data_added_bytes" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>app</code>, <code>target</code></em> — Bytes added to the repo by the most recent backup.</p>
+<h3 id="sabon_checks_total"><code>sabon_checks_total</code><a class="headerlink" href="#sabon_checks_total" title="Permanent link">&para;</a></h3>
+<p><em>counter · labels <code>app</code>, <code>target</code>, <code>result</code></em> — <code>restic check</code> runs by result (<code>success</code>/<code>error</code>).</p>
+<h3 id="sabon_last_check_success_timestamp_seconds"><code>sabon_last_check_success_timestamp_seconds</code><a class="headerlink" href="#sabon_last_check_success_timestamp_seconds" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>app</code>, <code>target</code></em> — Unix time of the last successful <code>restic check</code>.</p>
+<h3 id="sabon_prunes_total"><code>sabon_prunes_total</code><a class="headerlink" href="#sabon_prunes_total" title="Permanent link">&para;</a></h3>
+<p><em>counter · labels <code>app</code>, <code>target</code>, <code>result</code></em> — <code>restic prune</code> runs by result (<code>success</code>/<code>error</code>).</p>
+<h3 id="sabon_last_prune_success_timestamp_seconds"><code>sabon_last_prune_success_timestamp_seconds</code><a class="headerlink" href="#sabon_last_prune_success_timestamp_seconds" title="Permanent link">&para;</a></h3>
+<p><em>gauge · labels <code>app</code>, <code>target</code></em> — Unix time of the last successful <code>restic prune</code>.</p>
+<p>The <code>sabon_backup_*</code> series are per <code>(app, target)</code>, mirroring the per-app,
+per-target repository model — one time series per repository.</p>
+<h2 id="scraping">Scraping<a class="headerlink" href="#scraping" title="Permanent link">&para;</a></h2>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">scrape_configs</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sabon</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">static_configs</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">targets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"127.0.0.1:9333"</span><span class="p p-Indicator">]</span>
+</span></code></pre></div>
+<h2 id="useful-queries">Useful queries<a class="headerlink" href="#useful-queries" title="Permanent link">&para;</a></h2>
+<div class="language-promql highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># sabon has never reconciled successfully since start.</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">sabon_ready</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># A backup is failing for some app/target.</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kr">rate</span><span class="o">(</span><span class="nv">sabon_backups_total</span><span class="p">{</span><span class="nl">result</span><span class="o">=</span><span class="p">"</span><span class="s">error</span><span class="p">"}[</span><span class="s">1h</span><span class="p">]</span><span class="o">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Backups are stale — no successful backup for this app/target in over 24h.</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="kr">time</span><span class="o">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nv">sabon_last_backup_success_timestamp_seconds</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">86400</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Backup ratio succeeded vs total over the last day, per app/target.</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">sum</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">app</span><span class="p">,</span><span class="w"> </span><span class="nv">target</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="kr">increase</span><span class="o">(</span><span class="nv">sabon_backups_total</span><span class="p">{</span><span class="nl">result</span><span class="o">=</span><span class="p">"</span><span class="s">success</span><span class="p">"}[</span><span class="s">1d</span><span class="p">]</span><span class="o">))</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="o">/</span><span class="w"> </span><span class="k">sum</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">app</span><span class="p">,</span><span class="w"> </span><span class="nv">target</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="kr">increase</span><span class="o">(</span><span class="nv">sabon_backups_total</span><span class="p">[</span><span class="s">1d</span><span class="p">]</span><span class="o">))</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># Backup duration p95, per app/target.</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="kr">histogram_quantile</span><span class="o">(</span><span class="mf">0.95</span><span class="p">,</span><span class="w"> </span><span class="k">sum</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">app</span><span class="p">,</span><span class="w"> </span><span class="nv">target</span><span class="p">,</span><span class="w"> </span><span class="nv">le</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="kr">rate</span><span class="o">(</span><span class="nv">sabon_backup_duration_seconds_bucket</span><span class="p">[</span><span class="s">1d</span><span class="p">]</span><span class="o">)))</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># A deprecated label is still in use somewhere.</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="nv">sabon_deprecated_label_total</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="c1"># Docker event watcher is flapping (falling back to periodic resync).</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="kr">rate</span><span class="o">(</span><span class="nv">sabon_watch_restarts_total</span><span class="p">[</span><span class="s">15m</span><span class="p">]</span><span class="o">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
+</span></code></pre></div>
+<p>The staleness query is the important one: it catches the <em>silent</em> failure where a
+schedule stops firing entirely, which a per-run alert on <code>..._total{result="error"}</code>
+would miss. Alert on staleness, readiness, and a nonzero error rate.</p>
+<h2 id="dashboards-alerts">Dashboards &amp; alerts<a class="headerlink" href="#dashboards-alerts" title="Permanent link">&para;</a></h2>
+<p>Ready-to-use monitoring lives in <a href="https://github.com/davidborzek/sabon/tree/main/dashboards"><code>dashboards/</code></a>:</p>
+<ul>
+<li><a href="https://github.com/davidborzek/sabon/blob/main/dashboards/grafana-dashboard.json"><code>grafana-dashboard.json</code></a> — import into
+  Grafana and pick your Prometheus data source.</li>
+<li><a href="https://github.com/davidborzek/sabon/blob/main/dashboards/prometheus-alerts.yaml"><code>prometheus-alerts.yaml</code></a> — alerting
+  rules; reference it from <code>rule_files</code> in <code>prometheus.yml</code>.</li>
+</ul>
+<h2 id="notifications">Notifications<a class="headerlink" href="#notifications" title="Permanent link">&para;</a></h2>
+<p>Push notifications deliver each backup, check and prune outcome to one or more
+services via <a href="https://containrrr.dev/shoutrrr/">shoutrrr</a> (Slack, Telegram,
+Discord, ntfy, generic webhook, …).</p>
+<ul>
+<li><code>SABON_NOTIFY_URLS</code> — one or more shoutrrr URLs (comma-separated); each
+  receives every notification. Empty disables it.</li>
+<li><code>SABON_NOTIFY_ON</code> — <code>failure</code> (default; only failed backups) or <code>always</code>.</li>
+</ul>
+<p>Title and body are rendered from Go <code>text/template</code>s. The built-ins read e.g.
+<code>sabon: immich → onsite ok</code> / <code>Backup of immich to onsite succeeded in 1m30s
+(snapshot ab12cd34, 5 new files, 3.0 MiB).</code> Override them with
+<code>SABON_NOTIFY_TITLE_TEMPLATE</code> / <code>SABON_NOTIFY_TEMPLATE</code> — inline, or
+<code>@/path/to.tmpl</code> to read from a file. The template context:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.Event</code></td>
+<td><code>backup</code>, <code>check</code> or <code>prune</code></td>
+</tr>
+<tr>
+<td><code>.App</code> / <code>.Target</code></td>
+<td>app (repo) and target names</td>
+</tr>
+<tr>
+<td><code>.Instance</code></td>
+<td><code>SABON_INSTANCE</code>, if set</td>
+</tr>
+<tr>
+<td><code>.OK</code></td>
+<td>outcome (bool)</td>
+</tr>
+<tr>
+<td><code>.Duration</code></td>
+<td>how long it took</td>
+</tr>
+<tr>
+<td><code>.SnapshotID</code> / <code>.FilesNew</code> / <code>.DataAdded</code></td>
+<td>backup success only</td>
+</tr>
+<tr>
+<td><code>.Error</code></td>
+<td>failure cause</td>
+</tr>
+</tbody>
+</table>
+<p>…plus the functions <code>short</code> (short snapshot id) and <code>bytes</code> (human size). A
+custom template receives every event, so branch on <code>.Event</code> / <code>.OK</code> as needed —
+e.g. Slack with a mention on failure:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>{{if not .OK}}&lt;!here&gt; {{end}}{{.App}}/{{.Target}} {{if .OK}}✅{{else}}❌ {{.Error}}{{end}}
+</span></code></pre></div>
+
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+        
+        
+      
+      
+        <span class="md-tag md-tag-icon">Observability</span>
+      
+    
+      
+      
+      
+        
+        
+      
+      
+        <span class="md-tag md-tag-icon">Operations</span>
+      
+    
+  </nav>
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../faq/" class="md-footer__link md-footer__link--prev" aria-label="Previous: FAQ">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                FAQ
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 David Borzek
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/davidborzek/sabon" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":{"Backups":"backup","Configuration":"config","Restore":"restore","Security":"security","Snapshots":"snapshot","Swarm":"swarm"},"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      
+    
+  </body>
+</html>

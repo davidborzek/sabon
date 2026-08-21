@@ -1,0 +1,1594 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Label-driven restic backup orchestrator for Docker">
+      
+      
+        <meta name="author" content="David Borzek">
+      
+      
+        <link rel="canonical" href="https://davidborzek.github.io/sabon/0.3.0/hooks/">
+      
+      
+        <link rel="prev" href="../labels/">
+      
+      
+        <link rel="next" href="../backups/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.56">
+    
+    
+      
+        <title>Hooks - sabon</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.20815dad.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+  
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+    
+      
+      
+        
+      
+      
+    
+  
+  
+  <style>:root{.md-tag.md-tag--backup{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8M10%2012h4%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-settings%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.671%204.136a2.34%202.34%200%200%201%204.659%200%202.34%202.34%200%200%200%203.319%201.915%202.34%202.34%200%200%201%202.33%204.033%202.34%202.34%200%200%200%200%203.831%202.34%202.34%200%200%201-2.33%204.033%202.34%202.34%200%200%200-3.319%201.915%202.34%202.34%200%200%201-4.659%200%202.34%202.34%200%200%200-3.32-1.915%202.34%202.34%200%200%201-2.33-4.033%202.34%202.34%200%200%200%200-3.831A2.34%202.34%200%200%201%206.35%206.051a2.34%202.34%200%200%200%203.319-1.915%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--config{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-tag%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12.586%202.586A2%202%200%200%200%2011.172%202H4a2%202%200%200%200-2%202v7.172a2%202%200%200%200%20.586%201.414l8.704%208.704a2.426%202.426%200%200%200%203.42%200l6.58-6.58a2.426%202.426%200%200%200%200-3.42z%22/%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%227.5%22%20r%3D%22.5%22%20fill%3D%22currentColor%22/%3E%3C/svg%3E');}.md-tag.md-tag--restore{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-archive-restore%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2220%22%20height%3D%225%22%20x%3D%222%22%20y%3D%223%22%20rx%3D%221%22/%3E%3Cpath%20d%3D%22M4%208v11a2%202%200%200%200%202%202h2M20%208v11a2%202%200%200%201-2%202h-2M9%2015l3-3%203%203M12%2012v9%22/%3E%3C/svg%3E');}.md-tag.md-tag--security{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-shield%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20%2013c0%205-3.5%207.5-7.66%208.95a1%201%200%200%201-.67-.01C7.5%2020.5%204%2018%204%2013V6a1%201%200%200%201%201-1c2%200%204.5-1.2%206.24-2.72a1.17%201.17%200%200%201%201.52%200C14.51%203.81%2017%205%2019%205a1%201%200%200%201%201%201z%22/%3E%3C/svg%3E');}.md-tag.md-tag--snapshot{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-camera%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13.997%204a2%202%200%200%201%201.76%201.05l.486.9A2%202%200%200%200%2018.003%207H20a2%202%200%200%201%202%202v9a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2h1.997a2%202%200%200%200%201.759-1.048l.489-.904A2%202%200%200%201%2010.004%204z%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%223%22/%3E%3C/svg%3E');}.md-tag.md-tag--swarm{--md-tag-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20class%3D%22lucide%20lucide-boxes%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2.97%2012.92A2%202%200%200%200%202%2014.63v3.24a2%202%200%200%200%20.97%201.71l3%201.8a2%202%200%200%200%202.06%200L12%2019v-5.5l-5-3zM7%2016.5l-4.74-2.85M7%2016.5l5-3M7%2016.5v5.17M12%2013.5V19l3.97%202.38a2%202%200%200%200%202.06%200l3-1.8a2%202%200%200%200%20.97-1.71v-3.24a2%202%200%200%200-.97-1.71L17%2010.5zM17%2016.5l-5-3M17%2016.5l4.74-2.85M17%2016.5v5.17%22/%3E%3Cpath%20d%3D%22M7.97%204.42A2%202%200%200%200%207%206.13v4.37l5%203%205-3V6.13a2%202%200%200%200-.97-1.71l-3-1.8a2%202%200%200%200-2.06%200zM12%208%207.26%205.15M12%208l4.74-2.85M12%2013.5V8%22/%3E%3C/svg%3E');}}</style>
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hooks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="sabon" class="md-header__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sabon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Hooks
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./.." class="md-tabs__link">
+        
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../metrics/" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/davidborzek/sabon/releases" class="md-tabs__link">
+        
+  
+  Releases
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="sabon" class="md-nav__button md-logo" aria-label="sabon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-archive-restore" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2M20 8v11a2 2 0 0 1-2 2h-2M9 15l3-3 3 3M12 12v9"/></svg>
+
+    </a>
+    sabon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/davidborzek/sabon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davidborzek/sabon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Guide
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configuration
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Labels
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hooks
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hooks
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Two modes
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exec-mode-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        exec mode (default)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        run mode
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-database-dump-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The database-dump pattern
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The database-dump pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exec-mode-dump-inside-the-apps-postgres-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        exec mode — dump inside the app's Postgres container
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-mode-throwaway-postgres17-over-the-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        run mode — throwaway <code>postgres:17</code> over the network
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-in-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Credentials in hooks
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Tips
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Backups
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Restore
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Deployment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Troubleshooting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Reference
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Reference
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Observability
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Architecture
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/davidborzek/sabon/releases" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Releases
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Two modes
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exec-mode-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        exec mode (default)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        run mode
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-database-dump-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The database-dump pattern
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The database-dump pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exec-mode-dump-inside-the-apps-postgres-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        exec mode — dump inside the app's Postgres container
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-mode-throwaway-postgres17-over-the-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        run mode — throwaway <code>postgres:17</code> over the network
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-in-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Credentials in hooks
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Tips
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="./.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../configuration/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="hooks">Hooks<a class="headerlink" href="#hooks" title="Permanent link">&para;</a></h1>
+<p>Hooks let you run a command around a backup — most often to produce a consistent
+database dump <em>before</em> restic reads the files. They are declared in the
+<code>sabon.backup</code> label as <code>preHooks</code> (run before the backup) and <code>postHooks</code> (run
+after it). See <a href="../labels/">Labels</a> for where they sit.</p>
+<p>A hook always has a <code>command</code> (argv, <strong>required</strong>) plus optional fields
+depending on its mode.</p>
+<h2 id="two-modes">Two modes<a class="headerlink" href="#two-modes" title="Permanent link">&para;</a></h2>
+<h3 id="exec-mode-default">exec mode (default)<a class="headerlink" href="#exec-mode-default" title="Permanent link">&para;</a></h3>
+<p>Runs the command <strong>inside an existing container</strong> with <code>docker exec</code> — by default
+the labelled container. Use it to reach a tool that already lives in the app's
+container (its database client, <code>sqlite3</code>, etc.).</p>
+<dl>
+<dt><code>command</code></dt>
+<dd>argv to execute (required).</dd>
+<dt><code>container</code></dt>
+<dd>Container to exec in. Default: the labelled container.</dd>
+<dt><code>user</code></dt>
+<dd>User to exec as (e.g. <code>postgres</code>).</dd>
+<dt><code>env</code></dt>
+<dd>Environment map. A value <code>${NAME}</code> resolves from the labelled container's own environment, then the <code>SABON_HOOK_ENV_&lt;NAME&gt;</code> allowlist (never sabon's full environment); in a Compose file escape it as <code>$${NAME}</code>. See <a href="#credentials-in-hooks">Credentials in hooks</a>.</dd>
+<dt><code>timeout</code></dt>
+<dd>Go duration (e.g. <code>5m</code>). Empty = no timeout.</dd>
+</dl>
+<h3 id="run-mode">run mode<a class="headerlink" href="#run-mode" title="Permanent link">&para;</a></h3>
+<p>Spawns a <strong>fresh one-shot container</strong> from <code>image</code> instead of exec-ing into an
+existing one. Set <code>image</code> to switch a hook into run mode. Use it when the tool
+you need isn't in the app's container, or when you want a clean, pinned tool
+image.</p>
+<dl>
+<dt><code>command</code></dt>
+<dd>argv to execute (required).</dd>
+<dt><code>image</code></dt>
+<dd>Image to spawn (presence selects run mode).</dd>
+<dt><code>network</code></dt>
+<dd>Docker network to attach to, so the container can reach services by name.</dd>
+<dt><code>volumes</code></dt>
+<dd>Mounts, <code>["source:/target[:ro]"]</code>; <code>source</code> is a volume name or a host path.</dd>
+<dt><code>env</code></dt>
+<dd>Environment map. A value <code>${NAME}</code> resolves from the labelled container's own environment, then the <code>SABON_HOOK_ENV_&lt;NAME&gt;</code> allowlist (never sabon's full environment); in a Compose file escape it as <code>$${NAME}</code>. See <a href="#credentials-in-hooks">Credentials in hooks</a>.</dd>
+<dt><code>timeout</code></dt>
+<dd>Go duration (e.g. <code>5m</code>). Empty = no timeout.</dd>
+</dl>
+<h2 id="the-database-dump-pattern">The database-dump pattern<a class="headerlink" href="#the-database-dump-pattern" title="Permanent link">&para;</a></h2>
+<p>The canonical use is a <strong>consistent database backup</strong>: a pre-hook dumps the
+database into a volume that is <em>also</em> in the backup set, so the mover captures the
+dump as an ordinary file. The live database data directory is <strong>excluded</strong> from
+the backup (backing up raw, changing DB files is not crash-consistent).</p>
+<p>The moving parts:</p>
+<ol>
+<li>A small named volume (e.g. <code>app-dbdump</code>) listed in the label's <code>extraVolumes</code>.</li>
+<li>A pre-hook that writes <code>dump.sql</code> into that volume.</li>
+<li>The live <code>pgdata</code> volume left <strong>out</strong> of the backup set (or excluded).</li>
+</ol>
+<p>Below are both hook modes doing the same <code>pg_dump</code>.</p>
+<h3 id="exec-mode-dump-inside-the-apps-postgres-container">exec mode — dump inside the app's Postgres container<a class="headerlink" href="#exec-mode-dump-inside-the-apps-postgres-container" title="Permanent link">&para;</a></h3>
+<p><code>docker exec</code>s into the existing <code>myapp-postgres</code> container and dumps into a path
+that is a mounted dump volume shared with the backup set:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">sabon.enable</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">sabon.backup</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="no">repo: myapp</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="no">auto: true</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="no">extraVolumes:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="no">- myapp-dbdump          # mounted at /dump inside myapp-postgres too</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="no">exclude:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="no">- "**/pgdata/**"        # never back up the live data dir</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="no">preHooks:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="no">- container: myapp-postgres</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="no">user: postgres</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="no">command:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">          </span><span class="no">- sh</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">          </span><span class="no">- -c</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">          </span><span class="no">- "pg_dump -U myapp myapp &gt; /dump/myapp.sql"</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="no">timeout: 10m</span>
+</span></code></pre></div>
+<p>This assumes <code>myapp-postgres</code> has the <code>myapp-dbdump</code> volume mounted (e.g. at
+<code>/dump</code>) so the dump lands somewhere the backup includes.</p>
+<h3 id="run-mode-throwaway-postgres17-over-the-network">run mode — throwaway <code>postgres:17</code> over the network<a class="headerlink" href="#run-mode-throwaway-postgres17-over-the-network" title="Permanent link">&para;</a></h3>
+<p>No dump path inside the app container? Spawn a pinned <code>postgres:17</code> container,
+attach it to the app's network so it can reach the DB by service name, and mount
+the shared dump volume into it:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">sabon.enable</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">sabon.backup</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="no">repo: myapp</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="no">auto: true</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="no">extraVolumes:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="no">- myapp-dbdump          # the shared dump volume, in the backup set</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="no">exclude:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="no">- "**/pgdata/**"</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="no">preHooks:</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="no">- image: postgres:17</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="no">network: myapp        # reach "myapp-postgres" by name</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="no">volumes:</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">          </span><span class="no">- "myapp-dbdump:/dump"</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="no">env:</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">          </span><span class="no">PGPASSWORD: $${DB_PASSWORD}   # $$ escapes Compose; sabon resolves it from SABON_HOOK_ENV_DB_PASSWORD (see below)</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="no">command:</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">          </span><span class="no">- sh</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">          </span><span class="no">- -c</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">          </span><span class="no">- "pg_dump -h myapp-postgres -U myapp myapp &gt; /dump/myapp.sql"</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="no">timeout: 10m</span>
+</span></code></pre></div>
+<p>Both variants leave <code>myapp-dbdump</code> holding a fresh, consistent <code>myapp.sql</code> at the
+moment the mover runs <code>restic backup</code>, and both keep the volatile <code>pgdata</code> out of
+the repository. On restore you recreate the database by loading <code>myapp.sql</code> (see
+<a href="../restore/">Restore</a>).</p>
+<h3 id="credentials-in-hooks">Credentials in hooks<a class="headerlink" href="#credentials-in-hooks" title="Permanent link">&para;</a></h3>
+<p><strong>Prefer exec mode.</strong> An exec hook runs <em>inside</em> an existing container, which
+already has its own credentials in its environment, so no secret has to be
+injected by sabon at all (the exec example above uses the DB container's own
+<code>$$POSTGRES_USER</code>). Reach for run-mode env injection only when the dump runs in
+a throwaway container that lacks those credentials.</p>
+<p>When a hook <code>env:</code> value does interpolate <code>${NAME}</code>, sabon resolves it in this
+order — never from sabon's full environment:</p>
+<ol>
+<li>the <strong>labelled container's own environment</strong> (the label author owns it), then</li>
+<li>the <strong><code>SABON_HOOK_ENV_&lt;NAME&gt;</code></strong> allowlist in sabon's environment, for a secret
+   that lives nowhere on the app's container (e.g. only in a sibling database).</li>
+</ol>
+<p>So a label can read the app's own env and the values you deliberately expose,
+but never sabon's <code>RESTIC_PASSWORD</code> or another target's credentials.</p>
+<p>In a Compose file, escape the reference as <code>$${NAME}</code> so Compose passes the
+literal <code>${NAME}</code> through to sabon instead of interpolating it itself (the same
+reason the exec <code>command</code> above uses <code>$$POSTGRES_USER</code>):</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">    </span><span class="c1"># in the sabon.backup label</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> PGPASSWORD</span><span class="p">:</span><span class="w"> </span><span class="s">"$${DB_PASSWORD}"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># only if the value is not already on the app's container: expose it on sabon</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">sabon</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="nt">SABON_HOOK_ENV_DB_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DB_PASSWORD}</span><span class="w">   </span><span class="c1"># ordinary Compose interpolation</span>
+</span></code></pre></div>
+<p>Either way the secret stays in an environment, never in the label. Outside
+Compose (no interpolation) use a single <code>$</code>.</p>
+<h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep dumps small and fast; a hook <code>timeout</code> guards against a wedged dump
+  hanging the whole backup.</li>
+<li>Prefer exec mode for dumps — it uses the app container's own credentials, so
+  no secret is injected. For run mode, hook <code>${NAME}</code> resolves from the app
+  container's env then <code>SABON_HOOK_ENV_&lt;NAME&gt;</code>; see <a href="#credentials-in-hooks">Credentials in hooks</a>.</li>
+<li>A failing pre-hook fails the backup for that job (restic never runs against an
+  incomplete dump); check the notification and <code>sabon_backups_total{result="error"}</code>.</li>
+<li><code>postHooks</code> run after the backup completes — useful for cleanup or a
+  success ping, but the database-consistency work belongs in <code>preHooks</code>.</li>
+</ul>
+
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+        
+        
+      
+      
+        <span class="md-tag md-tag-icon">Hooks</span>
+      
+    
+      
+      
+      
+        
+        
+      
+      
+        <span class="md-tag md-tag-icon">Consistency</span>
+      
+    
+  </nav>
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../labels/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Labels">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Labels
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../backups/" class="md-footer__link md-footer__link--next" aria-label="Next: Backups">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Backups
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 David Borzek
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/davidborzek/sabon" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","toc.follow"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":{"Backups":"backup","Configuration":"config","Restore":"restore","Security":"security","Snapshots":"snapshot","Swarm":"swarm"},"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e886cdf1.min.js"></script>
+      
+    
+  </body>
+</html>
