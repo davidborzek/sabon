@@ -116,16 +116,29 @@ func TestResticEnvPasswordFile(t *testing.T) {
 	if _, ok := m["RESTIC_PASSWORD"]; ok {
 		t.Error("RESTIC_PASSWORD must not be set when PasswordFile is used")
 	}
-	_, binds := o.cacheAndRepo(target, "immich")
-	want := pf + ":" + passwordMount + ":ro"
+	assertSecretMount(t, o, target, pf, passwordMount)
+}
+
+// assertSecretMount checks that a secret file reaches the mover as a typed
+// read-only bind mount, never as a legacy bind (which the daemon would
+// silently create as an empty directory when the host path is missing).
+func assertSecretMount(t *testing.T, o *Orchestrator, target api.Target, src, dst string) {
+	t.Helper()
+	mounts, binds := o.cacheAndRepo(target, "immich")
+	want := mount.Mount{Type: mount.TypeBind, Source: src, Target: dst, ReadOnly: true}
 	found := false
-	for _, b := range binds {
-		if b == want {
+	for _, m := range mounts {
+		if m == want {
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("password-file bind %q missing from %v", want, binds)
+		t.Errorf("secret mount %+v missing from %+v", want, mounts)
+	}
+	for _, b := range binds {
+		if strings.HasPrefix(b, src+":") {
+			t.Errorf("secret %q must not be a legacy bind: %q", src, b)
+		}
 	}
 }
 
@@ -152,17 +165,7 @@ func TestResticEnvCredentialsFile(t *testing.T) {
 	if envMap(env)["AWS_SHARED_CREDENTIALS_FILE"] != awsCredentialsMount {
 		t.Errorf("AWS_SHARED_CREDENTIALS_FILE = %q, want %q", envMap(env)["AWS_SHARED_CREDENTIALS_FILE"], awsCredentialsMount)
 	}
-	_, binds := o.cacheAndRepo(target, "immich")
-	want := cf + ":" + awsCredentialsMount + ":ro"
-	found := false
-	for _, b := range binds {
-		if b == want {
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("credentials-file bind %q missing from %v", want, binds)
-	}
+	assertSecretMount(t, o, target, cf, awsCredentialsMount)
 }
 
 // fakeSnap is a snapshot.Snapshotter over an in-memory "on this fs" set.

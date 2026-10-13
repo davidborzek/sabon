@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"path"
 	"strings"
 )
 
@@ -98,6 +99,18 @@ func (f *File) Validate() error {
 				return fmt.Errorf("target %q: moverLabels key %q uses the reserved \"sabon.\" prefix", t.Name, k)
 			}
 		}
+		for field, p := range map[string]string{"passwordFile": t.PasswordFile, "credentialsFile": t.CredentialsFile} {
+			if p != "" && !isCleanHostFile(p) {
+				return fmt.Errorf("target %q: %s %q must be a clean absolute path without ':'", t.Name, field, p)
+			}
+		}
 	}
 	return nil
+}
+
+// isCleanHostFile reports whether p can be bind-mounted as-is: Docker
+// path.Cleans bind sources, so an unclean path would be checked and mounted as
+// different files once a symlink precedes "..".
+func isCleanHostFile(p string) bool {
+	return path.IsAbs(p) && path.Clean(p) == p && !strings.Contains(p, ":")
 }
