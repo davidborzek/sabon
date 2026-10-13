@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.2](https://github.com/davidborzek/sabon/compare/v0.3.1...v0.3.2) (2026-10-13)
+
+
+### Bug Fixes
+
+* **deps:** bump go to 1.26.9 for stdlib security fixes ([#32](https://github.com/davidborzek/sabon/issues/32)) ([5f2364d](https://github.com/davidborzek/sabon/commit/5f2364dc92b5d3cd92966f934e88ab01cc16d59b))
+* **deps:** update module github.com/prometheus/client_golang to v1.25.0 ([#29](https://github.com/davidborzek/sabon/issues/29)) ([ed7d227](https://github.com/davidborzek/sabon/commit/ed7d22712368ee1e308b6c9a008c063468e3d298))
+* **deps:** update module github.com/urfave/cli/v3 to v3.14.0 ([#27](https://github.com/davidborzek/sabon/issues/27)) ([c383696](https://github.com/davidborzek/sabon/commit/c383696dbaa508c52917c928380e054cf4bc1e76))
+* resolve host zfs outside FHS dirs in snapshotter ([#31](https://github.com/davidborzek/sabon/issues/31)) ([205f239](https://github.com/davidborzek/sabon/commit/205f239bdfc30748c5e285cd264f368f47a26c7c))
+
 ## [0.3.1](https://github.com/davidborzek/sabon/compare/v0.3.0...v0.3.1) (2026-09-23)
 
 
