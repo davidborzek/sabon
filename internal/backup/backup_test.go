@@ -168,6 +168,48 @@ func TestResticEnvCredentialsFile(t *testing.T) {
 	assertSecretMount(t, o, target, cf, awsCredentialsMount)
 }
 
+func TestResticEnvFiles(t *testing.T) {
+	dir := t.TempDir()
+	key := filepath.Join(dir, "key")
+	hosts := filepath.Join(dir, "known_hosts")
+	for _, p := range []string{key, hosts} {
+		if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("R_PW_FILES", "pw")
+	o := &Orchestrator{cfg: &config.Config{CacheVolume: "sabon-cache"}}
+	target := api.Target{Name: "sftp", Repo: "rclone:box:{app}", PasswordEnv: "R_PW_FILES", Files: []api.TargetFile{
+		{Source: key, Target: "/secrets/key"},
+		{Source: hosts, Target: "/secrets/known_hosts"},
+	}}
+	if _, err := o.resticEnv(target, "immich"); err != nil {
+		t.Fatalf("resticEnv: %v", err)
+	}
+	assertSecretMount(t, o, target, key, "/secrets/key")
+	assertSecretMount(t, o, target, hosts, "/secrets/known_hosts")
+
+	target.Files = []api.TargetFile{{Source: filepath.Join(dir, "missing"), Target: "/secrets/key"}}
+	if _, err := o.resticEnv(target, "immich"); err == nil {
+		t.Fatal("expected error for a missing file")
+	}
+	target.Files = []api.TargetFile{{Source: dir, Target: "/secrets/key"}}
+	if _, err := o.resticEnv(target, "immich"); err == nil {
+		t.Fatal("expected error for a directory source")
+	}
+}
+
+func TestReservedMoverPathsMatchMounts(t *testing.T) {
+	want := map[string]bool{dataMount: true, repoMount: true, cacheMount: true, restoreMount: true, passwordMount: true, awsCredentialsMount: true}
+	got := map[string]bool{}
+	for _, p := range api.ReservedMoverPaths() {
+		got[p] = true
+	}
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("api.ReservedMoverPaths() = %v, want mounts %v", got, want)
+	}
+}
+
 // fakeSnap is a snapshot.Snapshotter over an in-memory "on this fs" set.
 type fakeSnap struct {
 	mode   string

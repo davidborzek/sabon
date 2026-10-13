@@ -43,6 +43,10 @@ type Target struct {
 	// S3/B2/… backend credentials stay out of the mover's environment. Do not
 	// also set AWS_* in env (env takes precedence over the file).
 	CredentialsFile string `yaml:"credentialsFile,omitempty" json:"credentialsFile,omitempty" jsonschema:"description=Host path to an AWS shared-credentials file; mounted into the mover and used via AWS_SHARED_CREDENTIALS_FILE (keeps S3 creds out of env)"`
+	// Files are host files mounted read-only into every mover of this target
+	// (SSH keys, known_hosts, rclone config, …). sabon sets no env for them;
+	// reference Target from env (e.g. RCLONE_CONFIG_X_KEY_FILE).
+	Files []TargetFile `yaml:"files,omitempty" json:"files,omitempty" jsonschema:"description=Host files mounted read-only into the mover (SSH key or known_hosts or rclone config); reference the target path from env"`
 	// Env are extra environment variables passed to the mover (e.g. S3/R2
 	// credentials). Values support ${ENV} expansion from sabon's environment.
 	Env map[string]string `yaml:"env,omitempty" json:"env,omitempty" jsonschema:"description=Extra environment for the mover (e.g. AWS_ACCESS_KEY_ID); values support ${ENV} expansion"`
@@ -65,6 +69,63 @@ type Target struct {
 	// this target's per-app repos. Empty disables it; backups then only run
 	// `forget` (mark) and space is reclaimed by this scheduled prune.
 	Prune string `yaml:"prune,omitempty" json:"prune,omitempty" jsonschema:"description=Optional cron for periodic restic prune (reclaim space); empty disables"`
+}
+
+// TargetFile is one host file mounted read-only into a target's movers.
+type TargetFile struct {
+	// Source is the host path of the file.
+	Source string `yaml:"source" json:"source" jsonschema:"description=Host path of the file,required"`
+	// Target is the absolute path inside the mover.
+	Target string `yaml:"target" json:"target" jsonschema:"description=Absolute path inside the mover,required"`
+}
+
+// reservedMoverPaths are mover paths sabon mounts itself; keep in sync with the
+// mount constants in internal/backup.
+var reservedMoverPaths = []string{
+	"/data",
+	"/repo",
+	"/cache",
+	"/restore",
+	"/run/secrets/sabon-restic-password",
+	"/run/secrets/sabon-aws-credentials",
+}
+
+// ReservedMoverPaths returns a copy of the mover paths sabon mounts itself.
+func ReservedMoverPaths() []string {
+	return append([]string(nil), reservedMoverPaths...)
+}
+
+func (t Target) validateFiles() error {
+	seen := map[string]bool{}
+	for i, f := range t.Files {
+		if f.Source == "" || f.Target == "" {
+			return fmt.Errorf("target %q: files[%d]: source and target are required", t.Name, i)
+		}
+		if !isCleanHostFile(f.Source) {
+			return fmt.Errorf("target %q: files[%d]: source %q must be a clean absolute path without ':'", t.Name, i, f.Source)
+		}
+		if strings.Contains(f.Target, ":") {
+			return fmt.Errorf("target %q: files[%d]: target %q must not contain ':'", t.Name, i, f.Target)
+		}
+		if !path.IsAbs(f.Target) {
+			return fmt.Errorf("target %q: files[%d]: target %q must be an absolute path", t.Name, i, f.Target)
+		}
+		dst := path.Clean(f.Target)
+		if dst == "/" {
+			return fmt.Errorf("target %q: files[%d]: target must not be /", t.Name, i)
+		}
+		for _, r := range reservedMoverPaths {
+			// A parent of a reserved path would shadow sabon's own mounts.
+			if dst == r || strings.HasPrefix(dst, r+"/") || strings.HasPrefix(r, dst+"/") {
+				return fmt.Errorf("target %q: files[%d]: target %q collides with reserved mover path %q", t.Name, i, f.Target, r)
+			}
+		}
+		if seen[dst] {
+			return fmt.Errorf("target %q: files[%d]: duplicate target %q", t.Name, i, f.Target)
+		}
+		seen[dst] = true
+	}
+	return nil
 }
 
 // Backend classifies the target.
@@ -103,6 +164,9 @@ func (f *File) Validate() error {
 			if p != "" && !isCleanHostFile(p) {
 				return fmt.Errorf("target %q: %s %q must be a clean absolute path without ':'", t.Name, field, p)
 			}
+		}
+		if err := t.validateFiles(); err != nil {
+			return err
 		}
 	}
 	return nil

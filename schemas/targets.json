@@ -79,6 +79,13 @@
           "type": "string",
           "description": "Host path to an AWS shared-credentials file; mounted into the mover and used via AWS_SHARED_CREDENTIALS_FILE (keeps S3 creds out of env)"
         },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/TargetFile"
+          },
+          "type": "array",
+          "description": "Host files mounted read-only into the mover (SSH key or known_hosts or rclone config); reference the target path from env"
+        },
         "env": {
           "additionalProperties": {
             "type": "string"
@@ -121,6 +128,24 @@
       "type": "object",
       "required": [
         "name"
+      ]
+    },
+    "TargetFile": {
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Host path of the file"
+        },
+        "target": {
+          "type": "string",
+          "description": "Absolute path inside the mover"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "source",
+        "target"
       ]
     }
   }

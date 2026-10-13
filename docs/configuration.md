@@ -234,6 +234,21 @@ Host path to a file holding the repo password. Mounted **read-only** into the mo
 
 Host path to an AWS shared-credentials file (`[default]` with `aws_access_key_id`/`aws_secret_access_key`). Mounted **read-only** and exposed via `AWS_SHARED_CREDENTIALS_FILE` so S3/B2/… creds stay out of the mover's environment.
 
+#### `files`
+
+List of host files mounted **read-only** into every mover of this target, each as `{source, target}`: `source` is the host path, `target` the absolute path inside the mover. Use it for backend secrets and config that restic or the backend reads from a file (CA certificates, cloud key files, …). sabon sets no environment for these files; reference `target` yourself from [`env`](#env) or [`resticArgs`](#resticargs):
+
+```yaml
+- name: rest
+  repo: "rest:https://backup.example.internal:8000/{app}"
+  files:
+    - source: /etc/sabon/internal-ca.pem
+      target: /secrets/ca.pem
+  resticArgs: ["--cacert=/secrets/ca.pem"]
+```
+
+Every `source` must be a clean absolute path (no `.`, `..`, `//` or trailing `/`) to an existing regular file, checked before each run. A `target` must be absolute, unique within the target, must not contain `:`, and must not overlap a path sabon mounts itself (`/data`, `/repo`, `/cache`, `/restore`, `/run/secrets/sabon-*`): neither the path itself, anything under it, nor a parent such as `/run/secrets`.
+
 #### `env`
 
 Extra environment (map) passed to movers for this target — backend credentials, endpoints, etc. Values support `${ENV}` expansion.
@@ -276,7 +291,9 @@ be clean absolute paths without `:` (no `.`, `..`, `//` or trailing `/`); a
 config using e.g. `/etc//sabon/pw` is rejected at startup. For remote backends, `credentialsFile`
 does the same for S3/B2/… credentials: an AWS shared-credentials file mounted
 read-only and exposed via `AWS_SHARED_CREDENTIALS_FILE`, keeping the keys out of
-`env` too. Don't also put `AWS_*` in `env` — env wins over the file.
+`env` too. Don't also put `AWS_*` in `env` — env wins over the file. For any
+other file-based secret, use [`files`](#files); the same readability rule
+applies.
 
 ### Placeholders
 
