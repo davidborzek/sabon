@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0](https://github.com/davidborzek/sabon/compare/v0.3.2...v0.4.0) (2026-10-13)
+
+
+### Features
+
+* add generic read-only file mounts for targets ([#33](https://github.com/davidborzek/sabon/issues/33)) ([9894c8c](https://github.com/davidborzek/sabon/commit/9894c8ce95e6936cf8ede57f875a11d85d2ac326))
+
+
+### Bug Fixes
+
+* mount target secret files as typed read-only binds ([#34](https://github.com/davidborzek/sabon/issues/34)) ([d0d48a2](https://github.com/davidborzek/sabon/commit/d0d48a27492d0741521607792b0ca9e95aaa2750))
+
 ## [0.3.2](https://github.com/davidborzek/sabon/compare/v0.3.1...v0.3.2) (2026-10-13)
 
 
