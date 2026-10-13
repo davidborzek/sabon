@@ -70,6 +70,12 @@ copying live data) when the source is not on ZFS, and it is **unsupported in
 swarm**. Use `snapshot: auto` (snapshot what is on ZFS, mount the rest live) or
 `none`. See [Snapshots](backups.md#snapshots).
 
+If the log shows `nsenter: failed to execute zfs: No such file or directory`, the
+host's `zfs` binary is not on the snapshotter's `PATH`. The default image searches
+the FHS directories (`/usr/sbin`, `/sbin`, …) plus non-FHS system paths (e.g.
+`/run/current-system/sw/bin` on NixOS); for any other location, point
+`SABON_SNAPSHOT_ZFS_IMAGE` at an image whose `PATH` includes it.
+
 ## Swarm: the mover never starts / image pull fails
 
 Movers run as services scheduled onto arbitrary nodes, so the mover image must be
