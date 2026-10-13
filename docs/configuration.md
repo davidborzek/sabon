@@ -247,7 +247,7 @@ List of host files mounted **read-only** into every mover of this target, each a
   resticArgs: ["--cacert=/secrets/ca.pem"]
 ```
 
-Every `source` must be a clean absolute path (no `.`, `..`, `//` or trailing `/`) to an existing regular file, checked before each run. A `target` must be absolute, unique within the target, must not contain `:`, and must not overlap a path sabon mounts itself (`/data`, `/repo`, `/cache`, `/restore`, `/run/secrets/sabon-*`): neither the path itself, anything under it, nor a parent such as `/run/secrets`.
+Every `source` must be a clean absolute path without `:` (no `.`, `..`, `//` or trailing `/`) to an existing regular file, checked before each run. A `target` must be absolute, unique within the target, must not contain `:`, and must not overlap a path sabon mounts itself (`/data`, `/repo`, `/cache`, `/restore`, `/run/secrets/sabon-*`): neither the path itself, anything under it, nor a parent such as `/run/secrets`.
 
 #### `env`
 
@@ -294,6 +294,15 @@ read-only and exposed via `AWS_SHARED_CREDENTIALS_FILE`, keeping the keys out of
 `env` too. Don't also put `AWS_*` in `env` — env wins over the file. For any
 other file-based secret, use [`files`](#files); the same readability rule
 applies.
+
+`passwordFile`, `credentialsFile` and every `files[].source` are **host paths**,
+like a local `path`: the Docker daemon resolves them when it starts the mover,
+while sabon checks them from inside the orchestrator before each run. Mount each
+file into the orchestrator at the **same path** it has on the host, otherwise the
+check and the mover see different files. A file missing on the host fails the
+run with `bind source path does not exist`. On Swarm the mover runs on the node
+of the app it backs up, so the file must exist at that path on **every node**
+that may run such an app.
 
 ### Placeholders
 
