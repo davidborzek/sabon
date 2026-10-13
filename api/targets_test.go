@@ -15,6 +15,12 @@ func TestValidate(t *testing.T) {
 		{"duplicate name", []Target{{Name: "x", Path: "/p"}, {Name: "x", Repo: "s3:y"}}, true},
 		{"moverLabels ok", []Target{{Name: "x", Path: "/p", MoverLabels: map[string]string{"tier": "onsite"}}}, false},
 		{"moverLabels reserved prefix", []Target{{Name: "x", Path: "/p", MoverLabels: map[string]string{"sabon.app": "evil"}}}, true},
+		{"passwordFile ok", []Target{{Name: "x", Path: "/p", PasswordFile: "/etc/sabon/pw"}}, false},
+		{"passwordFile relative", []Target{{Name: "x", Path: "/p", PasswordFile: "pw"}}, true},
+		{"passwordFile dotdot", []Target{{Name: "x", Path: "/p", PasswordFile: "/etc/link/../pw"}}, true},
+		{"passwordFile colon", []Target{{Name: "x", Path: "/p", PasswordFile: "/etc/pw:rw"}}, true},
+		{"credentialsFile ok", []Target{{Name: "x", Repo: "s3:y/{app}", CredentialsFile: "/etc/sabon/aws"}}, false},
+		{"credentialsFile unclean", []Target{{Name: "x", Repo: "s3:y/{app}", CredentialsFile: "/etc//aws"}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

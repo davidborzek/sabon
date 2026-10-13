@@ -86,21 +86,28 @@ func (o *Orchestrator) sourceMounts(job discovery.Job, readOnly bool) []mount.Mo
 	return ms
 }
 
-// cacheAndRepo returns the shared cache mount and, for a local backend, the
-// per-app repository bind.
+// cacheAndRepo returns the shared cache mount, the target's secret files as
+// read-only bind mounts and, for a local backend, the per-app repository bind.
 func (o *Orchestrator) cacheAndRepo(target api.Target, app string) ([]mount.Mount, []string) {
 	ms := []mount.Mount{{Type: mount.TypeVolume, Source: o.cfg.CacheVolume, Target: cacheMount}}
+	if target.PasswordFile != "" {
+		ms = append(ms, secretMount(target.PasswordFile, passwordMount))
+	}
+	if target.CredentialsFile != "" {
+		ms = append(ms, secretMount(target.CredentialsFile, awsCredentialsMount))
+	}
 	var binds []string
+	// Legacy bind on purpose: the daemon creates a missing repo directory.
 	if target.Backend() == api.BackendLocal {
 		binds = append(binds, filepath.Join(target.Path, app)+":"+repoMount)
 	}
-	if target.PasswordFile != "" {
-		binds = append(binds, target.PasswordFile+":"+passwordMount+":ro")
-	}
-	if target.CredentialsFile != "" {
-		binds = append(binds, target.CredentialsFile+":"+awsCredentialsMount+":ro")
-	}
 	return ms, binds
+}
+
+// secretMount is a typed bind mount so a missing host file fails the mover
+// start instead of being created as an empty directory, as a legacy bind is.
+func secretMount(src, dst string) mount.Mount {
+	return mount.Mount{Type: mount.TypeBind, Source: src, Target: dst, ReadOnly: true}
 }
 
 // resticEnv builds the environment restic reads inside the mover.

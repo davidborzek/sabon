@@ -268,8 +268,12 @@ local or remote.
 
 Prefer `passwordFile` over `passwordEnv` to keep the repo password out of every
 container's environment (it is otherwise visible via `docker inspect`). Point it
-at a Docker secret or a `0600` file; it must be readable by the mover user
-(`SABON_MOVER_USER` / label `user`). For remote backends, `credentialsFile`
+at a `0600` file on the host; it must be readable by the mover user
+(`SABON_MOVER_USER` / label `user`). A Docker or Compose secret does **not**
+work here: it exists only inside the orchestrator under `/run/secrets/…`, not on
+the host, so the mover can't mount it. `passwordFile` and `credentialsFile` must
+be clean absolute paths without `:` (no `.`, `..`, `//` or trailing `/`); a
+config using e.g. `/etc//sabon/pw` is rejected at startup. For remote backends, `credentialsFile`
 does the same for S3/B2/… credentials: an AWS shared-credentials file mounted
 read-only and exposed via `AWS_SHARED_CREDENTIALS_FILE`, keeping the keys out of
 `env` too. Don't also put `AWS_*` in `env` — env wins over the file.
