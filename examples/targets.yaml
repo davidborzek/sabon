@@ -41,3 +41,16 @@ targets:
   #   resticArgs: ["--limit-upload=20480"] # global restic flag: throttle uplink ~20 MiB/s
   #   retention:
   #     daily: 7
+
+  # ── rest: a restic REST server behind a private CA ───────────────────
+  # `files` mounts host files read-only into every mover of this target.
+  # sabon sets no env for them: point restic (or the backend) at the
+  # in-mover `target` path yourself, here via a global restic flag.
+  #
+  # - name: rest
+  #   repo: "rest:https://backup.example.internal:8000/{app}"
+  #   passwordFile: /run/secrets/restic_password
+  #   files:
+  #     - source: /etc/sabon/internal-ca.pem # host path
+  #       target: /secrets/ca.pem #          path inside the mover
+  #   resticArgs: ["--cacert=/secrets/ca.pem"]

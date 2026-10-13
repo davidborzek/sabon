@@ -96,6 +96,9 @@ func (o *Orchestrator) cacheAndRepo(target api.Target, app string) ([]mount.Moun
 	if target.CredentialsFile != "" {
 		ms = append(ms, secretMount(target.CredentialsFile, awsCredentialsMount))
 	}
+	for _, f := range target.Files {
+		ms = append(ms, secretMount(f.Source, f.Target))
+	}
 	var binds []string
 	// Legacy bind on purpose: the daemon creates a missing repo directory.
 	if target.Backend() == api.BackendLocal {
@@ -145,6 +148,12 @@ func (o *Orchestrator) resticEnv(target api.Target, app string) ([]string, error
 			return nil, fmt.Errorf("target %q: credentials file %q does not exist or is not a regular file", target.Name, target.CredentialsFile)
 		}
 		env = append(env, "AWS_SHARED_CREDENTIALS_FILE="+awsCredentialsMount)
+	}
+	for _, f := range target.Files {
+		fi, err := os.Stat(f.Source)
+		if err != nil || !fi.Mode().IsRegular() {
+			return nil, fmt.Errorf("target %q: file %q does not exist or is not a regular file", target.Name, f.Source)
+		}
 	}
 
 	for k, v := range target.Env {
