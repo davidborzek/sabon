@@ -1073,6 +1073,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>files</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#env" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2105,6 +2116,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>files</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#env" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -2464,6 +2486,16 @@ backed up to a target named <code>onsite</code> lives in that target's repo for 
 <p>Host path to a file holding the repo password. Mounted <strong>read-only</strong> into the mover; restic reads it via <code>RESTIC_PASSWORD_FILE</code>, so the password is in <strong>no</strong> container's environment. Overrides <code>passwordEnv</code>.</p>
 <h4 id="credentialsfile"><code>credentialsFile</code><a class="headerlink" href="#credentialsfile" title="Permanent link">&para;</a></h4>
 <p>Host path to an AWS shared-credentials file (<code>[default]</code> with <code>aws_access_key_id</code>/<code>aws_secret_access_key</code>). Mounted <strong>read-only</strong> and exposed via <code>AWS_SHARED_CREDENTIALS_FILE</code> so S3/B2/… creds stay out of the mover's environment.</p>
+<h4 id="files"><code>files</code><a class="headerlink" href="#files" title="Permanent link">&para;</a></h4>
+<p>List of host files mounted <strong>read-only</strong> into every mover of this target, each as <code>{source, target}</code>: <code>source</code> is the host path, <code>target</code> the absolute path inside the mover. Use it for backend secrets and config that restic or the backend reads from a file (CA certificates, cloud key files, …). sabon sets no environment for these files; reference <code>target</code> yourself from <a href="#env"><code>env</code></a> or <a href="#resticargs"><code>resticArgs</code></a>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rest</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">"rest:https://backup.example.internal:8000/{app}"</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/sabon/internal-ca.pem</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/secrets/ca.pem</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">resticArgs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"--cacert=/secrets/ca.pem"</span><span class="p p-Indicator">]</span>
+</span></code></pre></div>
+<p>Every <code>source</code> must be a clean absolute path without <code>:</code> (no <code>.</code>, <code>..</code>, <code>//</code> or trailing <code>/</code>) to an existing regular file, checked before each run. A <code>target</code> must be absolute, unique within the target, must not contain <code>:</code>, and must not overlap a path sabon mounts itself (<code>/data</code>, <code>/repo</code>, <code>/cache</code>, <code>/restore</code>, <code>/run/secrets/sabon-*</code>): neither the path itself, anything under it, nor a parent such as <code>/run/secrets</code>.</p>
 <h4 id="env"><code>env</code><a class="headerlink" href="#env" title="Permanent link">&para;</a></h4>
 <p>Extra environment (map) passed to movers for this target — backend credentials, endpoints, etc. Values support <code>${ENV}</code> expansion.</p>
 <h4 id="resticargs"><code>resticArgs</code><a class="headerlink" href="#resticargs" title="Permanent link">&para;</a></h4>
@@ -2490,7 +2522,17 @@ be clean absolute paths without <code>:</code> (no <code>.</code>, <code>..</cod
 config using e.g. <code>/etc//sabon/pw</code> is rejected at startup. For remote backends, <code>credentialsFile</code>
 does the same for S3/B2/… credentials: an AWS shared-credentials file mounted
 read-only and exposed via <code>AWS_SHARED_CREDENTIALS_FILE</code>, keeping the keys out of
-<code>env</code> too. Don't also put <code>AWS_*</code> in <code>env</code> — env wins over the file.</p>
+<code>env</code> too. Don't also put <code>AWS_*</code> in <code>env</code> — env wins over the file. For any
+other file-based secret, use <a href="#files"><code>files</code></a>; the same readability rule
+applies.</p>
+<p><code>passwordFile</code>, <code>credentialsFile</code> and every <code>files[].source</code> are <strong>host paths</strong>,
+like a local <code>path</code>: the Docker daemon resolves them when it starts the mover,
+while sabon checks them from inside the orchestrator before each run. Mount each
+file into the orchestrator at the <strong>same path</strong> it has on the host, otherwise the
+check and the mover see different files. A file missing on the host fails the
+run with <code>bind source path does not exist</code>. On Swarm the mover runs on the node
+of the app it backs up, so the file must exist at that path on <strong>every node</strong>
+that may run such an app.</p>
 <h3 id="placeholders">Placeholders<a class="headerlink" href="#placeholders" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>{app}</code></strong> — expands to the app name (from the label's <code>repo</code>, else the
@@ -2576,10 +2618,10 @@ repacking to reclaim space is a separate <code>prune</code> job — see <a href=
 (regenerate with <code>sabon schema --targets</code>). Point your editor at it via
 <a href="https://github.com/redhat-developer/yaml-language-server">yaml-language-server</a>
 for completion and validation of your <code>targets.yaml</code>:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># yaml-language-server: $schema=https://raw.githubusercontent.com/davidborzek/sabon/main/schemas/targets.json</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">targets</span><span class="p">:</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">onsite</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/backup</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># yaml-language-server: $schema=https://raw.githubusercontent.com/davidborzek/sabon/main/schemas/targets.json</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">targets</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">onsite</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/backup</span>
 </span></code></pre></div>
 
 
