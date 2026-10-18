@@ -61,6 +61,7 @@ swarm. See [Deployment](deployment.md#swarm).
 
 ## Which restic version does sabon use?
 
-Whichever is bundled in the sabon image for that release — a single version shared
-by the orchestrator and every mover, since movers reuse the sabon image. Pin the
-sabon image tag to pin restic.
+Whichever is bundled in the mover image for that release. sabon pulls the mover
+image matching its own version, so pinning the sabon image tag pins restic
+(unless `SABON_MOVER_IMAGE` overrides it). The orchestrator itself contains no
+restic.

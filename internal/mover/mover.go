@@ -116,7 +116,7 @@ const (
 	ActionPrune     = "prune"
 )
 
-// Execute is the mover-side entrypoint (`sabon mover`). It reads the Spec from
+// Execute is the mover-side entrypoint (`sabon-mover`). It reads the Spec from
 // the environment and performs the requested action against the restic repo.
 func Execute(ctx context.Context, stdout, stderr io.Writer) error {
 	raw := os.Getenv(SpecEnv)

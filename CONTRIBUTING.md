@@ -69,7 +69,7 @@ Releases are automated — no manual tagging:
   that bumps the version and updates `CHANGELOG.md`. Merging it creates the tag
   and the GitHub release.
 - **[goreleaser](https://goreleaser.com/)** then builds the binaries and the
-  multi-arch (`amd64`/`arm64`) image, pushes it to
-  `ghcr.io/davidborzek/sabon`, and attaches archives + checksums to the
+  multi-arch (`amd64`/`arm64`) images, pushes them to
+  `ghcr.io/davidborzek/sabon` and `ghcr.io/davidborzek/sabon/mover`, and attaches archives + checksums to the
   release — in the same workflow run (hanging off release-please's output, so no
   PAT is needed).

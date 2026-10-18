@@ -29,7 +29,7 @@ list of apps to maintain.
 flowchart LR
   subgraph host [trusted Docker host]
     sabon[sabon orchestrator] -->|Docker API| daemon[(dockerd)]
-    sabon -.spawns.-> mover[mover container<br/>= sabon image + restic]
+    sabon -.spawns.-> mover[mover container<br/>= mover image + restic]
     app[labelled app] -->|labels| sabon
     mover -->|reads :ro| vols[(app volumes)]
   end
@@ -40,8 +40,9 @@ flowchart LR
 - **Discovery** — every container with `sabon.enable: "true"` and a `sabon.backup`
   spec is a job. Its sources are the container's own bind mounts and named volumes
   (plus anything the label adds).
-- **Movers** — per scheduled run sabon starts a throwaway container from *its own
-  image* (which bundles the `restic` binary), mounts the sources read-only, and runs
+- **Movers** — per scheduled run sabon starts a throwaway container from the
+  *mover image* (restic plus an `ssh` client and rclone for `sftp:`/`rclone:`
+  repos), mounts the sources read-only, and runs
   `restic backup` then `restic forget` (retention marking). sabon never runs restic
   itself; reclaiming space with `prune` is a separate, less frequent job.
 - **Per-app, per-target repositories** — each app gets an isolated repo in each

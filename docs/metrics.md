@@ -32,8 +32,8 @@ docker compose exec sabon /sabon healthcheck --endpoint healthz
 ```
 
 It exits non-zero when the probe fails, so Docker marks the container
-`unhealthy`. Mover containers reuse sabon's image but serve no endpoint, so
-sabon disables the inherited healthcheck on them.
+`unhealthy`. Mover containers serve no endpoint, so sabon disables any image
+healthcheck on them.
 
 The endpoints do not depend on metrics being enabled: with a blank
 `SABON_METRICS_ADDR`, sabon serves `/healthz` and `/readyz` on a separate

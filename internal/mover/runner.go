@@ -18,6 +18,9 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
+// Entrypoint is the mover binary's path inside the mover image.
+const Entrypoint = "/usr/local/bin/sabon-mover"
+
 // LabelKey marks a container as a sabon-managed mover so orphans can be reaped.
 const LabelKey = "sabon.mover"
 
@@ -35,7 +38,7 @@ const (
 // Node is honoured only by the swarm engine (as a placement constraint).
 type Request struct {
 	Name           string            // container name (unique per run)
-	Image          string            // mover image (sabon's own image by default)
+	Image          string            // mover image (version-matched by default)
 	User           string            // uid[:gid] to run as (movers read arbitrary data -> root)
 	Groups         []string          // extra supplementary groups (GIDs) added via --group-add
 	Network        string            // optional docker network to attach
@@ -58,6 +61,20 @@ type Runner struct {
 // NewRunner returns a Runner using the given Docker client.
 func NewRunner(cli client.APIClient) *Runner { return &Runner{cli: cli} }
 
+// containerConfig is the mover's container config: the mover binary as
+// entrypoint (no shell, no args) and the spec as the first env entry.
+func containerConfig(req Request, specJSON string, labels map[string]string) *container.Config {
+	return &container.Config{
+		Image:      req.Image,
+		User:       req.User,
+		Entrypoint: []string{Entrypoint},
+		Env:        append([]string{SpecEnv + "=" + specJSON}, req.Env...),
+		Labels:     labels,
+		// A mover serves no health endpoint, so the image's HEALTHCHECK must not apply.
+		Healthcheck: &container.HealthConfig{Test: []string{"NONE"}},
+	}
+}
+
 // Run creates, starts and waits for one mover, returns its parsed Result, and
 // always removes the container. The mover's logs are attached to any error.
 func (r *Runner) Run(ctx context.Context, req Request) (Result, bool, error) {
@@ -74,15 +91,7 @@ func (r *Runner) Run(ctx context.Context, req Request) (Result, bool, error) {
 		labels[k] = v
 	}
 
-	cfg := &container.Config{
-		Image:  req.Image,
-		User:   req.User,
-		Cmd:    []string{"mover"},
-		Env:    append([]string{SpecEnv + "=" + specJSON}, req.Env...),
-		Labels: labels,
-		// A mover serves no health endpoint, so the image's HEALTHCHECK must not apply.
-		Healthcheck: &container.HealthConfig{Test: []string{"NONE"}},
-	}
+	cfg := containerConfig(req, specJSON, labels)
 	host := &container.HostConfig{
 		Mounts:     req.Mounts,
 		Binds:      req.Binds,
@@ -244,9 +253,8 @@ func (r *Runner) Reap(ctx context.Context, keep int) (int, error) {
 	return n, nil
 }
 
-// DetectSelfImage returns the image reference of sabon's own container so movers
-// can reuse it (single image, single restic version). Works only when running
-// inside Docker.
+// DetectSelfImage returns the image reference of sabon's own container, used to
+// warn when it is misconfigured as the mover image. Works only inside Docker.
 func DetectSelfImage(ctx context.Context, cli client.APIClient) (string, error) {
 	host, err := os.Hostname()
 	if err != nil {

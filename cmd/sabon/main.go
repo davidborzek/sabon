@@ -4,7 +4,7 @@
 // repositories (onsite and/or offsite).
 //
 // Subcommands live in sibling files: daemon.go (default), backup.go,
-// restore.go (snapshots + restore), inspect.go (mover/schema/validate).
+// restore.go (snapshots + restore), inspect.go (schema/validate).
 package main
 
 import (
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	_ "time/tzdata" // embed the IANA tz database so TZ works on the distroless image (cron schedules + log timestamps honour TZ; default UTC)
 
 	"github.com/davidborzek/sabon/internal/backup"
@@ -36,7 +37,6 @@ func main() {
 		Version: version,
 		Action:  runDaemon,
 		Commands: []*cli.Command{
-			{Name: "mover", Hidden: true, Usage: "internal: run a single restic operation (executed inside a mover container)", Action: runMover},
 			{Name: "backup", Usage: "Run all backups once and exit", Action: runBackupOnce, Flags: []cli.Flag{
 				&cli.StringFlag{Name: "app", Usage: "only back up this app"},
 			}},
@@ -90,22 +90,71 @@ func dockerClient() (*client.Client, error) {
 	return client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 }
 
-// resolveImage determines the mover image: the configured value, else the exact
-// image sabon was deployed as (auto-detected inside Docker — registry, digest,
-// fork and all), else the official image matching this binary's version.
-func resolveImage(ctx context.Context, cli client.APIClient, cfg *config.Config) (string, error) {
+// resolveImage determines the mover image. A configured official orchestrator
+// image is rewritten to the matching mover image (older setups pinned it as the
+// mover); any other image that is sabon's own only gets a warning.
+func resolveImage(ctx context.Context, cli client.APIClient, cfg *config.Config, log *slog.Logger) (string, error) {
+	if cfg.MoverImage != "" {
+		img, migrated, err := migratedMoverImage(cfg.MoverImage)
+		if err != nil {
+			return "", err
+		}
+		if migrated {
+			log.Warn("SABON_MOVER_IMAGE names the orchestrator image, which cannot run movers; using the mover image instead — update or unset SABON_MOVER_IMAGE", "configured", cfg.MoverImage, "using", img)
+			return img, nil
+		}
+	}
+	img, err := moverImage(cfg)
+	if err != nil {
+		return "", err
+	}
+	if self, err := mover.DetectSelfImage(ctx, cli); err == nil && self == img {
+		log.Warn("SABON_MOVER_IMAGE points at sabon's own image, which cannot run movers; use a mover image", "image", img, "default", moverImageRepo+":<version>")
+	}
+	return img, nil
+}
+
+const (
+	orchestratorImageRepo = "ghcr.io/davidborzek/sabon"
+	moverImageRepo        = orchestratorImageRepo + "/mover"
+)
+
+// migratedMoverImage maps a ref to the official orchestrator image onto the
+// mover image with the same tag (both images share their tags). A digest-only
+// ref falls back to this binary's version, as digests differ between images.
+// Any other ref is returned unchanged.
+func migratedMoverImage(ref string) (string, bool, error) {
+	name, digest, _ := strings.Cut(ref, "@")
+	repo, tag := name, ""
+	if i := strings.LastIndex(name, ":"); i > strings.LastIndex(name, "/") {
+		repo, tag = name[:i], name[i+1:]
+	}
+	if repo != orchestratorImageRepo {
+		return ref, false, nil
+	}
+	switch {
+	case tag != "":
+	case digest != "":
+		if version == "dev" {
+			return "", false, fmt.Errorf("SABON_MOVER_IMAGE %q names the orchestrator image by digest; set it to a mover image", ref)
+		}
+		tag = version
+	default:
+		tag = "latest"
+	}
+	return moverImageRepo + ":" + tag, true, nil
+}
+
+// moverImage returns the configured mover image, else the one matching this
+// binary's version. A dev build has no published match and fails closed.
+func moverImage(cfg *config.Config) (string, error) {
 	if cfg.MoverImage != "" {
 		return cfg.MoverImage, nil
 	}
-	// In Docker: reuse exactly what sabon was deployed as (most accurate).
-	if img, err := mover.DetectSelfImage(ctx, cli); err == nil {
-		return img, nil
+	if version == "dev" {
+		return "", fmt.Errorf("no mover image for a dev build; set SABON_MOVER_IMAGE")
 	}
-	// Not in Docker (or inspect failed): fall back to the version-matched image.
-	if version != "dev" {
-		return "ghcr.io/davidborzek/sabon:" + version, nil
-	}
-	return "", fmt.Errorf("could not determine mover image; set SABON_MOVER_IMAGE")
+	return moverImageRepo + ":" + version, nil
 }
 
 // zfsSnapshotterImage returns the configured privileged snapshotter image, else

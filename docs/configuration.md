@@ -56,7 +56,7 @@ Per-container backup policy lives in **labels**, documented separately in
 
 ### `SABON_MOVER_IMAGE`
 
-*default: auto-detect* — Image used for mover containers. Empty reuses sabon's own running image — auto-detected inside Docker (the exact ref you deployed: registry, digest, fork and all), else the version-matched `ghcr.io/davidborzek/sabon:<version>`. Set it explicitly for a custom mover image, or on a dev build with no version stamped in.
+*default: `ghcr.io/davidborzek/sabon/mover:<version>`* — Image used for mover containers. Empty uses the mover image matching the orchestrator's version. Set it for a mirror, fork or custom mover image, and on a dev build with no version stamped in (which has no default and refuses to start without it). It must be a **mover** image. The official orchestrator image (`ghcr.io/davidborzek/sabon:<tag>`), which older setups pinned here, is rewritten to `ghcr.io/davidborzek/sabon/mover:<tag>` with a warning; any other image sabon itself runs from only gets a warning, as it has no restic.
 
 ### `SABON_MOVER_USER`
 
@@ -156,7 +156,7 @@ This applies only to **hook** `env`; the `env:` block in the targets file is ope
 
 ### `TZ`
 
-*default `UTC`* — Standard timezone variable (e.g. `Europe/Berlin`). Cron schedules and log timestamps are interpreted in it; unset means UTC. The tz database is embedded in the image, so no `/etc/localtime` mount is needed. An invalid value falls back to UTC. restic records snapshot times in **UTC** (the mover has no zoneinfo) — deliberately: UTC is unambiguous and DST-safe.
+*default `UTC`* — Standard timezone variable (e.g. `Europe/Berlin`). Cron schedules and log timestamps are interpreted in it; unset means UTC. The tz database is embedded in the image, so no `/etc/localtime` mount is needed. An invalid value falls back to UTC. restic records snapshot times in **UTC** (`TZ` is not passed to movers) — deliberately: UTC is unambiguous and DST-safe.
 
 
 ### restic credentials
@@ -220,7 +220,7 @@ Target name. Referenced from a label's `targets`, `schedule` and `retention` map
 
 #### `repo`
 
-**Remote backend.** A restic repository string with `{app}` and `${ENV}` placeholders, e.g. `s3:…/{app}`. See restic's [repository backends](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html) for the supported schemes (`s3:`, `rest:`, `sftp:`, `b2:`, …).
+**Remote backend.** A restic repository string with `{app}` and `${ENV}` placeholders, e.g. `s3:…/{app}`. See restic's [repository backends](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html) for the supported schemes (`s3:`, `rest:`, `sftp:`, `b2:`, …). The mover image ships an `ssh` client for `sftp:` and rclone for `rclone:`. OpenSSH refuses to run under a uid without a passwd entry, so `sftp:` needs the mover to run as root (the default `SABON_MOVER_USER`); with a non-root mover user, reach the SFTP server through `rclone:` instead, which has its own SFTP client.
 
 #### `passwordEnv`
 

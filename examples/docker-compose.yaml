@@ -4,11 +4,13 @@
 #   sabon                -> the long-running orchestrator: discovers labelled
 #                           apps, schedules backups, and spawns ephemeral "mover"
 #                           containers that actually run restic
+#   mover                -> build-only: the mover image those containers run
 #   app + db             -> an example workload: a tiny app with its own data
 #                           volume plus a postgres:17 database, backed up as one
 #                           logical app via a single `sabon.backup` label
 #
-# Try it:  RESTIC_PASSWORD=change-me docker compose up -d --build
+# Try it:  docker compose build mover
+#          RESTIC_PASSWORD=change-me docker compose up -d --build
 # Then:    docker compose exec sabon /sabon validate
 #          docker compose exec sabon /sabon snapshots --app demo --target onsite
 #
@@ -42,7 +44,7 @@ services:
 
   # ── sabon (the orchestrator) ───────────────────────────────────────────
   # Runs as nonroot and never runs restic itself. On the cron schedule (and
-  # once at startup here) it spawns a mover from its OWN image. Movers run as
+  # once at startup here) it spawns a mover from the MOVER image. Movers run as
   # ROOT (SABON_MOVER_USER, default 0:0) because they must read arbitrary app
   # data and write repositories — that is why Docker write access matters.
   sabon:
@@ -55,10 +57,10 @@ services:
       # restic repo password, passed through to every mover. Override via your
       # shell/.env — never commit a real password.
       RESTIC_PASSWORD: ${RESTIC_PASSWORD:-change-me}
-      # When sabon runs inside Docker it auto-detects its own image to reuse
-      # for movers. Set this explicitly if auto-detection can't (e.g. running
-      # the binary outside Docker):
-      # SABON_MOVER_IMAGE: ghcr.io/davidborzek/sabon:latest
+      # Released images default to the matching ghcr.io/davidborzek/sabon/mover
+      # tag. This demo builds from source (version "dev"), so it must name the
+      # locally built mover image (see the `mover` service below).
+      SABON_MOVER_IMAGE: sabon-mover:example
     volumes:
       - ./targets.yaml:/etc/sabon/targets.yaml:ro
       # The onsite repo lives here. This MUST be the same host path that the
@@ -71,6 +73,18 @@ services:
     depends_on:
       - docker-socket-proxy
     restart: unless-stopped
+
+  # ── mover image (build only) ───────────────────────────────────────
+  # Builds the mover image sabon spawns from; it never runs as part of the
+  # stack (the `build-only` profile keeps `up` from starting or building it,
+  # hence the explicit `docker compose build mover`). With released images,
+  # drop this and SABON_MOVER_IMAGE above.
+  mover:
+    build:
+      context: ..
+      dockerfile: Dockerfile.mover
+    image: sabon-mover:example
+    profiles: [build-only]
 
   # ── example workload: a tiny app + its database ────────────────────────
   # The `sabon.backup` label lives on the app and describes ONE logical

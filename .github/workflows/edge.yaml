@@ -3,9 +3,8 @@ name: edge
 # Continuous "edge" images built from main so you can run the latest development
 # state without cutting a release. These are NOT "latest" (that floating tag
 # tracks stable releases cut by release-please). The version is stamped "main"
-# so sabon's self-image defaults resolve to these edge images: the mover reuses
-# its own running image, and the zfs-snapshotter default becomes :main (built
-# by the second job below). A local/unstamped build stays "dev" and fail-closed.
+# so sabon's image defaults resolve to these edge images: the mover and
+# zfs-snapshotter defaults become :main (built by the jobs below). A local/unstamped build stays "dev" and fail-closed.
 on:
   workflow_dispatch:
 
@@ -40,6 +39,35 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: VERSION=main
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  mover:
+    # The ":main" mover image the edge build's mover image default points at.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ghcr.io/davidborzek/sabon/mover
+          tags: |
+            type=raw,value=main
+            type=sha,prefix=sha-
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.mover
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: VERSION=main
