@@ -8,7 +8,7 @@ backed up to a local restic repository.
 > (services + `deploy.labels`, node-pinned movers, manager placement).
 
 sabon itself never runs restic. On a schedule it spawns ephemeral **mover**
-containers (from its own image) that mount the sources read-only and run
+containers (from the separate mover image) that mount the sources read-only and run
 restic. Movers run as **root** and sabon needs Docker API **write** access to
 create them — hence the socket proxy has `POST=1`.
 
@@ -20,6 +20,7 @@ first, then bring the stack up (set a repo password via the environment):
 ```sh
 sudo mkdir -p /mnt/backup && sudo chown "$(id -u)" /mnt/backup
 
+docker compose build mover # the mover image sabon spawns from
 RESTIC_PASSWORD=change-me docker compose up -d --build
 ```
 

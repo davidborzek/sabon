@@ -1,8 +1,6 @@
-# From-source build (used by `docker compose build` and local dev).
+# From-source build of the orchestrator image (used by `docker compose build`
+# and local dev). Movers run from a separate image: ./Dockerfile.mover.
 # The goreleaser build lives in ./Dockerfile.goreleaser.
-
-# renovate: datasource=docker depName=restic/restic
-FROM restic/restic:0.19.1 AS restic
 
 FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 WORKDIR /src
@@ -20,9 +18,6 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-s -w -X main.version=${VERSION}" -o /sabon ./cmd/sabon
 
 FROM gcr.io/distroless/static:nonroot
-# sabon shells out to restic; bundle the static restic binary (single image,
-# single restic version — movers reuse this exact image).
-COPY --from=restic /usr/bin/restic /usr/bin/restic
 COPY --from=build /sabon /sabon
 USER nonroot:nonroot
 # Distroless has no shell, curl or wget: sabon probes its own /readyz.

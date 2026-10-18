@@ -173,8 +173,12 @@ docker compose exec sabon /sabon backup --app paperless
 
 ## Images
 
-`ghcr.io/davidborzek/sabon` — a distroless image with the restic binary bundled.
-Movers reuse this same image, so a plain install pulls nothing else.
+`ghcr.io/davidborzek/sabon` — the orchestrator, a distroless image without
+restic or a shell.
+
+`ghcr.io/davidborzek/sabon/mover` — the image movers run from, pulled on demand
+at the orchestrator's version. Alpine-based with restic, an `ssh` client and
+rclone, so restic's `sftp:` and `rclone:` backends work.
 
 `ghcr.io/davidborzek/sabon/zfs-snapshotter` — a small privileged image the `zfs`
 and `auto` snapshot strategies pull to run the host's `zfs` (overridable via

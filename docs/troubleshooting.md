@@ -79,12 +79,24 @@ the FHS directories (`/usr/sbin`, `/sbin`, …) plus non-FHS system paths (e.g.
 ## Swarm: the mover never starts / image pull fails
 
 Movers run as services scheduled onto arbitrary nodes, so the mover image must be
-pullable on **every** node. Self-detection is unreliable for a Swarm task — pin it
-explicitly:
+pullable on **every** node. It defaults to `ghcr.io/davidborzek/sabon/mover` at
+the orchestrator's version; with a private mirror, set it explicitly and make
+sure every node can pull it:
 
 ```sh
-SABON_MOVER_IMAGE=ghcr.io/davidborzek/sabon:latest
+SABON_MOVER_IMAGE=registry.example.internal/sabon/mover:X.Y.Z
 ```
+
+## Mover fails with `exec: "/usr/local/bin/sabon-mover": no such file`
+
+`SABON_MOVER_IMAGE` points at an image without the mover binary, e.g. a mirror
+or fork of the orchestrator image. Point it at a mover image instead, or unset
+it to use the version-matched default.
+
+Older setups pinned the official orchestrator image here
+(`ghcr.io/davidborzek/sabon:<tag>`). sabon rewrites exactly that to
+`ghcr.io/davidborzek/sabon/mover:<tag>` and logs a warning, so they keep
+working; update the setting to silence it.
 
 Also check the mover isn't stuck `Pending`: a `node.hostname` placement constraint
 with no matching node (e.g. the app's node left the cluster) leaves it unscheduled.

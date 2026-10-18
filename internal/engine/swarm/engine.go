@@ -269,7 +269,7 @@ func (s *Engine) serviceSpec(req mover.Request) (swarm.ServiceSpec, error) {
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{
 				Image:   req.Image,
-				Command: []string{"/sabon", "mover"},
+				Command: []string{mover.Entrypoint},
 				Env:     append([]string{mover.SpecEnv + "=" + specJSON}, req.Env...),
 				User:    req.User,
 				Groups:  req.Groups,

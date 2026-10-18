@@ -51,9 +51,9 @@ func TestSwarmBackupSnapshotsRestore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// sabon image (mover) + the orchestrator binary. docker build caches, so
+	// Mover image + the orchestrator binary. docker build caches, so
 	// sharing the layers with the standalone e2e is cheap.
-	if out, err := run(t, "docker", "build", "-t", image, "--build-arg", "VERSION=e2e", repoRoot); err != nil {
+	if out, err := run(t, "docker", "build", "-f", filepath.Join(repoRoot, "Dockerfile.mover"), "-t", moverImage, "--build-arg", "VERSION=e2e", repoRoot); err != nil {
 		t.Fatalf("docker build: %v\n%s", err, out)
 	}
 	bin := filepath.Join(t.TempDir(), "sabon")
@@ -106,7 +106,7 @@ func TestSwarmBackupSnapshotsRestore(t *testing.T) {
 	env := []string{
 		"SABON_CONFIG=" + targets,
 		"SABON_RUNTIME=swarm",
-		"SABON_MOVER_IMAGE=" + image,
+		"SABON_MOVER_IMAGE=" + moverImage,
 		"RESTIC_PASSWORD=" + password,
 	}
 

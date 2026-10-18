@@ -4,21 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/davidborzek/sabon/api"
 	"github.com/davidborzek/sabon/internal/config"
-	"github.com/davidborzek/sabon/internal/mover"
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/invopop/jsonschema"
 	"github.com/urfave/cli/v3"
 )
-
-// runMover is the mover-side entrypoint executed inside an ephemeral container.
-func runMover(ctx context.Context, cmd *cli.Command) error {
-	return mover.Execute(ctx, os.Stdout, os.Stderr)
-}
 
 // runSchema prints a JSON schema for either the backup label or the targets file.
 func runSchema(ctx context.Context, cmd *cli.Command) error {

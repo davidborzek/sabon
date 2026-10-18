@@ -27,7 +27,7 @@ type Config struct {
 	MetricsAddr         string
 	HealthAddr          string // SABON_HEALTH_ADDR: extra liveness/readiness listener; see HealthAddrFromEnv
 	LogLevel            string
-	MoverImage          string            // empty -> auto-detect from sabon's own container
+	MoverImage          string            // empty -> mover image matching sabon's version
 	MoverUser           string            // uid[:gid] the mover runs as; movers need to read arbitrary data
 	MoverGroups         []string          // SABON_MOVER_GROUPS: extra supplementary groups (GIDs) added to movers
 	MoverNetwork        string            // optional docker network to attach movers to

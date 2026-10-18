@@ -1,0 +1,17 @@
+# Mover image for goreleaser (dockers_v2): the prebuilt sabon-mover binary is
+# laid out under $TARGETPLATFORM in the build context.
+# Keep in sync with ./Dockerfile.mover.
+
+# renovate: datasource=docker depName=restic/restic
+FROM restic/restic:0.19.1 AS restic
+
+# renovate: datasource=docker depName=rclone/rclone
+FROM rclone/rclone:1.75.2 AS rclone
+
+FROM alpine:3.24
+ARG TARGETPLATFORM
+RUN apk add --no-cache ca-certificates openssh-client tzdata
+COPY --from=restic /usr/bin/restic /usr/bin/restic
+COPY --from=rclone /usr/local/bin/rclone /usr/local/bin/rclone
+COPY $TARGETPLATFORM/sabon-mover /usr/local/bin/sabon-mover
+ENTRYPOINT ["/usr/local/bin/sabon-mover"]

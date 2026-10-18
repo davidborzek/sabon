@@ -25,7 +25,7 @@ func runSnapshots(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func runCheckCmd(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func runPruneCmd(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func runRestore(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("unknown target %q", cmd.String("target"))
 	}
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}

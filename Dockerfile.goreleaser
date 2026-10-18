@@ -2,12 +2,8 @@
 # under $TARGETPLATFORM in the build context; buildx builds a multi-arch image.
 # The from-source build lives in ./Dockerfile.
 
-# renovate: datasource=docker depName=restic/restic
-FROM restic/restic:0.19.1 AS restic
-
 FROM gcr.io/distroless/static:nonroot
 ARG TARGETPLATFORM
-COPY --from=restic /usr/bin/restic /usr/bin/restic
 COPY $TARGETPLATFORM/sabon /sabon
 USER nonroot:nonroot
 # Keep in sync with ./Dockerfile.

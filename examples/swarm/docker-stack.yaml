@@ -30,9 +30,9 @@ services:
       SABON_LOG_LEVEL: info
       RESTIC_PASSWORD: ${RESTIC_PASSWORD:-change-me}
       # Movers run as services on the cluster, so the mover image must be
-      # pullable on every node. Pin it explicitly (self-detection is unreliable
-      # for a Swarm task):
-      SABON_MOVER_IMAGE: ghcr.io/davidborzek/sabon:latest
+      # pullable on every node. Released images default to the matching
+      # ghcr.io/davidborzek/sabon/mover tag; "latest" floats, so pin both:
+      SABON_MOVER_IMAGE: ghcr.io/davidborzek/sabon/mover:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # MUST be a manager node's socket
       - /mnt/backup:/mnt/backup # single-node onsite repo (bind); use a remote target for multi-node

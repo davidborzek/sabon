@@ -1,0 +1,30 @@
+# From-source build of the mover image: the ephemeral container sabon spawns
+# per backup/restore/check/prune. Unlike the distroless orchestrator image it
+# ships an ssh client (restic's sftp: backend execs `ssh`) and rclone (restic's
+# rclone: backend execs `rclone serve restic --stdio`).
+# The goreleaser build lives in ./Dockerfile.mover.goreleaser.
+
+# renovate: datasource=docker depName=restic/restic
+FROM restic/restic:0.19.1 AS restic
+
+# renovate: datasource=docker depName=rclone/rclone
+FROM rclone/rclone:1.75.2 AS rclone
+
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+ARG VERSION=dev
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -ldflags="-s -w -X main.version=${VERSION}" -o /sabon-mover ./cmd/sabon-mover
+
+FROM alpine:3.24
+RUN apk add --no-cache ca-certificates openssh-client tzdata
+COPY --from=restic /usr/bin/restic /usr/bin/restic
+COPY --from=rclone /usr/local/bin/rclone /usr/local/bin/rclone
+COPY --from=build /sabon-mover /usr/local/bin/sabon-mover
+# No USER: sabon sets it per mover (SABON_MOVER_USER, default 0:0).
+ENTRYPOINT ["/usr/local/bin/sabon-mover"]

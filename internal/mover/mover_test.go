@@ -9,6 +9,22 @@ import (
 	"github.com/docker/docker/client"
 )
 
+func TestContainerConfigRunsMoverEntrypoint(t *testing.T) {
+	cfg := containerConfig(Request{Image: "ghcr.io/x/sabon/mover:1", User: "0:0", Spec: Spec{App: "demo"}}, `{"app":"demo"}`, map[string]string{LabelKey: "demo"})
+	if len(cfg.Entrypoint) != 1 || cfg.Entrypoint[0] != Entrypoint {
+		t.Errorf("entrypoint = %v, want [%s]", cfg.Entrypoint, Entrypoint)
+	}
+	if len(cfg.Cmd) != 0 {
+		t.Errorf("cmd = %v, want none", cfg.Cmd)
+	}
+	if len(cfg.Env) == 0 || cfg.Env[0] != SpecEnv+`={"app":"demo"}` {
+		t.Errorf("env = %v, want spec first", cfg.Env)
+	}
+	if cfg.Healthcheck == nil || len(cfg.Healthcheck.Test) != 1 || cfg.Healthcheck.Test[0] != "NONE" {
+		t.Errorf("healthcheck = %+v, want disabled", cfg.Healthcheck)
+	}
+}
+
 func TestParseResult(t *testing.T) {
 	logs := "some restic output\n" +
 		`SABON_RESULT {"snapshot_id":"abcd1234","files_new":5,"data_added_bytes":2048,"total_bytes_processed":4096,"backup_seconds":1.5}` + "\n" +

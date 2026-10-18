@@ -1,8 +1,8 @@
 //go:build e2e
 
 // Package e2e exercises sabon end to end against a real Docker daemon: it builds
-// the sabon image and binary, labels a demo container, runs a backup through a
-// spawned mover, then lists and restores the snapshot. Run with:
+// the mover image and the sabon binary, labels a demo container, runs a backup
+// through a spawned mover, then lists and restores the snapshot. Run with:
 //
 //	go test -tags e2e ./test/e2e/
 //
@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	image    = "sabon:e2e"
-	app      = "e2eapp"
-	password = "e2e-secret"
+	moverImage = "sabon-mover:e2e"
+	app        = "e2eapp"
+	password   = "e2e-secret"
 )
 
 func run(t *testing.T, name string, args ...string) (string, error) {
@@ -52,9 +52,9 @@ func TestBackupSnapshotsRestore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Build the sabon image (bundles restic; also used as the mover image) and
-	// the sabon binary that acts as the orchestrator in this test.
-	if out, err := run(t, "docker", "build", "-t", image, "--build-arg", "VERSION=e2e", repoRoot); err != nil {
+	// Build the mover image and the sabon binary that acts as the orchestrator
+	// in this test.
+	if out, err := run(t, "docker", "build", "-f", filepath.Join(repoRoot, "Dockerfile.mover"), "-t", moverImage, "--build-arg", "VERSION=e2e", repoRoot); err != nil {
 		t.Fatalf("docker build: %v\n%s", err, out)
 	}
 	bin := filepath.Join(t.TempDir(), "sabon")
@@ -107,7 +107,7 @@ func TestBackupSnapshotsRestore(t *testing.T) {
 
 	env := []string{
 		"SABON_CONFIG=" + targets,
-		"SABON_MOVER_IMAGE=" + image,
+		"SABON_MOVER_IMAGE=" + moverImage,
 		"RESTIC_PASSWORD=" + password,
 	}
 
@@ -117,8 +117,8 @@ func TestBackupSnapshotsRestore(t *testing.T) {
 		t.Fatalf("backup did not complete:\n%s", out)
 	}
 
-	// The mover reuses sabon's image but serves no health endpoint, so it must
-	// not inherit the image's HEALTHCHECK.
+	// The mover serves no health endpoint, so it must never run an image
+	// HEALTHCHECK.
 	ids := strings.Fields(mustRun(t, env, "docker", "ps", "-a", "--filter", "label=sabon.app="+app, "--format", "{{.ID}}"))
 	if len(ids) == 0 {
 		t.Fatal("no mover container found to inspect")

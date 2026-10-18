@@ -100,8 +100,11 @@ For each backup job the mover mounts:
 - a shared restic **cache** volume (`SABON_CACHE_VOLUME`, default `sabon-cache`)
   at `/cache`, so repeated backups don't re-read pack metadata.
 
-Movers use **sabon's own image** — it bundles the restic binary — so there is no
-second image to manage. Movers run **as root** (`SABON_MOVER_USER`, default
+Movers run from a **dedicated mover image** (`ghcr.io/davidborzek/sabon/mover`,
+version-matched to the orchestrator by default). It is Alpine-based and ships
+restic, an `ssh` client and rclone, so restic's `sftp:` and `rclone:` backends
+work. The orchestrator image stays distroless and contains neither restic nor a
+shell. Movers run **as root** (`SABON_MOVER_USER`, default
 `0:0`) because they must read arbitrary application data and write repositories;
 the orchestrator itself can stay nonroot. See
 [Deployment](deployment.md#privileges) for the privilege model.

@@ -91,8 +91,11 @@ func TestSwarmRunMoverBuildsService(t *testing.T) {
 	if cs.Image != req.Image {
 		t.Errorf("image = %q", cs.Image)
 	}
-	if len(cs.Command) != 2 || cs.Command[0] != "/sabon" || cs.Command[1] != "mover" {
-		t.Errorf("command = %v, want [/sabon mover]", cs.Command)
+	if len(cs.Command) != 1 || cs.Command[0] != mover.Entrypoint {
+		t.Errorf("command = %v, want [%s]", cs.Command, mover.Entrypoint)
+	}
+	if len(cs.Args) != 0 {
+		t.Errorf("args = %v, want none", cs.Args)
 	}
 	if cs.Healthcheck == nil || len(cs.Healthcheck.Test) != 1 || cs.Healthcheck.Test[0] != "NONE" {
 		t.Errorf("healthcheck = %+v, want disabled (NONE)", cs.Healthcheck)

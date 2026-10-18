@@ -20,9 +20,10 @@ read [Privileges](#privileges) before exposing the socket.
 
 ## Docker Compose
 
-Images live at `ghcr.io/davidborzek/sabon`. `latest` and `X.Y.Z`/`X.Y` track
-stable releases; `main` (and `sha-<commit>`) are rolling **edge** builds of the
-latest `main` for trying unreleased changes.
+Images live at `ghcr.io/davidborzek/sabon` (orchestrator) and
+`ghcr.io/davidborzek/sabon/mover` (movers, pulled on demand). `latest` and
+`X.Y.Z`/`X.Y` track stable releases; `main` (and `sha-<commit>`) are rolling
+**edge** builds of the latest `main` for trying unreleased changes.
 
 ```yaml
 name: sabon
@@ -60,8 +61,10 @@ A few things worth calling out:
   orchestrator.** sabon bind-mounts the same host path into each mover, so a local
   target `path: /mnt/backup` must be a real host path (mount it into the
   orchestrator too if you want `sabon validate`/logs to see it).
-- **`SABON_MOVER_IMAGE`** auto-detects sabon's own image when running in Docker.
-  If you run the orchestrator outside Docker, set it explicitly.
+- **`SABON_MOVER_IMAGE`** defaults to `ghcr.io/davidborzek/sabon/mover` at the
+  orchestrator's version. Set it for a mirror/fork, or when running a source
+  build (version `dev`). It must name a mover image; the official orchestrator
+  image is rewritten to the matching mover tag with a warning.
 - **The cache volume** (`SABON_CACHE_VOLUME`, default `sabon-cache`) is created on
   demand and shared across movers; declaring it keeps it under compose's
   lifecycle.

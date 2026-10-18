@@ -24,7 +24,7 @@ func runBackupOnce(ctx context.Context, cmd *cli.Command) error {
 	}
 	defer func() { _ = cli.Close() }()
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}

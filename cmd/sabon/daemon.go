@@ -39,7 +39,7 @@ func runDaemon(ctx context.Context, cmd *cli.Command) error {
 	m.Serve(ctx, cfg.MetricsAddr, logger)
 	m.ServeHealth(ctx, cfg.HealthAddr, logger)
 
-	image, err := resolveImage(ctx, cli, cfg)
+	image, err := resolveImage(ctx, cli, cfg, logger)
 	if err != nil {
 		return err
 	}
