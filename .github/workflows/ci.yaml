@@ -69,6 +69,17 @@ jobs:
       # container through a backup to a real restic repository (both in Docker).
       - run: go test -tags e2e -run TestBackupSnapshotsRestore ./test/e2e/
 
+  e2e-sftp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # Remote target over SFTP: restic's native sftp: (ssh in the mover image)
+      # and rclone:, with key + known_hosts mounted via the target's `files`.
+      - run: go test -tags e2e -run TestSFTPTargets ./test/e2e/
+
   e2e-swarm:
     runs-on: ubuntu-latest
     steps:

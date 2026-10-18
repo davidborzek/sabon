@@ -31,11 +31,17 @@ func run(t *testing.T, name string, args ...string) (string, error) {
 	return string(out), err
 }
 
-func mustRun(t *testing.T, env []string, name string, args ...string) string {
-	t.Helper()
+// runEnv runs a command with extra env and returns its output even on failure.
+func runEnv(env []string, name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
 	cmd.Env = append(os.Environ(), env...)
 	out, err := cmd.CombinedOutput()
+	return string(out), err
+}
+
+func mustRun(t *testing.T, env []string, name string, args ...string) string {
+	t.Helper()
+	out, err := runEnv(env, name, args...)
 	if err != nil {
 		t.Fatalf("%s %s failed: %v\n%s", name, strings.Join(args, " "), err, out)
 	}
