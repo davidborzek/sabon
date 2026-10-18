@@ -135,16 +135,17 @@ func (o *Orchestrator) RunSnapshots(ctx context.Context, app string, target api.
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
 	_, _, err = o.eng.RunMover(ctx, mover.Request{
-		Name:   moverName(app, target.Name),
-		Image:  o.image,
-		User:   o.cfg.MoverUser,
-		Groups: o.cfg.MoverGroups,
-		Spec:   mover.Spec{App: app, Action: mover.ActionSnapshots, ExtraArgs: target.ResticArgs},
-		Env:    env,
-		Mounts: mounts,
-		Binds:  binds,
-		Stdout: out,
-		Labels: o.customLabels(target),
+		Name:    moverName(app, target.Name),
+		Image:   o.image,
+		User:    o.cfg.MoverUser,
+		Groups:  o.cfg.MoverGroups,
+		Network: o.cfg.MoverNetwork,
+		Spec:    mover.Spec{App: app, Action: mover.ActionSnapshots, ExtraArgs: target.ResticArgs},
+		Env:     env,
+		Mounts:  mounts,
+		Binds:   binds,
+		Stdout:  out,
+		Labels:  o.customLabels(target),
 	})
 	return err
 }
@@ -169,17 +170,18 @@ func (o *Orchestrator) RunCheck(ctx context.Context, app string, target api.Targ
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
 	_, _, err = o.eng.RunMover(ctx, mover.Request{
-		Name:   moverName(app, target.Name),
-		Image:  o.image,
-		User:   o.cfg.MoverUser,
-		Groups: o.cfg.MoverGroups,
-		Spec:   mover.Spec{App: app, Action: mover.ActionCheck, ExtraArgs: target.ResticArgs},
-		Env:    env,
-		Mounts: mounts,
-		Binds:  binds,
-		Stdout: out,
-		Labels: o.moverLabels(target, app, "check"),
-		Retain: true,
+		Name:    moverName(app, target.Name),
+		Image:   o.image,
+		User:    o.cfg.MoverUser,
+		Groups:  o.cfg.MoverGroups,
+		Network: o.cfg.MoverNetwork,
+		Spec:    mover.Spec{App: app, Action: mover.ActionCheck, ExtraArgs: target.ResticArgs},
+		Env:     env,
+		Mounts:  mounts,
+		Binds:   binds,
+		Stdout:  out,
+		Labels:  o.moverLabels(target, app, "check"),
+		Retain:  true,
 	})
 	return err
 }
@@ -203,17 +205,18 @@ func (o *Orchestrator) RunPrune(ctx context.Context, app string, target api.Targ
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
 	_, _, err = o.eng.RunMover(ctx, mover.Request{
-		Name:   moverName(app, target.Name),
-		Image:  o.image,
-		User:   o.cfg.MoverUser,
-		Groups: o.cfg.MoverGroups,
-		Spec:   mover.Spec{App: app, Action: mover.ActionPrune, ExtraArgs: target.ResticArgs},
-		Env:    env,
-		Mounts: mounts,
-		Binds:  binds,
-		Stdout: out,
-		Labels: o.moverLabels(target, app, "prune"),
-		Retain: true,
+		Name:    moverName(app, target.Name),
+		Image:   o.image,
+		User:    o.cfg.MoverUser,
+		Groups:  o.cfg.MoverGroups,
+		Network: o.cfg.MoverNetwork,
+		Spec:    mover.Spec{App: app, Action: mover.ActionPrune, ExtraArgs: target.ResticArgs},
+		Env:     env,
+		Mounts:  mounts,
+		Binds:   binds,
+		Stdout:  out,
+		Labels:  o.moverLabels(target, app, "prune"),
+		Retain:  true,
 	})
 	return err
 }
@@ -279,18 +282,19 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 	}
 
 	_, _, err = o.eng.RunMover(ctx, mover.Request{
-		Name:   moverName(app, target.Name),
-		Image:  o.image,
-		User:   user,
-		Groups: groups,
-		Spec:   spec,
-		Env:    env,
-		Mounts: mounts,
-		Binds:  binds,
-		Stdout: out,
-		Labels: o.moverLabels(target, app, "restore"),
-		Retain: true,
-		Node:   node,
+		Name:    moverName(app, target.Name),
+		Image:   o.image,
+		User:    user,
+		Groups:  groups,
+		Network: o.cfg.MoverNetwork,
+		Spec:    spec,
+		Env:     env,
+		Mounts:  mounts,
+		Binds:   binds,
+		Stdout:  out,
+		Labels:  o.moverLabels(target, app, "restore"),
+		Retain:  true,
+		Node:    node,
 	})
 	return err
 }
