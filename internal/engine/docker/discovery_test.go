@@ -186,3 +186,104 @@ func TestListExcludeVolumes(t *testing.T) {
 		t.Errorf("want [data immich-library], got %v", names)
 	}
 }
+
+func TestListNamedBackupsBecomeSeparateJobs(t *testing.T) {
+	fd := &fakeDocker{
+		list: []container.Summary{{
+			ID:    "abc",
+			Names: []string{"/app-server"},
+			Labels: map[string]string{
+				"sabon.enable":           "true",
+				"sabon.backup":           "repo: app\n",
+				"sabon.backup.data":      "auto: false\nextraPaths: [/srv/data]\n",
+				"sabon.backup.snapshots": "repo: app-snapshots\nauto: false\nextraPaths: [/srv/snap]\n",
+			},
+		}},
+		mounts: map[string][]container.MountPoint{
+			"app-server": {{Type: mount.TypeBind, Source: "/srv/config", Destination: "/config"}},
+		},
+	}
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
+	jobs, err := d.List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	got := map[string][]string{}
+	for _, j := range jobs {
+		if j.Container != "app-server" {
+			t.Errorf("job %q container = %q, want app-server", j.App, j.Container)
+		}
+		for _, s := range j.Sources {
+			got[j.App] = append(got[j.App], s.Ref)
+		}
+	}
+	// singleton keeps its auto mounts; data defaults its repo to <service>-<name>
+	// (service = container name without a compose label); an explicit repo wins.
+	want := map[string][]string{
+		"app":             {"/srv/config"},
+		"app-server-data": {"/srv/data"},
+		"app-snapshots":   {"/srv/snap"},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("jobs = %v, want %v", got, want)
+	}
+	for app, refs := range want {
+		if len(got[app]) != 1 || got[app][0] != refs[0] {
+			t.Errorf("app %q sources = %v, want %v", app, got[app], refs)
+		}
+	}
+}
+
+func TestListNamedOnlyContainer(t *testing.T) {
+	fd := &fakeDocker{list: []container.Summary{{
+		ID:    "abc",
+		Names: []string{"/app-server"},
+		Labels: map[string]string{
+			"sabon.enable":               "true",
+			"sabon.backup.data":          "auto: false\nextraPaths: [/srv/data]\n",
+			"com.docker.compose.service": "app",
+		},
+	}}}
+	jobs, err := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	// the compose service, not the container name, prefixes the default repo
+	if len(jobs) != 1 || jobs[0].App != "app-data" {
+		t.Fatalf("jobs = %+v, want one job for app app-data", jobs)
+	}
+}
+
+// The same <name> on two services must not collide: each default repo is
+// prefixed with its own service.
+func TestListSameNamedBackupOnTwoContainers(t *testing.T) {
+	spec := "auto: false\nextraPaths: [/srv/x]\n"
+	fd := &fakeDocker{list: []container.Summary{
+		{ID: "a", Names: []string{"/one"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup.data": spec}},
+		{ID: "b", Names: []string{"/two"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup.data": spec}},
+	}}
+	jobs, err := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 2 || jobs[0].App != "one-data" || jobs[1].App != "two-data" {
+		t.Fatalf("jobs = %+v, want [one-data two-data]", jobs)
+	}
+}
+
+// Two containers resolving to the same repository must back up from neither,
+// so no path (schedule, CLI, API restore) can pick an arbitrary one.
+func TestListDropsCollidingApps(t *testing.T) {
+	fd := &fakeDocker{list: []container.Summary{
+		{ID: "a", Names: []string{"/one"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup": "repo: shared\nauto: false\nextraPaths: [/srv/a]\n"}},
+		{ID: "b", Names: []string{"/two"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup.data": "repo: shared\nauto: false\nextraPaths: [/srv/b]\n"}},
+		{ID: "c", Names: []string{"/three"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup": "auto: false\nextraPaths: [/srv/c]\n"}},
+	}}
+	jobs, err := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 1 || jobs[0].App != "three" {
+		t.Fatalf("jobs = %+v, want only three", jobs)
+	}
+}

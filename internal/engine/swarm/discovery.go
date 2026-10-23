@@ -64,23 +64,29 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 			d.log.Warn("invalid backup labels", "service", svc.Spec.Name, "error", err)
 			continue
 		}
-		if !res.Enabled || !res.HasSpec {
+		if !res.Enabled || !res.HasBackups() {
 			continue
 		}
 		if d.instance != "" && res.Instance != d.instance {
 			continue // owned by a different sabon instance
 		}
-		job, err := d.resolve(ctx, svc, res, nodes)
-		if err != nil {
-			d.log.Warn("cannot resolve backup sources", "service", svc.Spec.Name, "error", err)
-			continue
+		for _, b := range res.Backups() {
+			job, err := d.resolve(ctx, svc, res.Instance, b, nodes)
+			if err != nil {
+				d.log.Warn("cannot resolve backup sources", "service", svc.Spec.Name, "backup", b.Name, "error", err)
+				continue
+			}
+			if len(job.Sources) == 0 {
+				d.log.Warn("backup enabled but no sources resolved", "service", svc.Spec.Name, "app", job.App)
+				continue
+			}
+			jobs = append(jobs, job)
+			d.log.Debug("discovered job", "app", job.App, "service", svc.Spec.Name, "node", job.Node, "sources", len(job.Sources))
 		}
-		if len(job.Sources) == 0 {
-			d.log.Warn("backup enabled but no sources resolved", "service", svc.Spec.Name, "app", job.App)
-			continue
-		}
-		jobs = append(jobs, job)
-		d.log.Debug("discovered job", "app", job.App, "service", svc.Spec.Name, "node", job.Node, "sources", len(job.Sources))
+	}
+	jobs, collisions := discovery.DropNamedCollisions(jobs)
+	for app, services := range collisions {
+		d.log.Error("repository claimed by a named backup and another backup, backing up none of them", "app", app, "services", services)
 	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
@@ -88,33 +94,32 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 
 // resolve turns a service + its spec into a Job with concrete sources, taken
 // from the service's ContainerSpec mounts (auto) plus the spec's extras.
-func (d *Discoverer) resolve(ctx context.Context, svc swarm.Service, res label.Result, nodes []swarm.Node) (discovery.Job, error) {
+func (d *Discoverer) resolve(ctx context.Context, svc swarm.Service, instance string, b label.Named, nodes []swarm.Node) (discovery.Job, error) {
 	sname := svc.Spec.Name
 	labels := svc.Spec.Labels
-	app := res.Spec.Repo
-	if app == "" {
-		if s := labels[discovery.ComposeServiceLabel]; s != "" {
-			app = s
-		} else {
-			app = sname
-		}
+	spec := b.Spec
+	service := labels[discovery.ComposeServiceLabel]
+	if service == "" {
+		service = sname
 	}
+	app := b.App(service)
 	if err := discovery.ValidAppName(app); err != nil {
 		return discovery.Job{}, err
 	}
 	job := discovery.Job{
 		Container: sname, // the service ref, used by the quiescer for scale-to-0
+		Backup:    b.Name,
 		App:       app,
-		Instance:  res.Instance,
+		Instance:  instance,
 		Project:   labels[discovery.ComposeProjectLabel],
-		Spec:      res.Spec,
+		Spec:      spec,
 		Node:      d.nodeFor(ctx, svc, nodes),
 	}
 	names := discovery.NewNamer()
 	// Auto: the service's own bind mounts and named volumes.
-	if cs := svc.Spec.TaskTemplate.ContainerSpec; res.Spec.AutoSources() && cs != nil {
-		excluded := make(map[string]struct{}, len(res.Spec.ExcludeVolumes))
-		for _, v := range res.Spec.ExcludeVolumes {
+	if cs := svc.Spec.TaskTemplate.ContainerSpec; spec.AutoSources() && cs != nil {
+		excluded := make(map[string]struct{}, len(spec.ExcludeVolumes))
+		for _, v := range spec.ExcludeVolumes {
 			excluded[v] = struct{}{}
 		}
 		for _, m := range cs.Mounts {
@@ -136,14 +141,14 @@ func (d *Discoverer) resolve(ctx context.Context, svc swarm.Service, res label.R
 		}
 	}
 	// Explicit named volumes.
-	for _, v := range res.Spec.ExtraVolumes {
+	for _, v := range spec.ExtraVolumes {
 		if v == "" {
 			continue
 		}
 		job.Sources = append(job.Sources, discovery.Source{Name: names.Pick(v), Type: mount.TypeVolume, Ref: v})
 	}
 	// Explicit host paths.
-	for _, p := range res.Spec.ExtraPaths {
+	for _, p := range spec.ExtraPaths {
 		if p == "" {
 			continue
 		}

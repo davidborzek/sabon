@@ -54,47 +54,53 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 			d.log.Warn("invalid backup labels", "container", name(c), "error", err)
 			continue
 		}
-		if !res.Enabled || !res.HasSpec {
+		if !res.Enabled || !res.HasBackups() {
 			continue
 		}
 		if d.instance != "" && res.Instance != d.instance {
 			continue // owned by a different sabon instance
 		}
-		job, err := d.resolve(ctx, name(c), c.Labels, res)
-		if err != nil {
-			d.log.Warn("cannot resolve backup sources", "container", name(c), "error", err)
-			continue
+		for _, b := range res.Backups() {
+			job, err := d.resolve(ctx, name(c), c.Labels, res.Instance, b)
+			if err != nil {
+				d.log.Warn("cannot resolve backup sources", "container", name(c), "backup", b.Name, "error", err)
+				continue
+			}
+			if len(job.Sources) == 0 {
+				d.log.Warn("backup enabled but no sources resolved", "container", name(c), "app", job.App)
+				continue
+			}
+			jobs = append(jobs, job)
+			d.log.Debug("discovered job", "app", job.App, "container", name(c), "sources", len(job.Sources))
 		}
-		if len(job.Sources) == 0 {
-			d.log.Warn("backup enabled but no sources resolved", "container", name(c), "app", job.App)
-			continue
-		}
-		jobs = append(jobs, job)
-		d.log.Debug("discovered job", "app", job.App, "container", name(c), "sources", len(job.Sources))
+	}
+	jobs, collisions := discovery.DropNamedCollisions(jobs)
+	for app, containers := range collisions {
+		d.log.Error("repository claimed by a named backup and another backup, backing up none of them", "app", app, "containers", containers)
 	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
 }
 
-// resolve turns a container + its spec into a Job with concrete sources.
-func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[string]string, res label.Result) (discovery.Job, error) {
-	app := res.Spec.Repo
-	if app == "" {
-		if svc := labels[discovery.ComposeServiceLabel]; svc != "" {
-			app = svc
-		} else {
-			app = cname
-		}
+// resolve turns a container + one of its backup specs into a Job with concrete
+// sources. The singleton's fallback app is the compose service, else the
+// container name.
+func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[string]string, instance string, b label.Named) (discovery.Job, error) {
+	spec := b.Spec
+	service := labels[discovery.ComposeServiceLabel]
+	if service == "" {
+		service = cname
 	}
+	app := b.App(service)
 	if err := discovery.ValidAppName(app); err != nil {
 		return discovery.Job{}, err
 	}
-	job := discovery.Job{Container: cname, App: app, Instance: res.Instance, Project: labels[discovery.ComposeProjectLabel], Spec: res.Spec}
+	job := discovery.Job{Container: cname, Backup: b.Name, App: app, Instance: instance, Project: labels[discovery.ComposeProjectLabel], Spec: spec}
 	names := discovery.NewNamer()
 	// Auto: the container's own bind mounts and named volumes.
-	if res.Spec.AutoSources() {
-		excluded := make(map[string]struct{}, len(res.Spec.ExcludeVolumes))
-		for _, v := range res.Spec.ExcludeVolumes {
+	if spec.AutoSources() {
+		excluded := make(map[string]struct{}, len(spec.ExcludeVolumes))
+		for _, v := range spec.ExcludeVolumes {
 			excluded[v] = struct{}{}
 		}
 		insp, err := d.cli.ContainerInspect(ctx, cname)
@@ -128,14 +134,14 @@ func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[strin
 		}
 	}
 	// Explicit named volumes (may belong to sibling containers of the app).
-	for _, v := range res.Spec.ExtraVolumes {
+	for _, v := range spec.ExtraVolumes {
 		if v == "" {
 			continue
 		}
 		job.Sources = append(job.Sources, discovery.Source{Name: names.Pick(v), Type: mount.TypeVolume, Ref: v})
 	}
 	// Explicit host paths.
-	for _, p := range res.Spec.ExtraPaths {
+	for _, p := range spec.ExtraPaths {
 		if p == "" {
 			continue
 		}

@@ -32,6 +32,7 @@ type Source struct {
 // Job is a resolved backup unit for one app.
 type Job struct {
 	Container string   // labelled container name (standalone) or service ref (swarm)
+	Backup    string   // <name> of a <prefix>.backup.<name> spec; empty for <prefix>.backup
 	App       string   // repository/app name
 	Instance  string   // owning sabon instance (from <prefix>.instance)
 	Project   string   // labelled container's compose project (scopes exec hooks)
@@ -59,6 +60,33 @@ func Signal(ch chan<- struct{}) {
 	case ch <- struct{}{}:
 	default:
 	}
+}
+
+// DropNamedCollisions removes every job whose app (repository) is claimed by
+// more than one job when at least one of them is a named backup, returning the
+// kept jobs in order and the colliding apps with their containers. Backing up
+// from none is deliberate: picking one would silently skip the other's data,
+// and a restore could target the wrong one. Plain <prefix>.backup labels
+// sharing a repo (sibling containers of one app) are left as they are.
+func DropNamedCollisions(jobs []Job) ([]Job, map[string][]string) {
+	containers := map[string][]string{}
+	named := map[string]bool{}
+	for _, j := range jobs {
+		containers[j.App] = append(containers[j.App], j.Container)
+		if j.Backup != "" {
+			named[j.App] = true
+		}
+	}
+	collisions := map[string][]string{}
+	kept := make([]Job, 0, len(jobs))
+	for _, j := range jobs {
+		if named[j.App] && len(containers[j.App]) > 1 {
+			collisions[j.App] = containers[j.App]
+			continue
+		}
+		kept = append(kept, j)
+	}
+	return kept, collisions
 }
 
 var unsafeName = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
