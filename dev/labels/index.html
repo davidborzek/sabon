@@ -851,6 +851,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#named" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multiple backups per container
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validating-and-schema" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1487,6 +1498,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#named" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multiple backups per container
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validating-and-schema" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1601,6 +1623,8 @@ configurable via <code>SABON_LABEL_PREFIX</code> (default <code>sabon</code>).</
 <dd>Optional instance id. When you run multiple sabon orchestrators, each only manages containers whose <code>sabon.instance</code> matches its own — use it to partition ownership.</dd>
 <dt><code>sabon.backup</code></dt>
 <dd>The backup spec (document-form YAML). See below.</dd>
+<dt><code>sabon.backup.&lt;name&gt;</code></dt>
+<dd>An additional, independent backup spec on the same container, with its own repository. See <a href="#named">Multiple backups per container</a>.</dd>
 </dl>
 <h2 id="the-sabonbackup-document">The <code>sabon.backup</code> document<a class="headerlink" href="#the-sabonbackup-document" title="Permanent link">&para;</a></h2>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">labels</span><span class="p">:</span>
@@ -1624,7 +1648,7 @@ configurable via <code>SABON_LABEL_PREFIX</code> (default <code>sabon</code>).</
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="no">postHooks: []</span>
 </span></code></pre></div>
 <h3 id="repo"><code>repo</code><a class="headerlink" href="#repo" title="Permanent link">&para;</a></h3>
-<p><em>string · default: compose service, else container name</em> — The app / repo name. Determines the per-target repo (<code>&lt;path&gt;/&lt;repo&gt;</code> or <code>{app}</code> → <code>repo</code>); sibling containers of the same app should share one <code>repo</code>.</p>
+<p><em>string · default: compose service, else container name (for <code>sabon.backup.&lt;name&gt;</code>: <code>&lt;service&gt;-&lt;name&gt;</code>)</em> — The app / repo name. Determines the per-target repo (<code>&lt;path&gt;/&lt;repo&gt;</code> or <code>{app}</code> → <code>repo</code>); sibling containers of the same app should share one <code>repo</code>.</p>
 <h3 id="auto"><code>auto</code><a class="headerlink" href="#auto" title="Permanent link">&para;</a></h3>
 <p><em>bool · default <code>true</code></em> — Include the labelled container's own bind mounts <strong>and</strong> named volumes automatically.</p>
 <h3 id="extravolumes"><code>extraVolumes</code><a class="headerlink" href="#extravolumes" title="Permanent link">&para;</a></h3>
@@ -1733,6 +1757,37 @@ a pre-hook (<a href="../hooks/">Hooks</a> shows both hook styles):</p>
 a consistent <code>.sql</code> into <code>immich-dbdump</code>, which <em>is</em> included). On restore you
 recreate the database from the dump rather than from raw Postgres files. See
 <a href="../hooks/">Hooks</a> for the exec-mode variant of the same <code>pg_dump</code>.</p>
+<h2 id="named">Multiple backups per container<a class="headerlink" href="#named" title="Permanent link">&para;</a></h2>
+<p>One <code>sabon.backup</code> label gives one repository. When a container's data should go
+to <strong>several repositories</strong> — different retention, different targets, or sources
+you want to restore independently — add named specs next to (or instead of) it:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">sabon.enable</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">sabon.backup</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w">              </span><span class="c1"># repo: compose service name, as before</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="no">auto: true</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">sabon.backup.media</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w">        </span><span class="c1"># repo: &lt;service&gt;-media</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="no">auto: false</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="no">extraPaths: [/srv/media]</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="no">targets: [onsite]</span>
+</span></code></pre></div>
+<p>Each <code>sabon.backup.&lt;name&gt;</code> is a full spec (every field above), backed up as its
+own job with its own schedule, retention, hooks and repository. Without <code>repo</code>,
+the repository is named <code>&lt;service&gt;-&lt;name&gt;</code> (compose service, else container
+name), so the same <code>&lt;name&gt;</code> on two services never collides; set <code>repo</code> to
+choose another.</p>
+<ul>
+<li><code>&lt;name&gt;</code> is lower-case <code>[a-z0-9-]</code>, starting and ending alphanumeric.</li>
+<li><code>auto</code> keeps its default of <code>true</code>, so every spec on the container would
+  include the container's own mounts. Set <code>auto: false</code> on specs that only back
+  up their <code>extraPaths</code>/<code>extraVolumes</code>.</li>
+<li>A named spec must own its repository. If it resolves to the same repository
+  as any other spec (named or plain, on any container), sabon logs an error and
+  backs up <strong>none</strong> of them — rather than picking one and silently skipping the
+  other's data, or restoring into the wrong container. Fix it with a distinct
+  <code>repo</code>. Plain <code>sabon.backup</code> labels sharing one <code>repo</code> (sibling containers of
+  an app) keep their existing behaviour.</li>
+<li>The plain <code>sabon.backup</code> label is unchanged and stays the common case.</li>
+</ul>
 <h2 id="validating-and-schema">Validating and schema<a class="headerlink" href="#validating-and-schema" title="Permanent link">&para;</a></h2>
 <p>These run inside the sabon container (e.g. <code>docker compose exec sabon /sabon validate</code>):</p>
 <ul>
