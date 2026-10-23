@@ -156,24 +156,52 @@ func (z *snapshotter) Snapshot(ctx context.Context, app string, sources []snapsh
 		mounts = append(mounts, snapshot.Mount{Name: s.Name, HostPath: readPath(ds.mountpoint, suffix, sub)})
 	}
 
-	// One `zfs snapshot` for every dataset at once: atomic (a single TXG, so
-	// sources on different datasets are mutually consistent) and one snapshotter
-	// spawn instead of one per dataset. On failure ZFS creates none, so there
-	// is nothing to clean up.
-	if _, err := z.runner.run(ctx, append([]string{"snapshot"}, snapNames...)...); err != nil {
-		return nil, nil, fmt.Errorf("zfs snapshot: %w", err)
-	}
-	z.log.Debug("created zfs snapshot", "app", app, "snapshots", snapNames)
-
-	cleanup := func(ctx context.Context) {
-		z.log.Debug("destroying zfs snapshot", "snapshots", snapNames)
-		for _, snap := range snapNames {
+	// One `zfs snapshot` per pool: atomic within a pool (a single TXG, so sources
+	// on its datasets are mutually consistent). ZFS cannot snapshot across pools
+	// in one call, so pools are taken back to back. A failed call creates nothing
+	// itself; snapshots already taken on earlier pools are destroyed.
+	var taken []string
+	destroy := func(ctx context.Context, snaps []string) {
+		for _, snap := range snaps {
 			if _, err := z.runner.run(ctx, "destroy", snap); err != nil {
 				z.log.Warn("failed to destroy zfs snapshot", "snapshot", snap, "error", err)
 			}
 		}
 	}
+	for _, group := range groupByPool(snapNames) {
+		if _, err := z.runner.run(ctx, append([]string{"snapshot"}, group...)...); err != nil {
+			destroy(context.WithoutCancel(ctx), taken)
+			return nil, nil, fmt.Errorf("zfs snapshot: %w", err)
+		}
+		taken = append(taken, group...)
+	}
+	z.log.Debug("created zfs snapshot", "app", app, "snapshots", snapNames)
+
+	cleanup := func(ctx context.Context) {
+		z.log.Debug("destroying zfs snapshot", "snapshots", snapNames)
+		destroy(ctx, snapNames)
+	}
 	return mounts, cleanup, nil
+}
+
+// groupByPool splits "<dataset>@<snap>" names by pool (the dataset's first path
+// component), keeping first-seen order of pools and of names within a pool.
+func groupByPool(snaps []string) [][]string {
+	var order []string
+	groups := map[string][]string{}
+	for _, s := range snaps {
+		ds, _, _ := strings.Cut(s, "@")
+		pool, _, _ := strings.Cut(ds, "/")
+		if _, ok := groups[pool]; !ok {
+			order = append(order, pool)
+		}
+		groups[pool] = append(groups[pool], s)
+	}
+	out := make([][]string, 0, len(order))
+	for _, p := range order {
+		out = append(out, groups[p])
+	}
+	return out
 }
 
 type dataset struct {
