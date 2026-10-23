@@ -221,20 +221,54 @@ func (r *Reconciler) sendNotify(d notify.Data) {
 // RunAll runs every discovered job against all its targets, synchronously.
 // Used by --run-on-startup and the one-shot `sabon backup` command.
 func (r *Reconciler) RunAll(ctx context.Context, appFilter string) error {
+	return r.RunMatching(ctx, appFilter, "")
+}
+
+// RunMatching runs every discovered job/target pair matching the filters
+// (empty = any) once, synchronously. A filter that matches nothing is an error.
+func (r *Reconciler) RunMatching(ctx context.Context, appFilter, targetFilter string) error {
 	jobs, err := r.disc.List(ctx)
 	if err != nil {
 		return err
 	}
+	plans, err := filterPlans(r.plans(jobs), appFilter, targetFilter)
+	if err != nil {
+		return err
+	}
 	var errs []error
-	for _, p := range r.plans(jobs) {
-		if appFilter != "" && p.job.App != appFilter {
-			continue
-		}
+	for _, p := range plans {
 		if err := r.runOnce(ctx, p.job, p.target); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// filterPlans keeps the plans matching app and target (empty = any). It fails
+// when a non-empty filter selects nothing, so a typo is not a silent no-op.
+func filterPlans(plans []plan, app, target string) ([]plan, error) {
+	var out []plan
+	appSeen := false
+	for _, p := range plans {
+		if app != "" && p.job.App != app {
+			continue
+		}
+		appSeen = true
+		if target == "" || p.target.Name == target {
+			out = append(out, p)
+		}
+	}
+	if len(out) > 0 || (app == "" && target == "") {
+		return out, nil
+	}
+	switch {
+	case app != "" && !appSeen:
+		return nil, fmt.Errorf("no backup job for app %q", app)
+	case app != "":
+		return nil, fmt.Errorf("app %q does not back up to target %q", app, target)
+	default:
+		return nil, fmt.Errorf("no app backs up to target %q", target)
+	}
 }
 
 // jobFingerprint captures the parts of a backup job that drive its execution

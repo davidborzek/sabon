@@ -11,7 +11,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// runBackupOnce runs every discovered job against its targets once.
+// runBackupOnce runs every discovered job against its targets once, optionally
+// narrowed to one app and/or one target.
 func runBackupOnce(ctx context.Context, cmd *cli.Command) error {
 	cfg, err := config.Load()
 	if err != nil {
@@ -49,5 +50,5 @@ func runBackupOnce(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 	rec := reconcile.New(ctx, disc, orch, cfg, sched, m, notifier, logger)
-	return rec.RunAll(ctx, cmd.String("app"))
+	return rec.RunMatching(ctx, cmd.String("app"), cmd.String("target"))
 }

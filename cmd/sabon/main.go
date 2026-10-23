@@ -39,6 +39,7 @@ func main() {
 		Commands: []*cli.Command{
 			{Name: "backup", Usage: "Run all backups once and exit", Action: runBackupOnce, Flags: []cli.Flag{
 				&cli.StringFlag{Name: "app", Usage: "only back up this app"},
+				&cli.StringFlag{Name: "target", Usage: "only back up to this target (default: all of each app's targets)"},
 			}},
 			{Name: "validate", Usage: "Discover jobs and print the plan without backing up", Action: runValidate},
 			{Name: "snapshots", Usage: "List snapshots for an app", Action: runSnapshots, Flags: []cli.Flag{

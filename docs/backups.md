@@ -47,10 +47,15 @@ Snapshots, retention, listing and restore are always scoped to one
 ### Running on demand
 
 ```sh
-sabon backup                 # run every app's backups once, then exit
-sabon backup --app immich    # just this app (all its targets)
-sabon validate               # print the plan without backing up
+sabon backup                                  # run every app's backups once, then exit
+sabon backup --app immich                     # just this app (all its targets)
+sabon backup --target onsite                  # every app, but only to this target
+sabon backup --app immich --target onsite     # one app to one target
+sabon validate                                # print the plan without backing up
 ```
+
+A filter that matches nothing (unknown app or target, or an app that does not
+back up to that target) fails instead of silently doing nothing.
 
 Set `SABON_RUN_ON_STARTUP=true` to run everything once at daemon startup before
 following the schedules.
