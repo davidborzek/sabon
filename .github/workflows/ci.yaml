@@ -2,9 +2,15 @@ name: ci
 
 on:
   pull_request:
+  # new stdlib/module advisories land without any commit; surface them on main
+  # before they first show up as an unrelated PR failing the vuln job
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 jobs:
   build:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -18,6 +24,7 @@ jobs:
       - run: go build ./...
 
   lint:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -59,6 +66,7 @@ jobs:
           fi
 
   e2e:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -70,6 +78,7 @@ jobs:
       - run: go test -tags e2e -run TestBackupSnapshotsRestore ./test/e2e/
 
   e2e-sftp:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -81,6 +90,7 @@ jobs:
       - run: go test -tags e2e -run TestSFTPTargets ./test/e2e/
 
   e2e-swarm:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

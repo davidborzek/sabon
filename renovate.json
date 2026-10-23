@@ -5,6 +5,7 @@
     ":semanticCommits"
   ],
   "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "description": "Automerge non-major updates once CI passes",
@@ -21,6 +22,20 @@
       "matchDatasources": ["go"],
       "matchPackageNames": ["github.com/docker/docker"],
       "enabled": false
+    },
+    {
+      "description": "The go directive is the module's minimum language version, not the build toolchain; keep it manual.",
+      "matchManagers": ["gomod"],
+      "matchDepTypes": ["golang"],
+      "enabled": false
+    },
+    {
+      "description": "Go toolchain patches carry stdlib security fixes (govulncheck fails CI until they land): skip the release-age wait and automerge.",
+      "matchManagers": ["gomod"],
+      "matchDepTypes": ["toolchain"],
+      "matchUpdateTypes": ["patch"],
+      "minimumReleaseAge": null,
+      "automerge": true
     }
   ]
 }
