@@ -1398,6 +1398,12 @@ subpath — the backup still contains only immich, and the snapshot is cheap
 (copy-on-write, instant, released immediately). For a per-app snapshot, make
 each app its own child dataset (<code>appdata/immich</code>): sabon always snapshots the
 <em>longest-matching</em> dataset, so it adapts to your layout automatically.</p>
+<p><strong>Atomic per pool.</strong> All of an app's datasets in one pool are snapshotted in a
+single <code>zfs snapshot</code>, so they are mutually consistent. ZFS cannot snapshot
+across pools in one call, so an app whose sources span several pools gets one
+snapshot per pool, taken back to back — consistent within each pool, a few
+milliseconds apart between pools. If a later pool fails, the snapshots already
+taken are destroyed and the backup fails.</p>
 <p><strong>Requirements.</strong> ZFS snapshots are host-privileged, so the <code>zfs</code> calls run in a
 small, ephemeral <strong>privileged</strong> image (<code>SABON_SNAPSHOT_ZFS_IMAGE</code>) that runs the
 host's own <code>zfs</code>. The source
