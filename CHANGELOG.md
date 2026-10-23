@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0](https://github.com/davidborzek/sabon/compare/v0.4.0...v0.5.0) (2026-10-23)
+
+
+### Features
+
+* support multiple backups per container via named labels ([#41](https://github.com/davidborzek/sabon/issues/41)) ([5964906](https://github.com/davidborzek/sabon/commit/5964906a5912261cf8c5c565ba6138176b710a36))
+
+
+### Bug Fixes
+
+* **deps:** bump go to 1.26.10 for crypto/x509 fix ([#40](https://github.com/davidborzek/sabon/issues/40)) ([5a4110e](https://github.com/davidborzek/sabon/commit/5a4110ed74c6db84159c5f93bec91c565fc9d765))
+* take one zfs snapshot per pool ([#39](https://github.com/davidborzek/sabon/issues/39)) ([65bfeee](https://github.com/davidborzek/sabon/commit/65bfeee09e891e8b9286a9eb6715326092441fb3))
+
 ## [0.4.0](https://github.com/davidborzek/sabon/compare/v0.3.2...v0.4.0) (2026-10-18)
 
 
