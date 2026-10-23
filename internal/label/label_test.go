@@ -81,6 +81,58 @@ func TestReadSpec(t *testing.T) {
 	}
 }
 
+func TestReadNamedSpecs(t *testing.T) {
+	res, err := Read(map[string]string{
+		"sabon.enable":      "true",
+		"sabon.backup":      "repo: app\n",
+		"sabon.backup.data": "auto: false\nextraPaths: [/srv/data]\n",
+		"sabon.backup.db":   "repo: app-db\nauto: false\n",
+		"sabon.backupx":     "ignored: true\n", // not the backup kind
+	}, "sabon", false)
+	if err != nil {
+		t.Fatalf("Read: %v", err)
+	}
+	if !res.HasSpec || res.Spec.Repo != "app" {
+		t.Errorf("singleton spec = %+v (HasSpec=%v), want repo app", res.Spec, res.HasSpec)
+	}
+	if len(res.Named) != 2 || res.Named[0].Name != "data" || res.Named[1].Name != "db" {
+		t.Fatalf("Named = %+v, want [data db] sorted by name", res.Named)
+	}
+	if got := res.Named[0].Spec.ExtraPaths; len(got) != 1 || got[0] != "/srv/data" {
+		t.Errorf("named data extraPaths = %v", got)
+	}
+	if res.Named[1].Spec.Repo != "app-db" {
+		t.Errorf("named db repo = %q, want app-db", res.Named[1].Spec.Repo)
+	}
+}
+
+func TestReadNamedOnly(t *testing.T) {
+	res, err := Read(map[string]string{"sabon.enable": "true", "sabon.backup.data": "auto: false\n"}, "sabon", false)
+	if err != nil {
+		t.Fatalf("Read: %v", err)
+	}
+	if res.HasSpec {
+		t.Error("HasSpec must stay false without the singleton label")
+	}
+	if !res.HasBackups() || len(res.Named) != 1 {
+		t.Errorf("want one named backup, got %+v", res.Named)
+	}
+}
+
+func TestReadNamedInvalidNameFailsClosed(t *testing.T) {
+	for _, key := range []string{"sabon.backup.", "sabon.backup.a.b", "sabon.backup.Data", "sabon.backup.-x"} {
+		if _, err := Read(map[string]string{key: "auto: false\n"}, "sabon", false); err == nil {
+			t.Errorf("%s: expected an invalid-name error", key)
+		}
+	}
+}
+
+func TestReadNamedTypoFailsClosed(t *testing.T) {
+	if _, err := Read(map[string]string{"sabon.backup.data": "extrapaths: [/x]\n"}, "sabon", false); err == nil {
+		t.Fatal("expected error for an unknown field in a named spec")
+	}
+}
+
 func TestReadSpecUnknownFieldFailsClosed(t *testing.T) {
 	_, err := Read(map[string]string{"sabon.backup": "repoo: typo\n"}, "sabon", false)
 	if err == nil {

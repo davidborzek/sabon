@@ -186,3 +186,65 @@ func TestListExcludeVolumes(t *testing.T) {
 		t.Errorf("want [data immich-library], got %v", names)
 	}
 }
+
+func TestListNamedBackupsBecomeSeparateJobs(t *testing.T) {
+	fd := &fakeDocker{
+		list: []container.Summary{{
+			ID:    "abc",
+			Names: []string{"/app-server"},
+			Labels: map[string]string{
+				"sabon.enable":           "true",
+				"sabon.backup":           "repo: app\n",
+				"sabon.backup.data":      "auto: false\nextraPaths: [/srv/data]\n",
+				"sabon.backup.snapshots": "repo: app-snapshots\nauto: false\nextraPaths: [/srv/snap]\n",
+			},
+		}},
+		mounts: map[string][]container.MountPoint{
+			"app-server": {{Type: mount.TypeBind, Source: "/srv/config", Destination: "/config"}},
+		},
+	}
+	d := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger())
+	jobs, err := d.List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	got := map[string][]string{}
+	for _, j := range jobs {
+		if j.Container != "app-server" {
+			t.Errorf("job %q container = %q, want app-server", j.App, j.Container)
+		}
+		for _, s := range j.Sources {
+			got[j.App] = append(got[j.App], s.Ref)
+		}
+	}
+	// singleton keeps its auto mounts; data defaults its repo to the label name;
+	// an explicit repo wins.
+	want := map[string][]string{
+		"app":           {"/srv/config"},
+		"data":          {"/srv/data"},
+		"app-snapshots": {"/srv/snap"},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("jobs = %v, want %v", got, want)
+	}
+	for app, refs := range want {
+		if len(got[app]) != 1 || got[app][0] != refs[0] {
+			t.Errorf("app %q sources = %v, want %v", app, got[app], refs)
+		}
+	}
+}
+
+func TestListNamedOnlyContainer(t *testing.T) {
+	fd := &fakeDocker{list: []container.Summary{{
+		ID:     "abc",
+		Names:  []string{"/app-server"},
+		Labels: map[string]string{"sabon.enable": "true", "sabon.backup.data": "auto: false\nextraPaths: [/srv/data]\n"},
+	}}}
+	jobs, err := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 1 || jobs[0].App != "data" {
+		t.Fatalf("jobs = %+v, want one job for app data", jobs)
+	}
+}

@@ -22,6 +22,9 @@ configurable via `SABON_LABEL_PREFIX` (default `sabon`).
 `sabon.backup`
 :   The backup spec (document-form YAML). See below.
 
+`sabon.backup.<name>`
+:   An additional, independent backup spec on the same container, with its own repository. See [Multiple backups per container](#named).
+
 ## The `sabon.backup` document
 
 ```yaml
@@ -48,7 +51,7 @@ labels:
 
 ### `repo`
 
-*string · default: compose service, else container name* — The app / repo name. Determines the per-target repo (`<path>/<repo>` or `{app}` → `repo`); sibling containers of the same app should share one `repo`.
+*string · default: compose service, else container name (for `sabon.backup.<name>`: `<name>`)* — The app / repo name. Determines the per-target repo (`<path>/<repo>` or `{app}` → `repo`); sibling containers of the same app should share one `repo`.
 
 ### `auto`
 
@@ -198,6 +201,35 @@ Here `immich-pgdata` is deliberately left out of the backup (the pre-hook writes
 a consistent `.sql` into `immich-dbdump`, which *is* included). On restore you
 recreate the database from the dump rather than from raw Postgres files. See
 [Hooks](hooks.md) for the exec-mode variant of the same `pg_dump`.
+
+## Multiple backups per container {#named}
+
+One `sabon.backup` label gives one repository. When a container's data should go
+to **several repositories** — different retention, different targets, or sources
+you want to restore independently — add named specs next to (or instead of) it:
+
+```yaml
+labels:
+  sabon.enable: "true"
+  sabon.backup: |              # repo: compose service name, as before
+    auto: true
+  sabon.backup.media: |        # repo: media
+    auto: false
+    extraPaths: [/srv/media]
+    targets: [onsite]
+```
+
+Each `sabon.backup.<name>` is a full spec (every field above), backed up as its
+own job with its own schedule, retention, hooks and repository. Without `repo`,
+the repository is named `<name>`; set `repo` to choose another.
+
+- `<name>` is lower-case `[a-z0-9-]`, starting and ending alphanumeric.
+- `auto` keeps its default of `true`, so every spec on the container would
+  include the container's own mounts. Set `auto: false` on specs that only back
+  up their `extraPaths`/`extraVolumes`.
+- Repository names must be unique per target: two specs resolving to the same
+  repository are reported and the duplicate is skipped, as for two containers.
+- The plain `sabon.backup` label is unchanged and stays the common case.
 
 ## Validating and schema
 

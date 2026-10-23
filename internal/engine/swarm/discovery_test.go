@@ -146,3 +146,23 @@ func TestSwarmDiscoverUnresolvedTaskFallsBackToConstraint(t *testing.T) {
 		t.Fatalf("an unresolved task node must fall back to the placement constraint (never a raw id); jobs=%+v", jobs)
 	}
 }
+
+func TestSwarmDiscoverNamedBackups(t *testing.T) {
+	svc := svcWith("app-svc", "repo: app", []mount.Mount{{Type: mount.TypeVolume, Source: "app-data", Target: "/data"}})
+	svc.Spec.Labels["sabon.backup.media"] = "auto: false\nextraPaths: [/srv/media]\n"
+	f := &fakeSwarm{
+		services: []swarm.Service{svc},
+		tasks:    []swarm.Task{{NodeID: "nid1", DesiredState: swarm.TaskStateRunning}},
+		nodes:    []swarm.Node{{ID: "nid1", Description: swarm.NodeDescription{Hostname: "worker-1"}}},
+	}
+	jobs, err := NewDiscoverer(f, "sabon", false, "sabon-cache", "", discardLog()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 2 || jobs[0].App != "app" || jobs[1].App != "media" {
+		t.Fatalf("jobs = %+v, want [app media]", jobs)
+	}
+	if jobs[1].Node != "worker-1" || len(jobs[1].Sources) != 1 || jobs[1].Sources[0].Ref != "/srv/media" {
+		t.Errorf("named job = %+v", jobs[1])
+	}
+}

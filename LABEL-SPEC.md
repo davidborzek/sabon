@@ -9,7 +9,8 @@ Labels carry a tool's spec next to the service, in the Compose file. This docume
 defines one grammar for those labels so the shape is learned once and tooling can
 parse it uniformly. It is opt-in and implies no dependency between adopting tools.
 
-sabon uses this convention with the prefix `sabon` and a single `backup` kind (see
+sabon uses this convention with the prefix `sabon` and a single `backup` kind, as a
+singleton (`sabon.backup`) and as named resources (`sabon.backup.<name>`) (see
 [docs/labels.md](docs/labels.md)).
 
 ## Grammar
