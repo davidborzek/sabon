@@ -159,10 +159,42 @@ func TestSwarmDiscoverNamedBackups(t *testing.T) {
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
-	if len(jobs) != 2 || jobs[0].App != "app" || jobs[1].App != "media" {
-		t.Fatalf("jobs = %+v, want [app media]", jobs)
+	if len(jobs) != 2 || jobs[0].App != "app" || jobs[1].App != "app-svc-media" {
+		t.Fatalf("jobs = %+v, want [app app-svc-media]", jobs)
 	}
 	if jobs[1].Node != "worker-1" || len(jobs[1].Sources) != 1 || jobs[1].Sources[0].Ref != "/srv/media" {
 		t.Errorf("named job = %+v", jobs[1])
+	}
+}
+
+func TestSwarmDiscoverDropsNamedCollisions(t *testing.T) {
+	two := svcWith("two", "auto: false\nextraPaths: [/srv/b]", nil)
+	delete(two.Spec.Labels, "sabon.backup")
+	two.Spec.Labels["sabon.backup.data"] = "repo: shared\nauto: false\nextraPaths: [/srv/b]"
+	f := &fakeSwarm{services: []swarm.Service{
+		svcWith("one", "repo: shared\nauto: false\nextraPaths: [/srv/a]", nil),
+		two,
+	}}
+	jobs, err := NewDiscoverer(f, "sabon", false, "sabon-cache", "", discardLog()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 0 {
+		t.Fatalf("jobs = %+v, want none: a named backup collides on repo shared", jobs)
+	}
+}
+
+// Plain labels sharing a repo (sibling services) keep the existing behaviour.
+func TestSwarmDiscoverKeepsSingletonSiblings(t *testing.T) {
+	f := &fakeSwarm{services: []swarm.Service{
+		svcWith("one", "repo: shared\nauto: false\nextraPaths: [/srv/a]", nil),
+		svcWith("two", "repo: shared\nauto: false\nextraPaths: [/srv/b]", nil),
+	}}
+	jobs, err := NewDiscoverer(f, "sabon", false, "sabon-cache", "", discardLog()).List(context.Background())
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(jobs) != 2 {
+		t.Fatalf("jobs = %+v, want both sibling services kept", jobs)
 	}
 }

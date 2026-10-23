@@ -74,6 +74,10 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 			d.log.Debug("discovered job", "app", job.App, "container", name(c), "sources", len(job.Sources))
 		}
 	}
+	jobs, collisions := discovery.DropNamedCollisions(jobs)
+	for app, containers := range collisions {
+		d.log.Error("repository claimed by a named backup and another backup, backing up none of them", "app", app, "containers", containers)
+	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
 }
@@ -91,7 +95,7 @@ func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[strin
 	if err := discovery.ValidAppName(app); err != nil {
 		return discovery.Job{}, err
 	}
-	job := discovery.Job{Container: cname, App: app, Instance: instance, Project: labels[discovery.ComposeProjectLabel], Spec: spec}
+	job := discovery.Job{Container: cname, Backup: b.Name, App: app, Instance: instance, Project: labels[discovery.ComposeProjectLabel], Spec: spec}
 	names := discovery.NewNamer()
 	// Auto: the container's own bind mounts and named volumes.
 	if spec.AutoSources() {

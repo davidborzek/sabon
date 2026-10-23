@@ -45,14 +45,15 @@ type Named struct {
 // HasBackups reports whether the container carries any backup spec.
 func (r Result) HasBackups() bool { return r.HasSpec || len(r.Named) > 0 }
 
-// App is the backup's repository name: the spec's repo, else the label name for
-// a named backup, else serviceName for the singleton.
+// App is the backup's repository name: the spec's repo, else serviceName for
+// the singleton and "<serviceName>-<name>" for a named backup, so the same name
+// on two services does not collide.
 func (n Named) App(serviceName string) string {
 	switch {
 	case n.Spec.Repo != "":
 		return n.Spec.Repo
 	case n.Name != "":
-		return n.Name
+		return serviceName + "-" + n.Name
 	default:
 		return serviceName
 	}

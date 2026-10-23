@@ -84,6 +84,10 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 			d.log.Debug("discovered job", "app", job.App, "service", svc.Spec.Name, "node", job.Node, "sources", len(job.Sources))
 		}
 	}
+	jobs, collisions := discovery.DropNamedCollisions(jobs)
+	for app, services := range collisions {
+		d.log.Error("repository claimed by a named backup and another backup, backing up none of them", "app", app, "services", services)
+	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
 }
@@ -104,6 +108,7 @@ func (d *Discoverer) resolve(ctx context.Context, svc swarm.Service, instance st
 	}
 	job := discovery.Job{
 		Container: sname, // the service ref, used by the quiescer for scale-to-0
+		Backup:    b.Name,
 		App:       app,
 		Instance:  instance,
 		Project:   labels[discovery.ComposeProjectLabel],
