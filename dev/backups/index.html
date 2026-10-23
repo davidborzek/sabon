@@ -1314,10 +1314,14 @@ own — see <a href="../architecture/#lifecycle-and-robustness">Architecture</a>
 <p>Snapshots, retention, listing and restore are always scoped to one
 <code>(app, target)</code> pair.</p>
 <h3 id="running-on-demand">Running on demand<a class="headerlink" href="#running-on-demand" title="Permanent link">&para;</a></h3>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sabon<span class="w"> </span>backup<span class="w">                 </span><span class="c1"># run every app's backups once, then exit</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>immich<span class="w">    </span><span class="c1"># just this app (all its targets)</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sabon<span class="w"> </span>validate<span class="w">               </span><span class="c1"># print the plan without backing up</span>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sabon<span class="w"> </span>backup<span class="w">                                  </span><span class="c1"># run every app's backups once, then exit</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>immich<span class="w">                     </span><span class="c1"># just this app (all its targets)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sabon<span class="w"> </span>backup<span class="w"> </span>--target<span class="w"> </span>onsite<span class="w">                  </span><span class="c1"># every app, but only to this target</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>sabon<span class="w"> </span>backup<span class="w"> </span>--app<span class="w"> </span>immich<span class="w"> </span>--target<span class="w"> </span>onsite<span class="w">     </span><span class="c1"># one app to one target</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>sabon<span class="w"> </span>validate<span class="w">                                </span><span class="c1"># print the plan without backing up</span>
 </span></code></pre></div>
+<p>A filter that matches nothing (unknown app or target, or an app that does not
+back up to that target) fails instead of silently doing nothing.</p>
 <p>Set <code>SABON_RUN_ON_STARTUP=true</code> to run everything once at daemon startup before
 following the schedules.</p>
 <h2 id="drivers">Volumes &amp; storage drivers<a class="headerlink" href="#drivers" title="Permanent link">&para;</a></h2>
