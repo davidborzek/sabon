@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0](https://github.com/davidborzek/sabon/compare/v0.5.0...v0.6.0) (2026-10-23)
+
+
+### Features
+
+* add --target to the backup command ([#45](https://github.com/davidborzek/sabon/issues/45)) ([2f28b27](https://github.com/davidborzek/sabon/commit/2f28b27900fa4a1508755e979367e03599121d86))
+
 ## [0.5.0](https://github.com/davidborzek/sabon/compare/v0.4.0...v0.5.0) (2026-10-23)
 
 
