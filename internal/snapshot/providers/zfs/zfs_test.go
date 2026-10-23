@@ -105,6 +105,83 @@ func TestSnapshotFlow(t *testing.T) {
 	}
 }
 
+// ZFS only snapshots atomically within one pool; a single `zfs snapshot` naming
+// datasets of different pools fails with EXDEV. Sources spanning pools must get
+// one snapshot command per pool.
+func TestSnapshotOneCommandPerPool(t *testing.T) {
+	var cmds [][]string
+	run := func(_ context.Context, args ...string) (string, error) {
+		cmds = append(cmds, args)
+		if args[0] == "list" {
+			return "pool-a/apps\t/srv/apps\npool-a/db\t/srv/db\npool-b/data\t/srv/data\n", nil
+		}
+		if args[0] == "snapshot" {
+			pool := ""
+			for _, s := range args[1:] {
+				p, _, _ := strings.Cut(s, "/")
+				if pool != "" && p != pool {
+					return "", errors.New("cannot create snapshots : multiple snapshots of same fs not allowed")
+				}
+				pool = p
+			}
+		}
+		return "", nil
+	}
+	z := &snapshotter{runner: runnerFunc(run), log: testLog()}
+	mounts, cleanup, err := z.Snapshot(context.Background(), "app", []snapshot.Source{
+		{Name: "a", HostPath: "/srv/apps/app"},
+		{Name: "b", HostPath: "/srv/db/app"},
+		{Name: "c", HostPath: "/srv/data/app"},
+	})
+	if err != nil {
+		t.Fatalf("Snapshot: %v", err)
+	}
+	if len(mounts) != 3 {
+		t.Fatalf("want 3 mounts, got %d", len(mounts))
+	}
+	var snaps [][]string
+	for _, c := range cmds {
+		if c[0] == "snapshot" {
+			snaps = append(snaps, c)
+		}
+	}
+	// pool-a's two datasets stay in one atomic command; pool-b gets its own.
+	if len(snaps) != 2 || len(snaps[0]) != 3 || len(snaps[1]) != 2 {
+		t.Fatalf("want [snapshot pool-a/apps@… pool-a/db@…] and [snapshot pool-b/data@…], got %v", snaps)
+	}
+	cleanup(context.Background())
+	if n := count(cmds, "destroy"); n != 3 {
+		t.Errorf("want 3 destroy commands (one per dataset), got %d", n)
+	}
+}
+
+// A later pool failing must not leak the snapshots already taken on earlier pools.
+func TestSnapshotRollsBackEarlierPoolsOnFailure(t *testing.T) {
+	var cmds [][]string
+	run := func(_ context.Context, args ...string) (string, error) {
+		cmds = append(cmds, args)
+		if args[0] == "list" {
+			return "pool-a/apps\t/srv/apps\npool-b/data\t/srv/data\n", nil
+		}
+		if args[0] == "snapshot" && strings.HasPrefix(args[1], "pool-b/") {
+			return "", errors.New("out of space")
+		}
+		return "", nil
+	}
+	z := &snapshotter{runner: runnerFunc(run), log: testLog()}
+	_, _, err := z.Snapshot(context.Background(), "app", []snapshot.Source{
+		{Name: "a", HostPath: "/srv/apps/app"},
+		{Name: "b", HostPath: "/srv/data/app"},
+	})
+	if err == nil {
+		t.Fatal("expected error when a pool's snapshot fails")
+	}
+	destroyed := find(cmds, "destroy")
+	if count(cmds, "destroy") != 1 || !strings.HasPrefix(destroyed[1], "pool-a/apps@") {
+		t.Errorf("want the pool-a snapshot destroyed after pool-b failed, got %v", cmds)
+	}
+}
+
 func TestSnapshotNonZFSFails(t *testing.T) {
 	var cmds [][]string
 	run := func(_ context.Context, args ...string) (string, error) {
