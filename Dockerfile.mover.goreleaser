@@ -6,7 +6,7 @@
 FROM restic/restic:0.19.1 AS restic
 
 # renovate: datasource=docker depName=rclone/rclone
-FROM rclone/rclone:1.75.2 AS rclone
+FROM rclone/rclone:1.76.0 AS rclone
 
 FROM alpine:3.24
 ARG TARGETPLATFORM
