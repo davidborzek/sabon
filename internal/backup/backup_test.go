@@ -361,7 +361,7 @@ func TestColdStopRefcount(t *testing.T) {
 	var cs coldStop
 	stops, starts := 0, 0
 	stop := func() error { stops++; return nil }
-	start := func() { starts++ }
+	start := func() error { starts++; return nil }
 
 	if err := cs.hold(stop); err != nil {
 		t.Fatal(err)
@@ -372,11 +372,15 @@ func TestColdStopRefcount(t *testing.T) {
 	if stops != 1 {
 		t.Fatalf("stops = %d, want 1", stops)
 	}
-	cs.release(start)
+	if err := cs.release(start); err != nil {
+		t.Fatal(err)
+	}
 	if starts != 0 {
 		t.Fatalf("started while a holder remains: starts = %d", starts)
 	}
-	cs.release(start) // last holder starts
+	if err := cs.release(start); err != nil { // last holder starts
+		t.Fatal(err)
+	}
 	if starts != 1 {
 		t.Fatalf("starts = %d, want 1", starts)
 	}
@@ -387,7 +391,9 @@ func TestColdStopRefcount(t *testing.T) {
 	if stops != 2 {
 		t.Fatalf("re-hold should stop again: stops = %d", stops)
 	}
-	cs.release(start)
+	if err := cs.release(start); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestColdStopHoldStopError(t *testing.T) {
@@ -415,7 +421,7 @@ func TestColdStopConcurrent(t *testing.T) {
 			defer wg.Done()
 			_ = cs.hold(func() error { stops.Add(1); return nil })
 			time.Sleep(time.Millisecond)
-			cs.release(func() { starts.Add(1) })
+			_ = cs.release(func() error { starts.Add(1); return nil })
 		}()
 	}
 	wg.Wait()

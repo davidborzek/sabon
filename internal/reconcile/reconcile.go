@@ -158,8 +158,8 @@ func (r *Reconciler) runOnce(ctx context.Context, job discovery.Job, target api.
 	dur := time.Since(start)
 	r.metrics.ObserveBackup(job.App, target.Name, err == nil, dur, res.FilesNew, res.DataAddedBytes)
 	if err != nil {
-		log.Error("backup failed", "error", err, "duration", dur)
-		r.sendNotify(notify.Data{Event: "backup", App: job.App, Target: target.Name, Duration: dur.Round(time.Second), Error: err.Error()})
+		log.Error("backup failed", "error", err, "duration", dur, "snapshot", res.SnapshotID)
+		r.sendNotify(notify.Data{Event: "backup", App: job.App, Target: target.Name, Duration: dur.Round(time.Second), SnapshotID: res.SnapshotID, Error: err.Error()})
 		return err
 	}
 	log.Info("backup complete", "duration", dur, "snapshot", res.SnapshotID, "files_new", res.FilesNew, "data_added_bytes", res.DataAddedBytes)

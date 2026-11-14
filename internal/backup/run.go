@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -12,7 +13,7 @@ import (
 )
 
 // RunTarget backs one app up to one target and returns the mover's result.
-func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target api.Target) (mover.Result, error) {
+func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target api.Target) (res mover.Result, runErr error) {
 	// Per-target source view: drop volumes/paths this target excludes.
 	job.Sources = o.sourcesForTarget(job, target)
 	// Serialise runs against the same repository (target+app).
@@ -53,6 +54,40 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 	if err := o.runHooks(ctx, job, job.Spec.PreHooks, "pre", log); err != nil {
 		return mover.Result{}, err
 	}
+	// Only arm recovery after all pre-hooks succeed. Partial/uncertain pre-hook
+	// execution needs runtime fencing and is not safe to unwind here.
+	var cold *coldStop
+	var snapCleanup func(context.Context)
+	keptMover := false
+	defer func() {
+		// A surviving mover may still read pre-hook artifacts and source snapshots.
+		// Leave both intact rather than running destructive post-hooks on shutdown.
+		if !keptMover {
+			postCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
+			if err := o.runHooks(postCtx, job, job.Spec.PostHooks, "post", log); err != nil {
+				log.Error("post-hook failed", "error", err)
+				runErr = errors.Join(runErr, err)
+			}
+			cancel()
+			if snapCleanup != nil {
+				snapCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
+				snapCleanup(snapCtx)
+				cancel()
+			}
+		}
+		if cold != nil {
+			// Only the run releasing the final holder receives a restart failure.
+			err := cold.release(func() error {
+				startCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
+				defer cancel()
+				return o.quiesce.Start(startCtx, job.Container)
+			})
+			if err != nil {
+				log.Error("failed to restart container after cold backup", "container", job.Container, "error", err)
+				runErr = errors.Join(runErr, fmt.Errorf("restart after cold backup: %w", err))
+			}
+		}
+	}()
 	if job.Spec.Stop {
 		// Coordinate the stop across concurrent runs of the same container (an
 		// app backed up to several targets at once): stop once, start once.
@@ -63,30 +98,19 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		}); err != nil {
 			return mover.Result{}, err
 		}
-		// Always attempt to restart (even on mover failure or shutdown); the last
-		// concurrent holder does it.
-		defer cs.release(func() {
-			if err := o.quiesce.Start(context.WithoutCancel(ctx), job.Container); err != nil {
-				log.Error("failed to restart container after cold backup", "container", job.Container, "error", err)
-			}
-		})
+		cold = cs
 	}
 
 	// Snapshot sources after pre-hooks and any cold stop, so a snapshot captures
 	// dumped/quiesced data. "none" yields live source mounts.
-	srcMounts, snapCleanup, err := o.sourceMountsFor(ctx, job)
+	srcMounts, cleanup, err := o.sourceMountsFor(ctx, job)
 	if err != nil {
 		return mover.Result{}, err
 	}
 	// Destroy the snapshot when the run ends — unless the mover is left running
 	// on shutdown (set below): then it must survive for the surviving backup and
 	// is cleaned by a later reap once that mover exits.
-	keptMover := false
-	defer func() {
-		if !keptMover {
-			snapCleanup(context.WithoutCancel(ctx))
-		}
-	}()
+	snapCleanup = cleanup
 	cacheMs, binds := o.cacheAndRepo(target, job.App)
 	mounts := append(srcMounts, cacheMs...)
 
@@ -106,17 +130,7 @@ func (o *Orchestrator) RunTarget(ctx context.Context, job discovery.Job, target 
 		Node:           job.Node,
 	}
 	log.Debug("spawning mover", "name", req.Name, "image", req.Image, "user", req.User, "sources", len(srcMounts))
-	res, kept, runErr := o.eng.RunMover(ctx, req)
-	keptMover = kept
-
-	// Post-hooks run regardless of the mover outcome, and must survive a
-	// timeout/shutdown cancel of ctx (they may revert pre-hook state, e.g. take
-	// a database out of backup mode), so run them on a fresh bounded context.
-	postCtx, postCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
-	defer postCancel()
-	if err := o.runHooks(postCtx, job, job.Spec.PostHooks, "post", log); err != nil {
-		log.Error("post-hook failed", "error", err)
-	}
+	res, keptMover, runErr = o.eng.RunMover(ctx, req)
 	return res, runErr
 }
 
@@ -233,7 +247,7 @@ type RestoreOptions struct {
 // staging directory (safe; the app need not exist). Otherwise it restores
 // in-place into the app's live volumes (job required), optionally stopping the
 // app first. restic output is written to out.
-func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discovery.Job, target api.Target, opts RestoreOptions, out io.Writer) error {
+func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discovery.Job, target api.Target, opts RestoreOptions, out io.Writer) (runErr error) {
 	unlock := o.locks.lock(target.Name + "|" + app)
 	defer unlock()
 
@@ -263,8 +277,11 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 				return err
 			}
 			defer func() {
-				if err := o.quiesce.Start(context.WithoutCancel(ctx), job.Container); err != nil {
+				startCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Minute)
+				defer cancel()
+				if err := o.quiesce.Start(startCtx, job.Container); err != nil {
 					log.Error("failed to restart container after restore", "container", job.Container, "error", err)
+					runErr = errors.Join(runErr, fmt.Errorf("restart after restore: %w", err))
 				}
 			}()
 		}
