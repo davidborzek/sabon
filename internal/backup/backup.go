@@ -92,7 +92,9 @@ func (o *Orchestrator) Reap(ctx context.Context) (int, error) {
 	return n + hn, err
 }
 
-// keyedMutex serialises operations sharing a key.
+// keyedMutex serialises operations sharing a key within this orchestrator only.
+// It does not cover CLI processes, surviving movers, or aliases for a repository.
+// Restic's native locks arbitrate repository access across those boundaries.
 type keyedMutex struct {
 	mu sync.Mutex
 	m  map[string]*sync.Mutex

@@ -118,6 +118,11 @@ const (
 
 // Execute is the mover-side entrypoint (`sabon-mover`). It reads the Spec from
 // the environment and performs the requested action against the restic repo.
+// Repository coordination belongs to restic's native locks, which also cover
+// other orchestrators, CLI invocations and movers surviving a daemon restart.
+// Never automatically unlock: even plain `unlock` uses hostname/PID liveness,
+// which is not proof of ownership across container PID namespaces. Conflicting
+// locks (including abandoned ones) must fail closed; see troubleshooting docs.
 func Execute(ctx context.Context, stdout, stderr io.Writer) error {
 	raw := os.Getenv(SpecEnv)
 	if raw == "" {
@@ -137,13 +142,10 @@ func Execute(ctx context.Context, stdout, stderr io.Writer) error {
 	case "", ActionBackup:
 		return runBackup(ctx, spec, host, stdout, stderr)
 	case ActionSnapshots:
-		unlockStale(ctx, stderr)
 		return runCmd(ctx, stdout, "snapshots")
 	case ActionCheck:
-		unlockStale(ctx, stderr)
 		return runCmd(ctx, stdout, "check")
 	case ActionPrune:
-		unlockStale(ctx, stderr)
 		return runCmd(ctx, stdout, "prune")
 	case ActionRestore:
 		return runRestore(ctx, spec, stdout)
@@ -165,9 +167,6 @@ func runBackup(ctx context.Context, spec Spec, host string, stdout, stderr io.Wr
 			return fmt.Errorf("restic init: %w", err)
 		}
 	}
-
-	// Remove a stale lock left by a mover that was killed mid-run.
-	unlockStale(ctx, stderr)
 
 	// Back up, parsing the --json summary as it streams.
 	res, err := backup(ctx, spec, host, stdout)
@@ -193,23 +192,11 @@ func runBackup(ctx context.Context, spec Spec, host string, stdout, stderr io.Wr
 	return nil
 }
 
-// unlockStale clears any restic lock left by a killed mover. sabon serialises
-// per repository, so no other live mover holds this repo — any lock present is
-// from a dead process. --remove-all is therefore safe and, unlike a plain
-// unlock, also clears a fresh lock whose foreign container hostname keeps
-// restic from recognising it as stale.
-func unlockStale(ctx context.Context, w io.Writer) {
-	if err := runCmd(ctx, io.Discard, "unlock", "--remove-all"); err != nil {
-		_, _ = fmt.Fprintln(w, "sabon: restic unlock:", err)
-	}
-}
-
 // runRestore restores a snapshot into the mover's restore target.
 func runRestore(ctx context.Context, spec Spec, stdout io.Writer) error {
 	if spec.RestoreTarget == "" {
 		return fmt.Errorf("restore: empty restore target")
 	}
-	unlockStale(ctx, stdout)
 	snap := spec.SnapshotID
 	if snap == "" {
 		snap = "latest"
