@@ -140,7 +140,7 @@ func (o *Orchestrator) RunSnapshots(ctx context.Context, app string, target api.
 		User:    o.cfg.MoverUser,
 		Groups:  o.cfg.MoverGroups,
 		Network: o.cfg.MoverNetwork,
-		Spec:    mover.Spec{App: app, Action: mover.ActionSnapshots, ExtraArgs: target.ResticArgs},
+		Spec:    mover.Spec{App: app, Action: mover.ActionSnapshots, ExtraArgs: target.ResticArgs, DestinationMarker: target.DestinationMarker},
 		Env:     env,
 		Mounts:  mounts,
 		Binds:   binds,
@@ -175,7 +175,7 @@ func (o *Orchestrator) RunCheck(ctx context.Context, app string, target api.Targ
 		User:    o.cfg.MoverUser,
 		Groups:  o.cfg.MoverGroups,
 		Network: o.cfg.MoverNetwork,
-		Spec:    mover.Spec{App: app, Action: mover.ActionCheck, ExtraArgs: target.ResticArgs},
+		Spec:    mover.Spec{App: app, Action: mover.ActionCheck, ExtraArgs: target.ResticArgs, DestinationMarker: target.DestinationMarker},
 		Env:     env,
 		Mounts:  mounts,
 		Binds:   binds,
@@ -210,7 +210,7 @@ func (o *Orchestrator) RunPrune(ctx context.Context, app string, target api.Targ
 		User:    o.cfg.MoverUser,
 		Groups:  o.cfg.MoverGroups,
 		Network: o.cfg.MoverNetwork,
-		Spec:    mover.Spec{App: app, Action: mover.ActionPrune, ExtraArgs: target.ResticArgs},
+		Spec:    mover.Spec{App: app, Action: mover.ActionPrune, ExtraArgs: target.ResticArgs, DestinationMarker: target.DestinationMarker},
 		Env:     env,
 		Mounts:  mounts,
 		Binds:   binds,
@@ -245,7 +245,7 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		return err
 	}
 	mounts, binds := o.cacheAndRepo(target, app)
-	spec := mover.Spec{App: app, Action: mover.ActionRestore, SnapshotID: opts.Snapshot, Include: opts.Include, ExtraArgs: target.ResticArgs}
+	spec := mover.Spec{App: app, Action: mover.ActionRestore, SnapshotID: opts.Snapshot, Include: opts.Include, ExtraArgs: target.ResticArgs, DestinationMarker: target.DestinationMarker}
 
 	if opts.Into != "" {
 		binds = append(binds, opts.Into+":"+restoreMount)
