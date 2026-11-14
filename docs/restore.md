@@ -65,8 +65,8 @@ docker compose exec sabon /sabon restore --app immich --target offsite \
 ## In-place restore — `--in-place` (destructive)
 
 Restore directly into the app's **live volumes**. This overwrites current data,
-so stop the app first with `--stop` (sabon stops it, restores, and starts it
-again):
+so stop the app first with `--stop` (sabon stops it, restores, and restores its
+prior running state; an initially stopped standalone container stays stopped):
 
 ```sh
 docker compose exec sabon /sabon restore --app immich --target offsite \

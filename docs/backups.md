@@ -113,8 +113,8 @@ ways to get a consistent copy — choose per app:
   the live data directory. This yields a logical, point-in-time-consistent dump
   on any filesystem. See [Hooks](hooks.md).
 - **Whole-app quiesce → `stop: true`.** sabon stops the container for the
-  duration of the backup (cold backup) and restarts it afterwards — simple and
-  filesystem-agnostic, at the cost of a short downtime.
+  duration of the backup (cold backup) and restores its prior running state
+  afterwards — simple and filesystem-agnostic, at the cost of a short downtime.
 - **Live files → usually fine.** Media and config files are individually
   consistent; restic copes with concurrent changes.
 - **Atomic snapshots → `snapshot: zfs` (or `auto`).** For large, un-stoppable
@@ -122,6 +122,12 @@ ways to get a consistent copy — choose per app:
   the live files — crash-consistent, zero downtime. `zfs` requires every source
   to be on ZFS; `auto` snapshots the ZFS sources and mounts the rest live. See
   [below](#snapshots).
+
+Standalone cold backups and `restore --stop` leave initially stopped containers
+stopped. Restarts target the original container ID, never a replacement using
+the same name. State is held only in memory and does not survive daemon crashes.
+Overlapping operations coordinate within one orchestrator, not across processes;
+Docker errors still require operator attention (restart failures are logged).
 
 ### Filesystem snapshots {#snapshots}
 

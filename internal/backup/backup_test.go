@@ -17,6 +17,8 @@ import (
 	"github.com/davidborzek/sabon/api"
 	"github.com/davidborzek/sabon/internal/config"
 	"github.com/davidborzek/sabon/internal/discovery"
+	"github.com/davidborzek/sabon/internal/engine"
+	"github.com/davidborzek/sabon/internal/mover"
 	"github.com/davidborzek/sabon/internal/snapshot"
 	"github.com/docker/docker/api/types/mount"
 )
@@ -354,6 +356,50 @@ func TestSourceMountsForAutoForeignVolumeGoesLive(t *testing.T) {
 	}
 	if ms[0].Type != mount.TypeVolume || ms[0].Source != "nfsvol" {
 		t.Errorf("foreign volume must be mounted live by name, got %+v", ms[0])
+	}
+}
+
+type restoreEngine struct {
+	engine.Engine
+	err error
+}
+
+func (e restoreEngine) RunMover(context.Context, mover.Request) (mover.Result, bool, error) {
+	return mover.Result{}, false, e.err
+}
+
+type restoreQuiescer struct{ stops, starts int }
+
+func (q *restoreQuiescer) Stop(context.Context, string) error  { q.stops++; return nil }
+func (q *restoreQuiescer) Start(context.Context, string) error { q.starts++; return nil }
+
+func TestRestoreSharesColdStop(t *testing.T) {
+	t.Setenv("RESTIC_PASSWORD", "secret")
+	ctx := context.Background()
+	q := &restoreQuiescer{}
+	boom := errors.New("mover failed")
+	o := New(&config.Config{}, "mover", restoreEngine{err: boom}, nil, q, fakeHost{}, nil,
+		slog.New(slog.NewTextHandler(io.Discard, nil)))
+	job := &discovery.Job{App: "app", Container: "container"}
+	cs := o.colds.get(job.Container)
+	// Model an overlapping cold backup holding the container stopped.
+	if err := cs.hold(func() error { return q.Stop(ctx, job.Container) }); err != nil {
+		t.Fatal(err)
+	}
+	err := o.RunRestore(ctx, job.App, job, api.Target{Name: "local", Path: "/backup"}, RestoreOptions{Stop: true}, io.Discard)
+	if !errors.Is(err, boom) {
+		t.Fatalf("restore error = %v", err)
+	}
+	if q.stops != 1 || q.starts != 0 {
+		t.Fatalf("premature restore cleanup: %+v", q)
+	}
+	cs.release(func() {
+		if err := q.Start(ctx, job.Container); err != nil {
+			t.Error(err)
+		}
+	})
+	if q.starts != 1 {
+		t.Fatalf("last holder did not restart: %+v", q)
 	}
 }
 
