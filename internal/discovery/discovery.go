@@ -6,9 +6,11 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/davidborzek/sabon/api"
@@ -62,31 +64,36 @@ func Signal(ch chan<- struct{}) {
 	}
 }
 
-// DropNamedCollisions removes every job whose app (repository) is claimed by
-// more than one job when at least one of them is a named backup, returning the
-// kept jobs in order and the colliding apps with their containers. Backing up
-// from none is deliberate: picking one would silently skip the other's data,
-// and a restore could target the wrong one. Plain <prefix>.backup labels
-// sharing a repo (sibling containers of one app) are left as they are.
-func DropNamedCollisions(jobs []Job) ([]Job, map[string][]string) {
-	containers := map[string][]string{}
-	named := map[string]bool{}
+// ErrOwnership marks an ambiguous app/repository identity. Callers must not
+// execute a partial job set or keep previously scheduled owners on this error.
+var ErrOwnership = errors.New("conflicting repository ownership")
+
+// ValidateOwnership requires one backup spec per app, even across disjoint
+// targets: app-only API lookups (including in-place restore) must be unambiguous.
+// It reports every conflict deterministically, rather than picking a winner.
+// Discoverers pass claims before resolving sources; only App, Container and
+// Backup are used, so an empty or temporarily unavailable owner still counts.
+func ValidateOwnership(jobs []Job) error {
+	owners := map[string][]string{}
 	for _, j := range jobs {
-		containers[j.App] = append(containers[j.App], j.Container)
+		owner := fmt.Sprintf("%s (plain backup)", j.Container)
 		if j.Backup != "" {
-			named[j.App] = true
+			owner = fmt.Sprintf("%s (backup %s)", j.Container, j.Backup)
+		}
+		owners[j.App] = append(owners[j.App], owner)
+	}
+	var conflicts []string
+	for app, refs := range owners {
+		if len(refs) > 1 {
+			sort.Strings(refs)
+			conflicts = append(conflicts, fmt.Sprintf("%q claimed by %s", app, strings.Join(refs, ", ")))
 		}
 	}
-	collisions := map[string][]string{}
-	kept := make([]Job, 0, len(jobs))
-	for _, j := range jobs {
-		if named[j.App] && len(containers[j.App]) > 1 {
-			collisions[j.App] = containers[j.App]
-			continue
-		}
-		kept = append(kept, j)
+	if len(conflicts) == 0 {
+		return nil
 	}
-	return kept, collisions
+	sort.Strings(conflicts)
+	return fmt.Errorf("%w: %s; assign distinct repo values or configure one owner with extraVolumes/extraPaths", ErrOwnership, strings.Join(conflicts, "; "))
 }
 
 var unsafeName = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)

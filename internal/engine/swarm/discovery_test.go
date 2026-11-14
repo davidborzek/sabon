@@ -2,10 +2,12 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"testing"
 
+	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 )
@@ -22,6 +24,47 @@ func svcWith(name, backup string, mounts []mount.Mount) swarm.Service {
 			},
 			TaskTemplate: swarm.TaskSpec{ContainerSpec: &swarm.ContainerSpec{Mounts: mounts}},
 		},
+	}
+}
+
+func TestSwarmOwnershipBeforeEmptySources(t *testing.T) {
+	for _, backupKey := range []string{"sabon.backup", "sabon.backup.data"} {
+		t.Run(backupKey, func(t *testing.T) {
+			empty := svcWith("empty", "repo: shared\nauto: true", nil)
+			delete(empty.Spec.Labels, "sabon.backup")
+			empty.Spec.Labels[backupKey] = "repo: shared\nauto: true"
+			f := &fakeSwarm{services: []swarm.Service{
+				svcWith("healthy", "repo: shared\nauto: false\nextraPaths: [/synthetic/healthy]", nil), empty,
+			}}
+			jobs, err := NewDiscoverer(f, "sabon", false, "cache", "", discardLog()).List(context.Background())
+			if !errors.Is(err, discovery.ErrOwnership) || len(jobs) != 0 {
+				t.Fatalf("want ownership failure before dropping empty owner, got jobs=%+v err=%v", jobs, err)
+			}
+		})
+	}
+}
+
+func TestSwarmOwnershipExcludesUnparsedAndUnmanagedLabels(t *testing.T) {
+	for _, mode := range []string{"malformed", "disabled", "other-instance"} {
+		t.Run(mode, func(t *testing.T) {
+			healthy := svcWith("healthy", "repo: shared\nauto: false\nextraPaths: [/synthetic/healthy]", nil)
+			healthy.Spec.Labels["sabon.instance"] = "owned"
+			excluded := svcWith("excluded", "repo: shared\nauto: true", nil)
+			excluded.Spec.Labels["sabon.instance"] = "owned"
+			switch mode {
+			case "malformed":
+				excluded.Spec.Labels["sabon.backup"] += "\nunknownField: true"
+			case "disabled":
+				excluded.Spec.Labels["sabon.enable"] = "false"
+			case "other-instance":
+				excluded.Spec.Labels["sabon.instance"] = "other"
+			}
+			f := &fakeSwarm{services: []swarm.Service{healthy, excluded}}
+			jobs, err := NewDiscoverer(f, "sabon", false, "cache", "owned", discardLog()).List(context.Background())
+			if err != nil || len(jobs) != 1 || jobs[0].Container != "healthy" {
+				t.Fatalf("excluded labels must not claim ownership: jobs=%+v err=%v", jobs, err)
+			}
+		})
 	}
 }
 
@@ -167,7 +210,7 @@ func TestSwarmDiscoverNamedBackups(t *testing.T) {
 	}
 }
 
-func TestSwarmDiscoverDropsNamedCollisions(t *testing.T) {
+func TestSwarmDiscoverRejectsNamedCollisions(t *testing.T) {
 	two := svcWith("two", "auto: false\nextraPaths: [/srv/b]", nil)
 	delete(two.Spec.Labels, "sabon.backup")
 	two.Spec.Labels["sabon.backup.data"] = "repo: shared\nauto: false\nextraPaths: [/srv/b]"
@@ -176,25 +219,18 @@ func TestSwarmDiscoverDropsNamedCollisions(t *testing.T) {
 		two,
 	}}
 	jobs, err := NewDiscoverer(f, "sabon", false, "sabon-cache", "", discardLog()).List(context.Background())
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	if len(jobs) != 0 {
-		t.Fatalf("jobs = %+v, want none: a named backup collides on repo shared", jobs)
+	if err == nil || len(jobs) != 0 {
+		t.Fatalf("jobs = %+v, err = %v, want explicit ownership failure", jobs, err)
 	}
 }
 
-// Plain labels sharing a repo (sibling services) keep the existing behaviour.
-func TestSwarmDiscoverKeepsSingletonSiblings(t *testing.T) {
+func TestSwarmDiscoverRejectsSingletonSiblings(t *testing.T) {
 	f := &fakeSwarm{services: []swarm.Service{
 		svcWith("one", "repo: shared\nauto: false\nextraPaths: [/srv/a]", nil),
 		svcWith("two", "repo: shared\nauto: false\nextraPaths: [/srv/b]", nil),
 	}}
 	jobs, err := NewDiscoverer(f, "sabon", false, "sabon-cache", "", discardLog()).List(context.Background())
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	if len(jobs) != 2 {
-		t.Fatalf("jobs = %+v, want both sibling services kept", jobs)
+	if err == nil || len(jobs) != 0 {
+		t.Fatalf("jobs = %+v, err = %v, want explicit ownership failure", jobs, err)
 	}
 }

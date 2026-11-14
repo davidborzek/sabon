@@ -307,7 +307,8 @@ that may run such an app.
 ### Placeholders
 
 - **`{app}`** — expands to the app name (from the label's `repo`, else the
-  compose service, else the container name). Used to give every app its own repo
+  Compose `<project>-<service>`, else the container name; named specs append
+  `-<name>`). See [`repo` naming and migration](labels.md#repo). Used to give every app its own repo
   inside a shared remote bucket.
 - **`${ENV}`** — expands from the orchestrator's environment at load time, in
   both `repo` and `env` values. Keeps endpoints and secrets out of the file.

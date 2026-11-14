@@ -2,10 +2,12 @@ package docker
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"testing"
 
+	"github.com/davidborzek/sabon/internal/discovery"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
@@ -15,9 +17,11 @@ import (
 // by discovery are implemented (others panic if ever called).
 type fakeDocker struct {
 	client.APIClient
-	list    []container.Summary
-	mounts  map[string][]container.MountPoint
-	gotOpts container.ListOptions
+	list          []container.Summary
+	mounts        map[string][]container.MountPoint
+	gotOpts       container.ListOptions
+	inspectErrors map[string]error
+	inspectCalls  int
 }
 
 func (f *fakeDocker) ContainerList(_ context.Context, opts container.ListOptions) ([]container.Summary, error) {
@@ -26,10 +30,58 @@ func (f *fakeDocker) ContainerList(_ context.Context, opts container.ListOptions
 }
 
 func (f *fakeDocker) ContainerInspect(_ context.Context, name string) (container.InspectResponse, error) {
+	f.inspectCalls++
+	if err := f.inspectErrors[name]; err != nil {
+		return container.InspectResponse{}, err
+	}
 	return container.InspectResponse{
 		ContainerJSONBase: &container.ContainerJSONBase{Name: "/" + name},
 		Mounts:            f.mounts[name],
 	}, nil
+}
+
+func TestListOwnershipBeforeSourceResolution(t *testing.T) {
+	for _, backupKey := range []string{"sabon.backup", "sabon.backup.data"} {
+		t.Run(backupKey, func(t *testing.T) {
+			fd := &fakeDocker{list: []container.Summary{
+				{Names: []string{"/healthy"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup": "repo: shared\nauto: false\nextraPaths: [/synthetic/healthy]"}},
+				{Names: []string{"/unresolved"}, Labels: map[string]string{"sabon.enable": "true", backupKey: "repo: shared\nauto: true"}},
+			}}
+			fd.inspectErrors = map[string]error{"unresolved": errors.New("synthetic inspect failure")}
+			jobs, err := NewDiscoverer(fd, "sabon", false, "cache", "", testLogger()).List(context.Background())
+			if !errors.Is(err, discovery.ErrOwnership) || len(jobs) != 0 {
+				t.Fatalf("want ownership failure before dropping unresolved owner, got jobs=%+v err=%v", jobs, err)
+			}
+			// Resolution must never start, so neither failed inspect nor empty mounts can hide an owner.
+			if fd.inspectCalls != 0 {
+				t.Fatalf("resolved sources before checking ownership: %d inspect calls", fd.inspectCalls)
+			}
+		})
+	}
+}
+
+func TestListOwnershipExcludesUnparsedAndUnmanagedLabels(t *testing.T) {
+	for _, mode := range []string{"malformed", "disabled", "other-instance"} {
+		t.Run(mode, func(t *testing.T) {
+			labels := map[string]string{"sabon.enable": "true", "sabon.instance": "owned", "sabon.backup": "repo: shared\nauto: true"}
+			switch mode {
+			case "malformed":
+				labels["sabon.backup"] += "\nunknownField: true"
+			case "disabled":
+				labels["sabon.enable"] = "false"
+			case "other-instance":
+				labels["sabon.instance"] = "other"
+			}
+			fd := &fakeDocker{list: []container.Summary{
+				{Names: []string{"/healthy"}, Labels: map[string]string{"sabon.enable": "true", "sabon.instance": "owned", "sabon.backup": "repo: shared\nauto: false\nextraPaths: [/synthetic/healthy]"}},
+				{Names: []string{"/excluded"}, Labels: labels},
+			}}
+			jobs, err := NewDiscoverer(fd, "sabon", false, "cache", "owned", testLogger()).List(context.Background())
+			if err != nil || len(jobs) != 1 || jobs[0].Container != "healthy" {
+				t.Fatalf("excluded labels must not claim ownership: jobs=%+v err=%v", jobs, err)
+			}
+		})
+	}
 }
 
 func testLogger() *slog.Logger {
@@ -273,17 +325,54 @@ func TestListSameNamedBackupOnTwoContainers(t *testing.T) {
 
 // Two containers resolving to the same repository must back up from neither,
 // so no path (schedule, CLI, API restore) can pick an arbitrary one.
-func TestListDropsCollidingApps(t *testing.T) {
+func TestListRejectsCollidingApps(t *testing.T) {
 	fd := &fakeDocker{list: []container.Summary{
 		{ID: "a", Names: []string{"/one"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup": "repo: shared\nauto: false\nextraPaths: [/srv/a]\n"}},
 		{ID: "b", Names: []string{"/two"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup.data": "repo: shared\nauto: false\nextraPaths: [/srv/b]\n"}},
 		{ID: "c", Names: []string{"/three"}, Labels: map[string]string{"sabon.enable": "true", "sabon.backup": "auto: false\nextraPaths: [/srv/c]\n"}},
 	}}
 	jobs, err := NewDiscoverer(fd, "sabon", false, "sabon-cache", "", testLogger()).List(context.Background())
-	if err != nil {
-		t.Fatalf("List: %v", err)
+	if err == nil || len(jobs) != 0 {
+		t.Fatalf("jobs = %+v, err = %v, want explicit ownership failure", jobs, err)
 	}
-	if len(jobs) != 1 || jobs[0].App != "three" {
-		t.Fatalf("jobs = %+v, want only three", jobs)
+}
+
+func TestListComposeProjectIdentities(t *testing.T) {
+	for _, suffix := range []string{"", ".data"} {
+		t.Run(suffix, func(t *testing.T) {
+			fd := &fakeDocker{}
+			for _, project := range []string{"alpha", "beta"} {
+				fd.list = append(fd.list, container.Summary{Names: []string{"/" + project + "-db-1"}, Labels: map[string]string{
+					"sabon.enable": "true", "sabon.backup" + suffix: "auto: false\nextraPaths: [/srv/" + project + "]\n",
+					"com.docker.compose.project": project, "com.docker.compose.service": "db",
+				}})
+			}
+			d := NewDiscoverer(fd, "sabon", false, "cache", "", testLogger())
+			jobs, err := d.List(context.Background())
+			if err != nil || len(jobs) != 2 {
+				t.Fatalf("List = %+v, %v", jobs, err)
+			}
+			for i, project := range []string{"alpha", "beta"} {
+				want := project + "-db"
+				if suffix != "" {
+					want += "-data"
+				}
+				if jobs[i].App != want || jobs[i].Sources[0].Ref != "/srv/"+project {
+					t.Fatalf("job = %+v, want %s with its own source", jobs[i], want)
+				}
+			}
+			// Explicit legacy names remain usable, but only with one owner.
+			for i := range fd.list {
+				fd.list[i].Labels["sabon.backup"+suffix] += "repo: db\n"
+			}
+			if _, err := d.List(context.Background()); err == nil {
+				t.Fatal("shared explicit repo must fail")
+			}
+			fd.list = fd.list[:1]
+			jobs, err = d.List(context.Background())
+			if err != nil || len(jobs) != 1 || jobs[0].App != "db" {
+				t.Fatalf("legacy repo = %+v, %v", jobs, err)
+			}
+		})
 	}
 }

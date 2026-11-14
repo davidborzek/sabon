@@ -47,7 +47,7 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jobs []discovery.Job
+	var claims []discovery.Job
 	for _, c := range cs {
 		res, err := label.Read(c.Labels, d.prefix, d.watchByDefault)
 		if err != nil {
@@ -60,42 +60,45 @@ func (d *Discoverer) List(ctx context.Context) ([]discovery.Job, error) {
 		if d.instance != "" && res.Instance != d.instance {
 			continue // owned by a different sabon instance
 		}
+		service := c.Labels[discovery.ComposeServiceLabel]
+		if service == "" {
+			service = name(c)
+		} else if project := c.Labels[discovery.ComposeProjectLabel]; project != "" {
+			service = project + "-" + service
+		}
 		for _, b := range res.Backups() {
-			job, err := d.resolve(ctx, name(c), c.Labels, res.Instance, b)
-			if err != nil {
-				d.log.Warn("cannot resolve backup sources", "container", name(c), "backup", b.Name, "error", err)
-				continue
-			}
-			if len(job.Sources) == 0 {
-				d.log.Warn("backup enabled but no sources resolved", "container", name(c), "app", job.App)
-				continue
-			}
-			jobs = append(jobs, job)
-			d.log.Debug("discovered job", "app", job.App, "container", name(c), "sources", len(job.Sources))
+			claims = append(claims, discovery.Job{Container: name(c), Backup: b.Name, App: b.App(service), Instance: res.Instance, Project: c.Labels[discovery.ComposeProjectLabel], Spec: b.Spec})
 		}
 	}
-	jobs, collisions := discovery.DropNamedCollisions(jobs)
-	for app, containers := range collisions {
-		d.log.Error("repository claimed by a named backup and another backup, backing up none of them", "app", app, "containers", containers)
+	// Ownership comes from enabled, parsed specs, not from the availability
+	// of their sources. An empty or uninspectable owner still claims its app.
+	if err := discovery.ValidateOwnership(claims); err != nil {
+		return nil, err
+	}
+	var jobs []discovery.Job
+	for _, claim := range claims {
+		job, err := d.resolve(ctx, claim)
+		if err != nil {
+			d.log.Warn("cannot resolve backup sources", "container", claim.Container, "backup", claim.Backup, "error", err)
+			continue
+		}
+		if len(job.Sources) == 0 {
+			d.log.Warn("backup enabled but no sources resolved", "container", job.Container, "app", job.App)
+			continue
+		}
+		jobs = append(jobs, job)
+		d.log.Debug("discovered job", "app", job.App, "container", job.Container, "sources", len(job.Sources))
 	}
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].App < jobs[j].App })
 	return jobs, nil
 }
 
-// resolve turns a container + one of its backup specs into a Job with concrete
-// sources. The singleton's fallback app is the compose service, else the
-// container name.
-func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[string]string, instance string, b label.Named) (discovery.Job, error) {
-	spec := b.Spec
-	service := labels[discovery.ComposeServiceLabel]
-	if service == "" {
-		service = cname
-	}
-	app := b.App(service)
-	if err := discovery.ValidAppName(app); err != nil {
+// resolve adds concrete sources to an ownership-validated backup claim.
+func (d *Discoverer) resolve(ctx context.Context, job discovery.Job) (discovery.Job, error) {
+	spec := job.Spec
+	if err := discovery.ValidAppName(job.App); err != nil {
 		return discovery.Job{}, err
 	}
-	job := discovery.Job{Container: cname, Backup: b.Name, App: app, Instance: instance, Project: labels[discovery.ComposeProjectLabel], Spec: spec}
 	names := discovery.NewNamer()
 	// Auto: the container's own bind mounts and named volumes.
 	if spec.AutoSources() {
@@ -103,7 +106,7 @@ func (d *Discoverer) resolve(ctx context.Context, cname string, labels map[strin
 		for _, v := range spec.ExcludeVolumes {
 			excluded[v] = struct{}{}
 		}
-		insp, err := d.cli.ContainerInspect(ctx, cname)
+		insp, err := d.cli.ContainerInspect(ctx, job.Container)
 		if err != nil {
 			return discovery.Job{}, err
 		}
