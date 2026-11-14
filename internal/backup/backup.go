@@ -156,13 +156,15 @@ func (c *coldStop) hold(stop func() error) error {
 }
 
 // release drops a holder, running start when the last one leaves (refs 1->0).
-func (c *coldStop) release(start func()) {
+// A restart error belongs to that last holder, not to runs already released.
+func (c *coldStop) release(start func() error) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.refs--
 	if c.refs == 0 {
-		start()
+		return start()
 	}
+	return nil
 }
 
 func sanitize(s string) string {
