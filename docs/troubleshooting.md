@@ -45,15 +45,35 @@ See [socket access](deployment.md#socket) for a complete proxy example.
 
 ## `repository is already locked`
 
-A previous restic run was killed before it released its lock. Confirm no mover is
-still running for that repo, then clear it:
+A lock can belong to an active operation, including a mover that survived a
+daemon restart or a separate CLI invocation. sabon relies on restic's native
+locks and reports conflicts; retry after the current operation finishes. Its
+per-repository mutex only serialises work within one orchestrator process.
+
+sabon never automatically unlocks. If a killed mover leaves a lock:
+
+1. Pause scheduling and prevent new CLI or external restic operations on all
+   hosts and swarm nodes.
+2. Inspect mover containers/services and verify that **all** repository users
+   have stopped. Stopping the daemon alone may leave movers running.
+3. With the same repository credentials, run restic's stale-lock cleanup:
 
 ```sh
 restic -r <repo> unlock
 ```
 
+Even plain `unlock` uses hostname/PID liveness, which is unreliable across
+container PID namespaces. A fresh foreign-host lock may remain until stale
+(normally 30 minutes without refresh). Do not bypass contention with
+`unlock --remove-all`: keep the repository idle and investigate any remaining
+lock's owner. Resume scheduling only after recovery is complete.
+
 A `prune` job locks the repo for its whole duration and blocks backups — that is
-expected; see [check & prune](backups.md#checks).
+expected; see [check & prune](backups.md#checks). Locks cover individual restic
+operations, not hooks, restore destinations, or the whole backup/retention
+sequence; coordinate overlapping workflows externally. If retention encounters
+a lock after backup succeeds, the snapshot remains and the run reports the
+retention error. Do not disable locking with `--no-lock` in `resticArgs`.
 
 ## `wrong password` / repository not found
 
