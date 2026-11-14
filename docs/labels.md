@@ -51,7 +51,23 @@ labels:
 
 ### `repo`
 
-*string · default: compose service, else container name (for `sabon.backup.<name>`: `<service>-<name>`)* — The app / repo name. Determines the per-target repo (`<path>/<repo>` or `{app}` → `repo`); sibling containers of the same app should share one `repo`.
+*string · default: `<project>-<service>` in Compose, else container name (named specs append `-<name>`)* — The app / repo name. Determines the per-target repo (`<path>/<repo>` or `{app}` → `repo`). With a service label but no project label, the default remains the service name. Swarm defaults remain the full service name. An explicit `repo` always wins. Each app name must have exactly one backup-spec owner, including when specs select different targets.
+
+#### Migrating existing repositories
+
+Before upgrading, set `repo` to the old `<service>` (or `<service>-<name>`) name
+to retain its history: `repo: db` keeps `db` instead of adopting `alpha-db`.
+Nothing is renamed or moved automatically; new defaults start separate histories.
+
+Plain and named specs now both require a **single owner**. Give siblings distinct
+repos, or keep one owner with `extraVolumes`/`extraPaths` and disable the others.
+Conflicts fail discovery, one-shot backups and app API operations; reconciliation
+reports failure (`sabon_ready=0`) and suspends **all** backup/check/prune schedules
+until fixed. Already running operations are not cancelled.
+
+Validation covers enabled, parsed specs in the current instance before source
+resolution, so empty sources or failed inspect calls cannot hide an owner. It
+does not detect cross-instance or physical-repository aliases across targets.
 
 ### `auto`
 
@@ -211,9 +227,9 @@ you want to restore independently — add named specs next to (or instead of) it
 ```yaml
 labels:
   sabon.enable: "true"
-  sabon.backup: |              # repo: compose service name, as before
+  sabon.backup: |              # repo: <project>-<service> in Compose
     auto: true
-  sabon.backup.media: |        # repo: <service>-media
+  sabon.backup.media: |        # repo: <project>-<service>-media in Compose
     auto: false
     extraPaths: [/srv/media]
     targets: [onsite]
@@ -221,21 +237,16 @@ labels:
 
 Each `sabon.backup.<name>` is a full spec (every field above), backed up as its
 own job with its own schedule, retention, hooks and repository. Without `repo`,
-the repository is named `<service>-<name>` (compose service, else container
-name), so the same `<name>` on two services never collides; set `repo` to
-choose another.
+the repository appends `-<name>` to the default app identity described under
+[`repo`](#repo), for example `alpha-db-media`. Set `repo` to choose another.
 
 - `<name>` is lower-case `[a-z0-9-]`, starting and ending alphanumeric.
 - `auto` keeps its default of `true`, so every spec on the container would
   include the container's own mounts. Set `auto: false` on specs that only back
   up their `extraPaths`/`extraVolumes`.
-- A named spec must own its repository. If it resolves to the same repository
-  as any other spec (named or plain, on any container), sabon logs an error and
-  backs up **none** of them — rather than picking one and silently skipping the
-  other's data, or restoring into the wrong container. Fix it with a distinct
-  `repo`. Plain `sabon.backup` labels sharing one `repo` (sibling containers of
-  an app) keep their existing behaviour.
-- The plain `sabon.backup` label is unchanged and stays the common case.
+- Every spec, named or plain, must own its repository uniquely. Conflicts fail
+  discovery rather than selecting an arbitrary backup or restore destination.
+- The plain `sabon.backup` label remains the common case.
 
 ## Validating and schema
 

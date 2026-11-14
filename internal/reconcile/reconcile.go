@@ -49,30 +49,30 @@ type plan struct {
 
 // Reconcile lists jobs and syncs the scheduler to match.
 func (r *Reconciler) Reconcile() error {
-	jobs, err := r.disc.List(r.ctx)
+	jobs, err := r.Jobs(r.ctx)
 	if err != nil {
+		if errors.Is(err, discovery.ErrOwnership) {
+			// A previous owner's closure is no longer safe to run. Fail the
+			// entire set visibly rather than silently retaining partial coverage.
+			r.sched.Sync(nil)
+			r.metrics.SetManagedJobs(0)
+		}
 		r.metrics.ObserveReconcile(false)
 		return err
 	}
 	r.metrics.SetManagedJobs(len(jobs))
 
 	var desired []scheduler.Job
-	seen := map[string]bool{}
 	for _, p := range r.plans(jobs) {
 		app, target := p.job.App, p.target
 		if p.schedule != "" {
 			key := app + "|" + target.Name
-			if seen[key] {
-				r.log.Warn("duplicate app|target: another container already backs up this repo, skipping the duplicate", "app", app, "target", target.Name)
-			} else {
-				seen[key] = true
-				desired = append(desired, scheduler.Job{
-					Key:         key,
-					Schedule:    p.schedule,
-					Fingerprint: jobFingerprint(p.job, target),
-					Run:         r.runFunc(p.job, p.target),
-				})
-			}
+			desired = append(desired, scheduler.Job{
+				Key:         key,
+				Schedule:    p.schedule,
+				Fingerprint: jobFingerprint(p.job, target),
+				Run:         r.runFunc(p.job, p.target),
+			})
 		} else {
 			r.log.Warn("no backup schedule for target; runnable via `sabon backup` (check/prune still scheduled if set)", "app", app, "target", target.Name)
 		}
@@ -227,7 +227,7 @@ func (r *Reconciler) RunAll(ctx context.Context, appFilter string) error {
 // RunMatching runs every discovered job/target pair matching the filters
 // (empty = any) once, synchronously. A filter that matches nothing is an error.
 func (r *Reconciler) RunMatching(ctx context.Context, appFilter, targetFilter string) error {
-	jobs, err := r.disc.List(ctx)
+	jobs, err := r.Jobs(ctx)
 	if err != nil {
 		return err
 	}
@@ -294,14 +294,21 @@ func (r *Reconciler) ConfigTargets() []api.Target { return r.cfg.Targets }
 
 // Jobs returns the currently discovered backup jobs.
 func (r *Reconciler) Jobs(ctx context.Context) ([]discovery.Job, error) {
-	return r.disc.List(ctx)
+	jobs, err := r.disc.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := discovery.ValidateOwnership(jobs); err != nil {
+		return nil, err
+	}
+	return jobs, nil
 }
 
 // resolve finds the discovered job for app plus the targets to act on: all of
 // the app's targets when targetName is empty, else just the named one (which
 // must be one the app backs up to).
 func (r *Reconciler) resolve(ctx context.Context, app, targetName string) (discovery.Job, []api.Target, error) {
-	jobs, err := r.disc.List(ctx)
+	jobs, err := r.Jobs(ctx)
 	if err != nil {
 		return discovery.Job{}, nil, err
 	}

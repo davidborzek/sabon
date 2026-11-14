@@ -47,7 +47,7 @@ sabon's `sabon.backup` is document-form (an embedded YAML backup spec).
 
 ## Named resources
 
-- Singleton: `<prefix>.<kind>` — name defaults to the Compose service name.
+- Singleton: `<prefix>.<kind>` — sabon defaults to `<project>-<service>` in Compose (service alone when the project label is absent), else the container name. An explicit `repo` preserves a legacy identity; see [migration guidance](docs/labels.md#migrating-existing-repositories).
 - Multiple: `<prefix>.<kind>.<name>` — independent objects on one container.
 
 ## Spec vs. selector

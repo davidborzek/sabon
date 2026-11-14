@@ -1,6 +1,10 @@
 package discovery
 
-import "testing"
+import (
+	"errors"
+	"strings"
+	"testing"
+)
 
 func TestNamerDedup(t *testing.T) {
 	n := NewNamer()
@@ -22,31 +26,49 @@ func TestValidAppName(t *testing.T) {
 	}
 }
 
-func TestDropNamedCollisions(t *testing.T) {
+func TestValidateOwnership(t *testing.T) {
 	jobs := []Job{
 		{App: "a", Container: "one"},
 		{App: "shared", Container: "two"},
 		{App: "b", Container: "three"},
 		{App: "shared", Container: "four", Backup: "data"},
 	}
-	kept, collisions := DropNamedCollisions(jobs)
-	if len(kept) != 2 || kept[0].App != "a" || kept[1].App != "b" {
-		t.Errorf("kept = %+v, want [a b]: a repo shared with a named backup must back up from neither", kept)
+	err := ValidateOwnership(jobs)
+	if !errors.Is(err, ErrOwnership) {
+		t.Fatalf("want ownership error, got %v", err)
 	}
-	if got := collisions["shared"]; len(got) != 2 || got[0] != "two" || got[1] != "four" {
-		t.Errorf("collisions[shared] = %v, want [two four]", got)
-	}
-	if len(collisions) != 1 {
-		t.Errorf("collisions = %v, want only shared", collisions)
+	for _, text := range []string{"shared", "two (plain backup)", "four (backup data)", "distinct repo"} {
+		if !strings.Contains(err.Error(), text) {
+			t.Errorf("missing %q in %v", text, err)
+		}
 	}
 }
 
-// Sibling containers sharing one repo through plain <prefix>.backup labels are
-// a documented pattern and keep their existing behaviour.
-func TestDropNamedCollisionsKeepsSingletonSiblings(t *testing.T) {
+func TestValidateOwnershipRejectsSingletonSiblings(t *testing.T) {
 	jobs := []Job{{App: "app", Container: "server"}, {App: "app", Container: "db"}, {App: "b"}}
-	kept, collisions := DropNamedCollisions(jobs)
-	if len(kept) != 3 || len(collisions) != 0 {
-		t.Errorf("kept=%v collisions=%v, want all kept and none reported", kept, collisions)
+	if err := ValidateOwnership(jobs); !errors.Is(err, ErrOwnership) {
+		t.Errorf("want ownership error, got %v", err)
+	}
+}
+
+func TestValidateOwnershipDistinctAndEmpty(t *testing.T) {
+	for _, jobs := range [][]Job{nil, {{App: "a"}, {App: "b"}}} {
+		if err := ValidateOwnership(jobs); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestValidateOwnershipSameContainerAndStableDiagnostics(t *testing.T) {
+	jobs := []Job{{App: "z", Container: "one"}, {App: "z", Container: "one", Backup: "data"}, {App: "a", Container: "two"}, {App: "a", Container: "three"}}
+	want := ValidateOwnership(jobs).Error()
+	for i, j := 0, len(jobs)-1; i < j; i, j = i+1, j-1 {
+		jobs[i], jobs[j] = jobs[j], jobs[i]
+	}
+	if got := ValidateOwnership(jobs).Error(); got != want {
+		t.Fatalf("unstable errors: %s / %s", got, want)
+	}
+	if !strings.Contains(want, `"a"`) || !strings.Contains(want, `"z"`) {
+		t.Fatalf("missing conflict: %s", want)
 	}
 }

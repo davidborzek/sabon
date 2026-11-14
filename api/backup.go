@@ -105,8 +105,9 @@ func (h Hook) TimeoutDuration() (time.Duration, error) {
 // label <prefix>.backup as embedded YAML.
 type Spec struct {
 	// Repo is the per-app repository name (the {app} in a target's template).
-	// Defaults to the Compose service name, else the container name.
-	Repo string `yaml:"repo,omitempty" json:"repo,omitempty" jsonschema:"description=Repository name (the {app} in a target template); default: compose service/container name"`
+	// Defaults to <project>-<service> in Compose, else the container name.
+	// Named specs append -<name>; an explicit repo preserves legacy identities.
+	Repo string `yaml:"repo,omitempty" json:"repo,omitempty" jsonschema:"description=Repository name (the {app} in a target template); default: compose project-service/container name; named specs append -name"`
 	// Auto includes the labeled container's own bind mounts and named volumes
 	// as backup sources. Defaults to true.
 	Auto *bool `yaml:"auto,omitempty" json:"auto,omitempty" jsonschema:"description=Include the labeled container's own mounts as sources (default: true)"`

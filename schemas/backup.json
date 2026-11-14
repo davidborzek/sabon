@@ -91,7 +91,7 @@
       "properties": {
         "repo": {
           "type": "string",
-          "description": "Repository name (the {app} in a target template); default: compose service/container name"
+          "description": "Repository name (the {app} in a target template); default: compose project-service/container name; named specs append -name"
         },
         "auto": {
           "type": "boolean",
