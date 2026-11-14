@@ -259,14 +259,17 @@ func (o *Orchestrator) RunRestore(ctx context.Context, app string, job *discover
 		if opts.Stop {
 			log := o.log.With("app", app, "target", target.Name)
 			log.Info("stopping container for in-place restore", "container", job.Container)
-			if err := o.quiesce.Stop(ctx, job.Container); err != nil {
+			cs := o.colds.get(job.Container)
+			if err := cs.hold(func() error {
+				return o.quiesce.Stop(ctx, job.Container)
+			}); err != nil {
 				return err
 			}
-			defer func() {
+			defer cs.release(func() {
 				if err := o.quiesce.Start(context.WithoutCancel(ctx), job.Container); err != nil {
 					log.Error("failed to restart container after restore", "container", job.Container, "error", err)
 				}
-			}()
+			})
 		}
 	}
 
