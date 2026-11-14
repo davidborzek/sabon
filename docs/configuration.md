@@ -218,6 +218,37 @@ Target name. Referenced from a label's `targets`, `schedule` and `retention` map
 
 **Local backend.** The repo for app `<app>` is `<path>/<app>`, bind-mounted into the mover at `/repo`.
 
+#### `destinationMarker`
+
+For local `path` targets, an optional marker prevents writing to an unintended
+fallback directory when an expected network mount is absent:
+
+```yaml
+targets:
+  - name: guarded-local
+    path: /mnt/backup
+    destinationMarker: synthetic-backup-destination-01
+```
+
+Provision `<path>/<app>/.sabon-destination` on the intended destination for each
+app. It must be a regular file containing the exact nonempty identity, optionally
+followed by a newline. Surrounding whitespace and symlinks are rejected. sabon
+never creates markers; guarded per-app directories must already exist.
+
+The mover checks the marker before any restic command, including initialization
+and maintenance. Missing, unreadable, or mismatched markers fail the operation;
+a valid marker allows repository initialization. Remote `repo` backends do not
+support this option.
+
+Guarded targets reject repository overrides in `env`/`resticArgs`. Short flags
+must be standalone (`-q`, `-v`, `-h`, `-o VALUE`, `-p FILE`); use long options
+instead of clusters or attached values such as `-vv`, `-oVALUE`, or `-qr/other`.
+Unguarded targets retain their existing behavior.
+
+A marker guards against accidental fallback, not NFS durability or mount changes
+after validation. Never copy it to the underlying fallback directory; enforce
+mount dependencies externally. An unreachable NFS mount can still hang or fail.
+
 #### `repo`
 
 **Remote backend.** A restic repository string with `{app}` and `${ENV}` placeholders, e.g. `s3:…/{app}`. See restic's [repository backends](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html) for the supported schemes (`s3:`, `rest:`, `sftp:`, `b2:`, …). The mover image ships an `ssh` client for `sftp:` and rclone for `rclone:`. OpenSSH refuses to run under a uid without a passwd entry, so `sftp:` needs the mover to run as root (the default `SABON_MOVER_USER`); with a non-root mover user, reach the SFTP server through `rclone:` instead, which has its own SFTP client.

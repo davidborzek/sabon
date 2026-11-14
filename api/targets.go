@@ -21,6 +21,9 @@ const (
 // Target is one backup destination shared by every app. The per-app repository
 // is derived from the app's repo name.
 type Target struct {
+	// DestinationMarker is the expected content of an operator-provisioned
+	// .sabon-destination file in each local per-app repository directory.
+	DestinationMarker string `yaml:"destinationMarker,omitempty" json:"destinationMarker,omitempty" jsonschema:"description=Expected identity in the local per-app .sabon-destination marker; never created by sabon"`
 	// Name identifies the target (used in labels, metrics, schedule keys).
 	Name string `yaml:"name" json:"name" jsonschema:"description=Target name,required"`
 	// Path is the host base directory for a local backend. The per-app repo is
@@ -166,6 +169,9 @@ func (f *File) Validate() error {
 			}
 		}
 		if err := t.validateFiles(); err != nil {
+			return err
+		}
+		if err := t.validateDestinationGuard(); err != nil {
 			return err
 		}
 	}

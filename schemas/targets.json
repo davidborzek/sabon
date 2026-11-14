@@ -55,6 +55,10 @@
     },
     "Target": {
       "properties": {
+        "destinationMarker": {
+          "type": "string",
+          "description": "Expected identity in the local per-app .sabon-destination marker; never created by sabon"
+        },
         "name": {
           "type": "string",
           "description": "Target name"

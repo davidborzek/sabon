@@ -31,13 +31,14 @@ func (o *Orchestrator) moverSpec(job discovery.Job, target api.Target) mover.Spe
 		}
 	}
 	return mover.Spec{
-		App:       job.App,
-		Host:      job.App,
-		Sources:   sources,
-		Excludes:  excludes,
-		Tags:      job.Spec.Tags,
-		Retention: ret,
-		ExtraArgs: target.ResticArgs,
+		DestinationMarker: target.DestinationMarker,
+		App:               job.App,
+		Host:              job.App,
+		Sources:           sources,
+		Excludes:          excludes,
+		Tags:              job.Spec.Tags,
+		Retention:         ret,
+		ExtraArgs:         target.ResticArgs,
 	}
 }
 
@@ -100,9 +101,14 @@ func (o *Orchestrator) cacheAndRepo(target api.Target, app string) ([]mount.Moun
 		ms = append(ms, secretMount(f.Source, f.Target))
 	}
 	var binds []string
-	// Legacy bind on purpose: the daemon creates a missing repo directory.
+	// Preserve directory creation for unguarded targets. Guarded targets require
+	// an existing per-app directory and validate its marker inside the mover.
 	if target.Backend() == api.BackendLocal {
-		binds = append(binds, filepath.Join(target.Path, app)+":"+repoMount)
+		if target.DestinationMarker != "" {
+			ms = append(ms, mount.Mount{Type: mount.TypeBind, Source: filepath.Join(target.Path, app), Target: repoMount})
+		} else {
+			binds = append(binds, filepath.Join(target.Path, app)+":"+repoMount)
+		}
 	}
 	return ms, binds
 }

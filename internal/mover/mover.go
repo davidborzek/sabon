@@ -32,6 +32,8 @@ const resultMarker = "SABON_RESULT "
 // environment variables (RESTIC_REPOSITORY, RESTIC_PASSWORD, AWS_*, …) that
 // restic reads directly.
 type Spec struct {
+	// DestinationMarker is checked in /repo/.sabon-destination before restic.
+	DestinationMarker string `json:"destination_marker,omitempty"`
 	// App is the repository/app name; used as the primary restic tag and host.
 	App string `json:"app"`
 	// Host is the restic snapshot host (defaults to App).
@@ -132,6 +134,9 @@ func Execute(ctx context.Context, stdout, stderr io.Writer) error {
 		host = spec.App
 	}
 	globalArgs = spec.ExtraArgs
+	if err := guardDestination(spec); err != nil {
+		return err
+	}
 
 	switch spec.Action {
 	case "", ActionBackup:
