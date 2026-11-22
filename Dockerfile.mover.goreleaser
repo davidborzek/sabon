@@ -3,7 +3,7 @@
 # Keep in sync with ./Dockerfile.mover.
 
 # renovate: datasource=docker depName=restic/restic
-FROM restic/restic:0.19.1 AS restic
+FROM restic/restic:0.20.0 AS restic
 
 # renovate: datasource=docker depName=rclone/rclone
 FROM rclone/rclone:1.76.0 AS rclone
